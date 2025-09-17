@@ -1,0 +1,37 @@
+.debug-json {
+  background-color: #f3f2f1;
+  border: 1px solid #b1b4b6;
+  padding: 10px;
+  font-family: Monaco, Menlo, Consolas, 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.debug-document {
+  border-left: 4px solid #1d70b8;
+  padding-left: 15px;
+  margin-bottom: 20px;
+  background-color: #f8f8f8;
+  padding: 15px;
+  border-radius: 4px;
+
+  h5 {
+    margin-top: 0;
+  }
+
+  p {
+    margin-bottom: 10px;
+    
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
+.debug-document:last-child {
+  margin-bottom: 0;
+}

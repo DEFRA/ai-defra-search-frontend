@@ -46,6 +46,12 @@ export const config = convict({
     format: String,
     default: 'ai-defra-search-frontend'
   },
+  apiBaseUrl: {
+    doc: 'Base URL for the AI chat API',
+    format: String,
+    default: 'http://localhost:8085',
+    env: 'API_BASE_URL'
+  },
   root: {
     doc: 'Project root',
     format: String,

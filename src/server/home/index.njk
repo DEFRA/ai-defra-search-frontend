@@ -1,17 +1,93 @@
 {% extends 'layouts/page.njk' %}
 
+{# Import GOVUK components #}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: phaseTag
+    },
+    html: phaseTagText
+  }) }}
+{% endblock %}
+
 {% block content %}
   {{ appHeading({
     text: heading,
-    caption: "ai-defra-search-frontend"
+    caption: "Search AI guidance and information across DEFRA and government"
   }) }}
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      <div class="govuk-body" data-testid="app-page-body">
-        <p></p>
+      
+      {% if error %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: error,
+              href: "#question"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      {{ govukInsetText({
+        html: 'This service helps you find AI guidance, policies, and information from across DEFRA and government departments. Ask your question below and get relevant, authoritative answers.'
+      }) }}
+
+      <form action="/" method="post" novalidate>
+        
+        {{ govukTextarea({
+          name: "question",
+          id: "question",
+          value: question,
+          errorMessage: {
+            text: error
+          } if error else undefined,
+          label: {
+            text: "What would you like to know about AI guidance or information?",
+            classes: "govuk-label--m"
+          },
+          hint: {
+            text: "For example: 'What are the ethics guidelines for AI in government?' or 'How do I implement AI safely in my department?'"
+          },
+          attributes: {
+            "data-testid": "question-input"
+          },
+          rows: 5
+        }) }}
+
+        {{ govukButton({
+          text: "Ask question",
+          type: "submit",
+          attributes: {
+            "data-testid": "submit-question"
+          }
+        }) }}
+
+      </form>
+
+    </div>
+    
+    <div class="govuk-grid-column-one-third">
+      <div class="govuk-body">
+        <h3 class="govuk-heading-s">Popular topics</h3>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>AI ethics and governance</li>
+          <li>Data protection in AI systems</li>
+          <li>AI procurement guidelines</li>
+          <li>Risk assessment frameworks</li>
+          <li>AI implementation best practices</li>
+        </ul>
       </div>
     </div>
+    
   </div>
 
 {% endblock %}

@@ -1,18 +1,181 @@
 {% extends 'layouts/page.njk' %}
 
+{# Import GOVUK components #}
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: phaseTag
+    },
+    html: 'This is a new service – your <a class="govuk-link" href="mailto:defra.ai.search@defra.gov.uk">feedback</a> will help us to improve it.'
+  }) }}
+{% endblock %}
+
 {% block content %}
   {{ appHeading({
     text: heading,
-    caption: "ai-defra-search-frontend"
+    caption: "AI-powered search for government guidance and information"
   }) }}
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      <div class="govuk-body" data-testid="app-page-body">
-        <p>
+      
+      <h2 class="govuk-heading-l">What this service does</h2>
+      
+      <p class="govuk-body-l">
+        AI DEFRA Search helps government employees and stakeholders find authoritative AI guidance, policies, and information from across DEFRA and other government departments.
+      </p>
+      
+      <p class="govuk-body">
+        Instead of searching through multiple websites and documents, you can ask questions in natural language and get relevant, accurate answers from trusted government sources.
+      </p>
+
+      {{ govukInsetText({
+        html: 'This service searches across verified government publications, policy documents, guidance notes, and official communications about artificial intelligence.'
+      }) }}
+
+      <h2 class="govuk-heading-l">How it works</h2>
+      
+      <ol class="govuk-list govuk-list--number">
+        <li>Ask your question about AI guidance, ethics, implementation, or policy</li>
+        <li>Our AI system searches across government documents and resources</li>
+        <li>You receive relevant answers with links to the original sources</li>
+        <li>All results come from official government publications and guidance</li>
+      </ol>
+
+      <h2 class="govuk-heading-l">What you can search for</h2>
+      
+      <h3 class="govuk-heading-m">AI governance and ethics</h3>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>Ethical AI principles and frameworks</li>
+        <li>AI governance structures and responsibilities</li>
+        <li>Risk management and assessment procedures</li>
+        <li>Transparency and accountability requirements</li>
+      </ul>
+
+      <h3 class="govuk-heading-m">Implementation guidance</h3>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>Best practices for AI deployment</li>
+        <li>Technical standards and requirements</li>
+        <li>Procurement guidelines for AI systems</li>
+        <li>Testing and validation procedures</li>
+      </ul>
+
+      <h3 class="govuk-heading-m">Legal and regulatory information</h3>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>Data protection and AI compliance</li>
+        <li>Regulatory requirements and obligations</li>
+        <li>Legal frameworks for AI use in government</li>
+        <li>International standards and agreements</li>
+      </ul>
+
+      {{ govukWarningText({
+        text: "Always verify critical information with the original source documents before making important decisions.",
+        iconFallbackText: "Warning"
+      }) }}
+
+      <h2 class="govuk-heading-l">Data sources</h2>
+      
+      <p class="govuk-body">This service searches information from:</p>
+      
+      {{ govukTable({
+        caption: "Government departments and sources",
+        captionClasses: "govuk-table__caption--s govuk-visually-hidden",
+        head: [
+          {
+            text: "Department/Source"
+          },
+          {
+            text: "Type of content"
+          }
+        ],
+        rows: [
+          [
+            {
+              text: "DEFRA"
+            },
+            {
+              text: "AI policies, guidance documents, implementation frameworks"
+            }
+          ],
+          [
+            {
+              text: "Cabinet Office"
+            },
+            {
+              text: "Cross-government AI strategy, ethical guidelines"
+            }
+          ],
+          [
+            {
+              text: "DCMS/DSIT"
+            },
+            {
+              text: "National AI strategies, innovation policies"
+            }
+          ],
+          [
+            {
+              text: "ICO"
+            },
+            {
+              text: "Data protection guidance for AI systems"
+            }
+          ],
+          [
+            {
+              text: "Government Digital Service"
+            },
+            {
+              text: "Technical standards, service design principles"
+            }
+          ]
+        ]
+      }) }}
+
+    </div>
+    
+    <div class="govuk-grid-column-one-third">
+      <div class="govuk-body">
+        
+        <h3 class="govuk-heading-s">Contact us</h3>
+        <p class="govuk-body-s">
+          <strong>Email:</strong><br>
+          <a href="mailto:defra.ai.search@defra.gov.uk" class="govuk-link">defra.ai.search@defra.gov.uk</a>
         </p>
+        
+        <p class="govuk-body-s">
+          For technical support or feedback about this service.
+        </p>
+
+        {{ govukDetails({
+          summaryText: "Service status and updates",
+          html: "
+            <p class='govuk-body-s'>This service is in <strong>beta</strong>. This means:</p>
+            <ul class='govuk-list govuk-list--bullet govuk-body-s'>
+              <li>It's a new service that we're still developing</li>
+              <li>We're regularly adding new features and content</li>
+              <li>There may occasionally be brief interruptions to the service</li>
+              <li>Your feedback helps us improve it</li>
+            </ul>
+          "
+        }) }}
+
+        <h3 class="govuk-heading-s">Related services</h3>
+        <ul class="govuk-list govuk-body-s">
+          <li><a href="https://www.gov.uk/government/collections/ai-white-paper" class="govuk-link">Government AI White Paper</a></li>
+          <li><a href="https://www.gov.uk/government/publications/algorithmic-transparency-template" class="govuk-link">Algorithmic Transparency</a></li>
+          <li><a href="https://ico.org.uk/for-organisations/guide-to-data-protection/key-dp-themes/artificial-intelligence/" class="govuk-link">ICO AI Guidance</a></li>
+        </ul>
+
       </div>
     </div>
+    
   </div>
 
 {% endblock %}
