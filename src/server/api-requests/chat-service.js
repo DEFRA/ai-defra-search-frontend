@@ -12,7 +12,7 @@ export class ChatService {
 
   async sendQuestion(question, sessionId = null) {
     const requestSessionId = sessionId || this.generateSessionId()
-    
+
     const payload = {
       session_id: requestSessionId,
       question
@@ -30,13 +30,15 @@ export class ChatService {
       })
 
       if (!response.ok) {
-        console.error(`HTTP error! status: ${response.status}, statusText: ${response.statusText}`)
+        console.error(
+          `HTTP error! status: ${response.status}, statusText: ${response.statusText}`
+        )
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json()
       console.log('API response received successfully')
-      
+
       if (data.status !== 'success') {
         console.error('API returned error status:', data.status)
         throw new Error(`API returned error status: ${data.status}`)
@@ -69,12 +71,11 @@ export class ChatService {
   }
 
   formatSourceDocuments(sourceDocuments) {
-    
     if (!sourceDocuments || !Array.isArray(sourceDocuments)) {
       console.log('sourceDocuments is not a valid array, returning empty array')
       return []
     }
-    
+
     const formatted = sourceDocuments.map((doc, index) => {
       console.log(`Processing doc ${index + 1}:`, doc)
       return {
@@ -96,13 +97,15 @@ export class ChatService {
       return null
     }
 
-    const modelNames = Object.keys(usage).filter(key => key !== 'session_id' && key !== 'timestamp')
-    
+    const modelNames = Object.keys(usage).filter(
+      (key) => key !== 'session_id' && key !== 'timestamp'
+    )
+
     if (modelNames.length === 0) {
       return null
     }
 
-    const models = modelNames.map(modelName => {
+    const models = modelNames.map((modelName) => {
       const modelUsage = usage[modelName]
       return {
         modelId: modelName,
@@ -111,10 +114,12 @@ export class ChatService {
           output: modelUsage.output_tokens || 0,
           total: modelUsage.total_tokens || 0
         },
-        cacheDetails: modelUsage.input_token_details ? {
-          cacheCreation: modelUsage.input_token_details.cache_creation || 0,
-          cacheRead: modelUsage.input_token_details.cache_read || 0
-        } : null
+        cacheDetails: modelUsage.input_token_details
+          ? {
+              cacheCreation: modelUsage.input_token_details.cache_creation || 0,
+              cacheRead: modelUsage.input_token_details.cache_read || 0
+            }
+          : null
       }
     })
 

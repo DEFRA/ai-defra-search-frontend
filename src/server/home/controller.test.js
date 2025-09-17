@@ -19,7 +19,9 @@ describe('#homeController', () => {
       url: '/'
     })
 
-    expect(result).toEqual(expect.stringContaining('Home |'))
+    expect(result).toEqual(
+      expect.stringContaining('Ask a Question - AI DEFRA Search')
+    )
     expect(statusCode).toBe(statusCodes.ok)
   })
 })

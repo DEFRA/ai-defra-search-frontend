@@ -15,7 +15,7 @@ export const debugController = {
       })
     }
   },
-  
+
   postVectorStore: {
     handler: async (request, h) => {
       try {
@@ -55,7 +55,6 @@ export const debugController = {
             question
           })
         }
-
       } catch (error) {
         logger.error('Error in postVectorStore handler:', error)
         return h.view('debug/index', {
@@ -64,7 +63,8 @@ export const debugController = {
           serviceName: 'AI DEFRA Search',
           phaseTag: 'Beta',
           phaseTagText: 'Debug tool for testing vector store functionality.',
-          error: 'Sorry, there was a problem processing your request. Please try again.',
+          error:
+            'Sorry, there was a problem processing your request. Please try again.',
           question: request.payload.question || ''
         })
       }
@@ -95,7 +95,6 @@ export const debugController = {
             error: result.error
           })
         }
-
       } catch (error) {
         logger.error('Error in postSetup handler:', error)
         return h.view('debug/index', {
@@ -104,7 +103,8 @@ export const debugController = {
           serviceName: 'AI DEFRA Search',
           phaseTag: 'Beta',
           phaseTagText: 'Debug tool for testing vector store functionality.',
-          error: 'Sorry, there was a problem setting up the vector store. Please try again.'
+          error:
+            'Sorry, there was a problem setting up the vector store. Please try again.'
         })
       }
     }
