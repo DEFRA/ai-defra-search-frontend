@@ -114,7 +114,7 @@ export class ObservabilityService {
     if (milliseconds < 1000) {
       return `${milliseconds}ms`
     }
-    return `${Math.round(milliseconds / 1000 * 100) / 100}s`
+    return `${Math.round((milliseconds / 1000) * 100) / 100}s`
   }
 
   formatTimestamp(timestamp) {

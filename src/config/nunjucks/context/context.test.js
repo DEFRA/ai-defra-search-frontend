@@ -58,6 +58,11 @@ describe('context and cache', () => {
               current: false,
               text: 'About',
               href: '/about'
+            },
+            {
+              current: false,
+              text: 'Observability',
+              href: '/observability'
             }
           ],
           serviceName: 'ai-defra-search-frontend',
@@ -147,6 +152,11 @@ describe('context and cache', () => {
               current: false,
               text: 'About',
               href: '/about'
+            },
+            {
+              current: false,
+              text: 'Observability',
+              href: '/observability'
             }
           ],
           serviceName: 'ai-defra-search-frontend',

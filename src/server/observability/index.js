@@ -15,7 +15,7 @@ export const observability = {
           handler: observabilityController.handler
         },
         {
-          method: 'GET', 
+          method: 'GET',
           path: '/observability/execution/{executionId}',
           handler: observabilityController.executionDetailHandler
         }

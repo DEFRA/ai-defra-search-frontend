@@ -1,7 +1,6 @@
 import { observabilityService } from '../api-requests/observability-service.js'
 
 export const observabilityController = {
-
   async handler(request, h) {
     try {
       const [
@@ -36,12 +35,23 @@ export const observabilityController = {
             text: 'Observability Dashboard'
           }
         ],
-        health: observabilityController.formatHealthData(healthResult, systemHealthResult),
+        health: observabilityController.formatHealthData(
+          healthResult,
+          systemHealthResult
+        ),
         dashboard: observabilityController.formatDashboardData(dashboardResult),
-        performance: observabilityController.formatPerformanceData(performanceResult),
-        security: observabilityController.formatSecurityData(securityEventsResult, securityMetricsResult),
-        executions: observabilityController.formatExecutionsData(recentExecutionsResult),
-        lastUpdated: observabilityService.formatTimestamp(new Date().toISOString())
+        performance:
+          observabilityController.formatPerformanceData(performanceResult),
+        security: observabilityController.formatSecurityData(
+          securityEventsResult,
+          securityMetricsResult
+        ),
+        executions: observabilityController.formatExecutionsData(
+          recentExecutionsResult
+        ),
+        lastUpdated: observabilityService.formatTimestamp(
+          new Date().toISOString()
+        )
       }
 
       return h.view('observability/index', viewData)
@@ -62,7 +72,9 @@ export const observabilityController = {
           }
         ],
         error: 'Unable to fetch observability data. Please try again later.',
-        lastUpdated: observabilityService.formatTimestamp(new Date().toISOString())
+        lastUpdated: observabilityService.formatTimestamp(
+          new Date().toISOString()
+        )
       })
     }
   },
@@ -71,7 +83,8 @@ export const observabilityController = {
     const { executionId } = request.params
 
     try {
-      const executionResult = await observabilityService.getExecutionDetail(executionId)
+      const executionResult =
+        await observabilityService.getExecutionDetail(executionId)
 
       if (!executionResult.success) {
         return h.response('Execution not found').code(404)
@@ -95,8 +108,12 @@ export const observabilityController = {
             text: `Execution ${executionId.substring(0, 8)}...`
           }
         ],
-        execution: observabilityController.formatExecutionDetail(executionResult.data),
-        lastUpdated: observabilityService.formatTimestamp(new Date().toISOString())
+        execution: observabilityController.formatExecutionDetail(
+          executionResult.data
+        ),
+        lastUpdated: observabilityService.formatTimestamp(
+          new Date().toISOString()
+        )
       }
 
       return h.view('observability/execution-detail', viewData)
@@ -106,26 +123,33 @@ export const observabilityController = {
     }
   },
 
-
   formatHealthData(healthResult, systemHealthResult) {
     const health = {
       basic: {
         available: healthResult.success,
-        status: healthResult.success ? 
-          observabilityService.formatHealthStatus(healthResult.data.status) : 
-          { text: 'Unavailable', class: 'govuk-tag--red' },
-        timestamp: healthResult.success ? 
-          observabilityService.formatTimestamp(healthResult.data.timestamp) : 
-          'N/A'
+        status: healthResult.success
+          ? observabilityService.formatHealthStatus(healthResult.data.status)
+          : { text: 'Unavailable', class: 'govuk-tag--red' },
+        timestamp: healthResult.success
+          ? observabilityService.formatTimestamp(healthResult.data.timestamp)
+          : 'N/A'
       },
       system: {
         available: systemHealthResult.success,
-        status: systemHealthResult.success ? 
-          observabilityService.formatHealthStatus(systemHealthResult.data.status) : 
-          { text: 'Unavailable', class: 'govuk-tag--red' },
-        checks: systemHealthResult.success ? systemHealthResult.data.checks : {},
-        issues: systemHealthResult.success ? systemHealthResult.data.issues : [],
-        metrics: systemHealthResult.success ? systemHealthResult.data.metrics : {}
+        status: systemHealthResult.success
+          ? observabilityService.formatHealthStatus(
+              systemHealthResult.data.status
+            )
+          : { text: 'Unavailable', class: 'govuk-tag--red' },
+        checks: systemHealthResult.success
+          ? systemHealthResult.data.checks
+          : {},
+        issues: systemHealthResult.success
+          ? systemHealthResult.data.issues
+          : [],
+        metrics: systemHealthResult.success
+          ? systemHealthResult.data.metrics
+          : {}
       }
     }
 
@@ -146,8 +170,12 @@ export const observabilityController = {
           total: data.summary.executions.total,
           successful: data.summary.executions.successful,
           failed: data.summary.executions.failed,
-          successRate: observabilityService.formatPercentage(data.summary.executions.success_rate),
-          avgDuration: observabilityService.formatDuration(data.summary.executions.avg_duration_ms)
+          successRate: observabilityService.formatPercentage(
+            data.summary.executions.success_rate
+          ),
+          avgDuration: observabilityService.formatDuration(
+            data.summary.executions.avg_duration_ms
+          )
         },
         security: data.summary.security,
         nodes: data.summary.nodes
@@ -169,12 +197,22 @@ export const observabilityController = {
         totalExecutions: data.metrics.total_executions,
         successfulExecutions: data.metrics.successful_executions,
         failedExecutions: data.metrics.failed_executions,
-        successRate: observabilityService.formatPercentage(data.metrics.success_rate),
-        avgDuration: observabilityService.formatDuration(data.metrics.avg_duration_ms),
-        minDuration: observabilityService.formatDuration(data.metrics.min_duration_ms),
-        maxDuration: observabilityService.formatDuration(data.metrics.max_duration_ms),
+        successRate: observabilityService.formatPercentage(
+          data.metrics.success_rate
+        ),
+        avgDuration: observabilityService.formatDuration(
+          data.metrics.avg_duration_ms
+        ),
+        minDuration: observabilityService.formatDuration(
+          data.metrics.min_duration_ms
+        ),
+        maxDuration: observabilityService.formatDuration(
+          data.metrics.max_duration_ms
+        ),
         avgDocumentsRetrieved: data.metrics.avg_documents_retrieved,
-        validationFailureRate: observabilityService.formatPercentage(data.metrics.validation_failure_rate)
+        validationFailureRate: observabilityService.formatPercentage(
+          data.metrics.validation_failure_rate
+        )
       }
     }
   },
@@ -182,26 +220,30 @@ export const observabilityController = {
   formatSecurityData(eventsResult, metricsResult) {
     const events = {
       available: eventsResult.success,
-      list: eventsResult.success ? eventsResult.data.events.map(event => ({
-        id: event._id,
-        timestamp: observabilityService.formatTimestamp(event.timestamp),
-        eventType: event.event_type,
-        userQuery: event.user_query,
-        severity: observabilityService.formatSeverity(event.severity),
-        details: event.details,
-        responseAction: event.response_action
-      })) : [],
+      list: eventsResult.success
+        ? eventsResult.data.events.map((event) => ({
+            id: event._id,
+            timestamp: observabilityService.formatTimestamp(event.timestamp),
+            eventType: event.event_type,
+            userQuery: event.user_query,
+            severity: observabilityService.formatSeverity(event.severity),
+            details: event.details,
+            responseAction: event.response_action
+          }))
+        : [],
       count: eventsResult.success ? eventsResult.data.count : 0,
       tableRows: []
     }
 
     if (eventsResult.success) {
-      events.tableRows = eventsResult.data.events.map(event => [
+      events.tableRows = eventsResult.data.events.map((event) => [
         {
           text: observabilityService.formatTimestamp(event.timestamp)
         },
         {
-          text: event.event_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+          text: event.event_type
+            .replace('_', ' ')
+            .replace(/\b\w/g, (l) => l.toUpperCase())
         },
         {
           html: `<span class="govuk-tag ${observabilityService.formatSeverity(event.severity).class}">${observabilityService.formatSeverity(event.severity).text}</span>`
@@ -228,19 +270,21 @@ export const observabilityController = {
       return { available: false }
     }
 
-    const executions = executionsResult.data.executions.map(execution => ({
+    const executions = executionsResult.data.executions.map((execution) => ({
       id: execution._id,
       executionId: execution.execution_id,
       shortExecutionId: execution.execution_id.substring(0, 8),
       timestamp: observabilityService.formatTimestamp(execution.timestamp),
       status: observabilityService.formatExecutionStatus(execution.status),
-      duration: observabilityService.formatDuration(execution.total_duration_ms),
+      duration: observabilityService.formatDuration(
+        execution.total_duration_ms
+      ),
       documentsCount: execution.source_documents_count,
       inputValidation: execution.input_validation_passed ? 'Passed' : 'Failed',
       outputValidation: execution.output_validation_passed ? 'Passed' : 'Failed'
     }))
 
-    const tableRows = executions.map(execution => [
+    const tableRows = executions.map((execution) => [
       {
         text: execution.shortExecutionId + '...'
       },
@@ -273,18 +317,20 @@ export const observabilityController = {
     const execution = executionData.execution
     const nodes = executionData.nodes
 
-    const formattedNodes = nodes.map(node => ({
+    const formattedNodes = nodes.map((node) => ({
       id: node.node_id,
       name: node.node_name,
       type: node.node_type,
       status: observabilityService.formatExecutionStatus(node.status),
       timestamp: observabilityService.formatTimestamp(node.timestamp),
-      duration: node.duration_ms ? observabilityService.formatDuration(node.duration_ms) : 'N/A',
+      duration: node.duration_ms
+        ? observabilityService.formatDuration(node.duration_ms)
+        : 'N/A',
       inputSize: node.input_size_bytes,
       outputSize: node.output_size_bytes
     }))
 
-    const nodeTableRows = formattedNodes.map(node => [
+    const nodeTableRows = formattedNodes.map((node) => [
       {
         text: node.name
       },
@@ -315,7 +361,9 @@ export const observabilityController = {
         timestamp: observabilityService.formatTimestamp(execution.timestamp),
         query: execution.query,
         status: observabilityService.formatExecutionStatus(execution.status),
-        duration: observabilityService.formatDuration(execution.total_duration_ms),
+        duration: observabilityService.formatDuration(
+          execution.total_duration_ms
+        ),
         startTime: observabilityService.formatTimestamp(execution.start_time),
         endTime: observabilityService.formatTimestamp(execution.end_time)
       },
@@ -331,11 +379,13 @@ export const observabilityController = {
       nodes: formattedNodes,
       nodeTableRows,
       tokenUsage: execution.token_usage,
-      error: execution.error_message ? {
-        message: execution.error_message,
-        type: execution.error_type,
-        stackTrace: execution.stack_trace
-      } : null
+      error: execution.error_message
+        ? {
+            message: execution.error_message,
+            type: execution.error_type,
+            stackTrace: execution.stack_trace
+          }
+        : null
     }
   }
 }
