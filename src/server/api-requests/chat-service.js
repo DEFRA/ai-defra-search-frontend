@@ -3,7 +3,7 @@ import { config } from '../../config/config.js'
 export class ChatService {
   constructor() {
     this.baseUrl = config.get('apiBaseUrl')
-    this.chatEndpoint = '/langgraph/chat'
+    this.chatEndpoint = '/langgraph/chat/enhanced'
   }
 
   generateSessionId() {
