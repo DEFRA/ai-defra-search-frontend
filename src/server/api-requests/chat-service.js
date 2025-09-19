@@ -1,4 +1,5 @@
 import { config } from '../../config/config.js'
+import { proxyFetch } from '../common/helpers/proxy/proxy-fetch.js'
 
 export class ChatService {
   constructor() {
@@ -21,7 +22,7 @@ export class ChatService {
     console.log(`Sending request to API: ${this.baseUrl}${this.chatEndpoint}`)
 
     try {
-      const response = await fetch(`${this.baseUrl}${this.chatEndpoint}`, {
+      const response = await proxyFetch(`${this.baseUrl}${this.chatEndpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -1,4 +1,5 @@
 import { config } from '../../config/config.js'
+import { proxyFetch } from '../common/helpers/proxy/proxy-fetch.js'
 
 export class ObservabilityService {
   constructor() {
@@ -20,7 +21,7 @@ export class ObservabilityService {
     console.log(`Making request to: ${url}`)
 
     try {
-      const response = await fetch(url, {
+      const response = await proxyFetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

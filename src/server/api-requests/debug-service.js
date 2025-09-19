@@ -1,5 +1,6 @@
 import { config } from '../../config/config.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
+import { proxyFetch } from '../common/helpers/proxy/proxy-fetch.js'
 
 const logger = createLogger('debugService')
 
@@ -20,7 +21,7 @@ export class DebugService {
     )
 
     try {
-      const response = await fetch(
+      const response = await proxyFetch(
         `${this.baseUrl}${this.vectorStoreEndpoint}`,
         {
           method: 'POST',
@@ -65,13 +66,16 @@ export class DebugService {
     )
 
     try {
-      const response = await fetch(`${this.baseUrl}${this.setupEndpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
+      const response = await proxyFetch(
+        `${this.baseUrl}${this.setupEndpoint}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        }
+      )
 
       if (!response.ok) {
         logger.error(
