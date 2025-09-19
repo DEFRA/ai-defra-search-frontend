@@ -55,7 +55,11 @@ export class DebugService {
     }
   }
 
-  async setupVectorStore() {
+  async setupVectorStore(urls = []) {
+    const payload = {
+      urls
+    }
+
     logger.info(
       `Sending setup request to API: ${this.baseUrl}${this.setupEndpoint}`
     )
@@ -65,7 +69,8 @@ export class DebugService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify(payload)
       })
 
       if (!response.ok) {

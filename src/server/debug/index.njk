@@ -68,7 +68,23 @@
 
           <div class="govuk-!-margin-top-6">
             <h2 class="govuk-heading-l">Vector Store Setup</h2>
+            <p class="govuk-body">Add URLs to populate the vector store with new content. Enter one URL per line.</p>
+            
             <form action="/debug/setup" method="post" novalidate>
+              {{ govukTextarea({
+                name: "urls",
+                id: "urls",
+                value: urls,
+                label: {
+                  text: "URLs to add to vector store",
+                  classes: "govuk-label--m"
+                },
+                hint: {
+                  text: "Enter one URL per line. For example:\nhttps://www.gov.uk/example-page-1\nhttps://www.gov.uk/example-page-2"
+                },
+                rows: 6
+              }) }}
+              
               {{ govukButton({
                 text: "Setup Vector Store",
                 classes: "govuk-button--secondary",

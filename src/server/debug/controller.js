@@ -74,7 +74,63 @@ export const debugController = {
   postSetup: {
     handler: async (request, h) => {
       try {
-        const result = await debugService.setupVectorStore()
+        const { urls } = request.payload || {}
+
+        // Parse URLs - they could come as a string (one per line) or as an array
+        let urlArray = []
+        const errors = []
+
+        if (!urls || urls.trim() === '') {
+          return h.view('debug/index', {
+            pageTitle: 'Vector Store Debug - AI DEFRA Search',
+            heading: 'Vector Store Debug',
+            serviceName: 'AI DEFRA Search',
+            phaseTag: 'Beta',
+            phaseTagText: 'Debug tool for testing vector store functionality.',
+            error: 'Please enter at least one URL before submitting.',
+            urls
+          })
+        }
+
+        if (urls) {
+          if (Array.isArray(urls)) {
+            urlArray = urls.filter((url) => url && url.trim())
+          } else if (typeof urls === 'string') {
+            urlArray = urls
+              .split('\n')
+              .map((url) => url.trim())
+              .filter((url) => url)
+          }
+        }
+
+        // Validate URLs
+        const urlRegex = /^https?:\/\/[^\s]+$/
+        const validUrls = []
+
+        for (let i = 0; i < urlArray.length; i++) {
+          const url = urlArray[i]
+          if (!urlRegex.test(url)) {
+            errors.push(
+              `Line ${i + 1}: "${url}" is not a valid URL. URLs must start with http:// or https://`
+            )
+          } else {
+            validUrls.push(url)
+          }
+        }
+
+        if (errors.length > 0) {
+          return h.view('debug/index', {
+            pageTitle: 'Vector Store Debug - AI DEFRA Search',
+            heading: 'Vector Store Debug',
+            serviceName: 'AI DEFRA Search',
+            phaseTag: 'Beta',
+            phaseTagText: 'Debug tool for testing vector store functionality.',
+            error: `URL validation errors:\n${errors.join('\n')}`,
+            urls
+          })
+        }
+
+        const result = await debugService.setupVectorStore(validUrls)
 
         if (result.success) {
           return h.view('debug/index', {
@@ -83,7 +139,8 @@ export const debugController = {
             serviceName: 'AI DEFRA Search',
             phaseTag: 'Beta',
             phaseTagText: 'Debug tool for testing vector store functionality.',
-            results: result.data
+            results: result.data,
+            urls
           })
         } else {
           return h.view('debug/index', {
@@ -92,7 +149,8 @@ export const debugController = {
             serviceName: 'AI DEFRA Search',
             phaseTag: 'Beta',
             phaseTagText: 'Debug tool for testing vector store functionality.',
-            error: result.error
+            error: result.error,
+            urls
           })
         }
       } catch (error) {
@@ -104,7 +162,8 @@ export const debugController = {
           phaseTag: 'Beta',
           phaseTagText: 'Debug tool for testing vector store functionality.',
           error:
-            'Sorry, there was a problem setting up the vector store. Please try again.'
+            'Sorry, there was a problem setting up the vector store. Please try again.',
+          urls: request.payload?.urls || ''
         })
       }
     }
