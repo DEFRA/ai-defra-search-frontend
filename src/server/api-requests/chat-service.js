@@ -11,12 +11,10 @@ export class ChatService {
     return crypto.randomUUID()
   }
 
-  async sendQuestion(question, sessionId = null) {
-    const requestSessionId = sessionId || this.generateSessionId()
-
+  async sendQuestion(question, conversationId = null) {
     const payload = {
-      session_id: requestSessionId,
-      question
+      question,
+      conversation_id: conversationId || null
     }
 
     console.log(`Sending request to API: ${this.baseUrl}${this.chatEndpoint}`)
@@ -52,7 +50,9 @@ export class ChatService {
           source_documents: data.source_documents || [],
           usage: data.usage || null,
           question: data.question,
-          sessionId: requestSessionId
+          sessionId: data.session_id || null,
+          conversation_id: data.conversation_id || null,
+          conversation_history: data.conversation_history || []
         }
       }
     } catch (error) {
@@ -66,7 +66,8 @@ export class ChatService {
       return {
         success: false,
         error: error.message,
-        sessionId: requestSessionId
+        conversation_id: conversationId || null,
+        conversation_history: []
       }
     }
   }

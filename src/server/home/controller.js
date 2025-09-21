@@ -1,4 +1,5 @@
 import { chatService } from '../api-requests/chat-service.js'
+import { conversationHistoryService } from '../api-requests/conversation-history-service.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
 const logger = createLogger('homeController')
@@ -19,7 +20,7 @@ export const homeController = {
   post: {
     handler: async (request, h) => {
       try {
-        const { question } = request.payload
+        const { question, conversationId } = request.payload
 
         if (!question || question.trim().length === 0) {
           return h.view('home/index', {
@@ -30,11 +31,16 @@ export const homeController = {
             phaseTagText:
               'This is a new service – your feedback will help us to improve it.',
             error: 'Please enter a question before submitting.',
-            question: question || ''
+            question: question || '',
+            conversationId: conversationId || null,
+            conversationHistory: []
           })
         }
 
-        const response = await chatService.sendQuestion(question.trim())
+        const response = await chatService.sendQuestion(
+          question.trim(),
+          conversationId
+        )
 
         if (!response.success) {
           return h.view('home/index', {
@@ -46,7 +52,9 @@ export const homeController = {
               'This is a new service – your feedback will help us to improve it.',
             error:
               'Sorry, there was a problem processing your question. Please try again.',
-            question: question || ''
+            question: question || '',
+            conversationId: response.data.conversation_id || null,
+            conversationHistory: []
           })
         }
 
@@ -72,7 +80,7 @@ export const homeController = {
           JSON.stringify(formattedUsage, null, 2)
         )
 
-        return h.view('home/results', {
+        return h.view('home/chat', {
           pageTitle: 'Search Results - AI DEFRA Search',
           heading: 'Search Results',
           serviceName: 'AI DEFRA Search',
@@ -83,7 +91,12 @@ export const homeController = {
           answer: response.data.answer,
           sourceDocuments: formattedSourceDocs,
           usage: formattedUsage,
-          sessionId: response.data.sessionId
+          sessionId: response.data.sessionId,
+          conversationId: response.data.conversation_id || null,
+          conversationHistory: response.data.conversation_history || [],
+          transcriptUrl: response.data.conversation_id
+            ? '/transcript/' + (response.data.conversation_id || '')
+            : ''
         })
       } catch (error) {
         logger.error('Error processing question:', error)
@@ -96,9 +109,50 @@ export const homeController = {
           phaseTagText:
             'This is a new service – your feedback will help us to improve it.',
           error: 'Sorry, there was an unexpected error. Please try again.',
-          question: request.payload?.question || ''
+          question: request.payload?.question || '',
+          conversationId: request.payload?.conversationId || null,
+          conversationHistory: [],
+          transcriptUrl: request.payload?.conversationId
+            ? '/transcript/' + (request.payload?.conversationId || '')
+            : ''
         })
       }
+    }
+  },
+  getTranscript: {
+    handler: async (request, h) => {
+      const { conversationId } = request.params
+      let conversationHistory = null
+      try {
+        conversationHistory =
+          await conversationHistoryService.getConversationHistory(
+            conversationId
+          )
+      } catch (err) {
+        conversationHistory = null
+      }
+
+      if (
+        !conversationHistory ||
+        !Array.isArray(conversationHistory.messages) ||
+        conversationHistory.messages.length === 0
+      ) {
+        return h
+          .response('No transcript found for this conversation.')
+          .code(404)
+      }
+
+      const transcript =
+        conversationHistoryService.constructor.formatTranscript(
+          conversationHistory
+        )
+      return h
+        .response(transcript)
+        .type('text/plain')
+        .header(
+          'Content-Disposition',
+          `attachment; filename="transcript-${conversationId}.txt"`
+        )
     }
   }
 }

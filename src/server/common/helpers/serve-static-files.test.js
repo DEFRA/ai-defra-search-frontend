@@ -1,4 +1,5 @@
 import { startServer } from './start-server.js'
+// ...existing code...
 import { statusCodes } from '../constants/status-codes.js'
 
 describe('#serveStaticFiles', () => {
@@ -6,11 +7,17 @@ describe('#serveStaticFiles', () => {
 
   describe('When secure context is disabled', () => {
     beforeEach(async () => {
-      server = await startServer()
+      // Patch config to use a random port for tests
+      process.env.PORT = '0'
+      server = await startServer({ port: 0 })
     })
 
     afterEach(async () => {
-      await server.stop({ timeout: 0 })
+      if (server && server.stop) {
+        await server.stop({ timeout: 0 })
+      }
+      server = undefined
+      delete process.env.PORT
     })
 
     test('Should serve favicon as expected', async () => {

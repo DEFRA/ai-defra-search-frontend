@@ -15,6 +15,11 @@ export const home = {
           ...homeController.get
         },
         {
+          method: 'GET',
+          path: '/transcript/{conversationId}',
+          ...homeController.getTranscript
+        },
+        {
           method: 'POST',
           path: '/',
           ...homeController.post

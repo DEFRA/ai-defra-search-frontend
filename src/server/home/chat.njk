@@ -1,0 +1,129 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: { text: phaseTag },
+    html: phaseTagText
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row chat-container">
+  <div class="govuk-grid-column-full">
+    <a class="govuk-skip-link" href="#chat-log">Skip to conversation</a>
+    <a class="govuk-skip-link" href="#message">Skip to message entry</a>
+    <div class="chat-scroll-area">
+        <div id="chat-log" aria-label="Chat history">
+        {% if conversationHistory and conversationHistory.length > 0 %}
+            {% for message in conversationHistory %}
+            <div class="chat-message user">
+                <div class="chat-bubble user">
+                <span class="govuk-visually-hidden">User:</span>
+                <div class="govuk-body govuk-!-font-weight-bold">You</div>
+                <div class="govuk-body">{{ message.content | safe }}</div>
+                </div>
+            </div>
+            {% if message.answer %}
+                <div class="chat-message ai">
+                <div class="chat-bubble ai">
+                    <span class="govuk-visually-hidden">AI:</span>
+                    <div class="govuk-body govuk-!-font-weight-bold">AI</div>
+                    <div class="govuk-body">{{ message.answer | safe }}</div>
+                </div>
+                </div>
+
+                {% if message.sources and message.sources.length > 0 %}
+                    <div class="app-chat-sources">
+                        <p class="govuk-!-font-weight-bold govuk-body-s">Sources for this answer:</p>
+                        <ul class="govuk-list govuk-list--bullet">
+                        {% for source in message.sources %}
+                            <li><a class="govuk-link" href="{{ source.url }}" target="_blank" rel="noopener">{{ source.title }}</a></li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+            {% endif %}
+            {% endfor %}
+        {% else %}
+            <p class="govuk-body">No chat history yet.</p>
+        {% endif %}
+        </div>
+    </div>
+    <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+    <form method="post" action="/" autocomplete="off">
+      <input type="hidden" name="conversationId" value="{{ conversationId }}">
+      <div id="message" class="govuk-form-group">
+        <div class="govuk-grid-row">
+            <div class="govuk-grid-column-two-thirds">
+                <input class="govuk-input" id="question" name="question" type="text" required />
+            </div>
+            <div class="govuk-grid-column-one-third">
+                <div class="govuk-button-group">
+                    <button class="govuk-button" data-module="govuk-button" type="submit">
+                        Ask question
+                    </button>
+                    <button class="govuk-button govuk-button--secondary" data-module="govuk-button" url="/">
+                        New question
+                    </button>
+                </div>
+            </div>
+        </div>
+        <a class="govuk-link" href="{{ transcriptUrl }}">Download transcript of this chat</a>
+      </div>
+    </form>
+
+    {% if usage %}
+      <h3 class="govuk-heading-m">Request Information</h3>
+      <dl class="govuk-summary-list">
+        {% if usage.models and usage.models.length > 0 %}
+          {% for model in usage.models %}
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">AI Model {{ loop.index }}{% if usage.models.length > 1 %} of {{ usage.models.length }}{% endif %}</dt>
+              <dd class="govuk-summary-list__value">{{ model.modelId }}</dd>
+            </div>
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key">Tokens</dt>
+              <dd class="govuk-summary-list__value">
+                Input: {{ model.tokens.input or 0 }}<br>
+                Output: {{ model.tokens.output or 0 }}<br>
+                <strong>Total: {{ model.tokens.total or 0 }}</strong>
+              </dd>
+            </div>
+          {% endfor %}
+          {% if usage.models.length > 1 %}
+            <div class="govuk-summary-list__row">
+              <dt class="govuk-summary-list__key"><strong>Total Tokens (All Models)</strong></dt>
+              <dd class="govuk-summary-list__value">
+                <strong>Input: {{ usage.totalTokens.input or 0 }}<br>
+                Output: {{ usage.totalTokens.output or 0 }}<br>
+                Total: {{ usage.totalTokens.total or 0 }}</strong>
+              </dd>
+            </div>
+          {% endif %}
+        {% else %}
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">AI Model</dt>
+            <dd class="govuk-summary-list__value">Not specified</dd>
+          </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Tokens used</dt>
+            <dd class="govuk-summary-list__value">Input: 0<br>Output: 0<br><strong>Total: 0</strong></dd>
+          </div>
+        {% endif %}
+        {% if usage.timestamp %}
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">Processed at</dt>
+          <dd class="govuk-summary-list__value">{{ usage.timestamp }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+
