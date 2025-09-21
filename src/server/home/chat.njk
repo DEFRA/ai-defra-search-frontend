@@ -14,9 +14,9 @@
 <div class="govuk-grid-row chat-container">
   <div class="govuk-grid-column-full">
     <a class="govuk-skip-link" href="#chat-log">Skip to conversation</a>
-    <a class="govuk-skip-link" href="#message">Skip to message entry</a>
+    <a class="govuk-skip-link" href="#question">Skip to quesion entry</a>
     <div class="chat-scroll-area">
-        <div id="chat-log" aria-label="Chat history">
+        <div id="chat-log" aria-label="Chat history" role="log" aria-live="polite">
         {% if conversationHistory and conversationHistory.length > 0 %}
             {% for message in conversationHistory %}
             <div class="chat-message user">
@@ -56,7 +56,7 @@
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
     <form method="post" action="/" autocomplete="off">
       <input type="hidden" name="conversationId" value="{{ conversationId }}">
-      <div id="message" class="govuk-form-group">
+      <div id="question" class="govuk-form-group">
         <div class="govuk-grid-row">
             <div class="govuk-grid-column-two-thirds">
                 <input class="govuk-input" id="question" name="question" type="text" required />
@@ -65,9 +65,6 @@
                 <div class="govuk-button-group">
                     <button class="govuk-button" data-module="govuk-button" type="submit">
                         Ask question
-                    </button>
-                    <button class="govuk-button govuk-button--secondary" data-module="govuk-button" url="/">
-                        New question
                     </button>
                 </div>
             </div>
@@ -125,5 +122,3 @@
   </div>
 </div>
 {% endblock %}
-
-
