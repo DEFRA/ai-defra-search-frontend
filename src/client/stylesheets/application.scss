@@ -5,6 +5,32 @@
 @use 'components';
 @use 'partials';
 
+// AI feedback buttons for chat
+.ai-feedback {
+  margin-top: 0.5em;
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.ai-feedback-form {
+  display: inline;
+}
+
+.ai-feedback-btn {
+  padding: 0.2em 0.6em;
+  min-width: 0;
+  font-size: 1.2em;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.ai-feedback-btn--up {
+  margin-right: 0.5em;
+}
+
 // Chat scroll area for conversation history
 .chat-scroll-area {
   padding: 1rem;

@@ -28,11 +28,26 @@
             </div>
             {% if message.answer %}
                 <div class="chat-message ai">
-                <div class="chat-bubble ai">
-                    <span class="govuk-visually-hidden">AI:</span>
-                    <div class="govuk-body govuk-!-font-weight-bold">AI</div>
-                    <div class="govuk-body">{{ message.answer | safe }}</div>
-                </div>
+                  <div class="chat-bubble ai">
+                      <span class="govuk-visually-hidden">AI:</span>
+                      <div class="govuk-body govuk-!-font-weight-bold">AI</div>
+                      <div class="govuk-body">{{ message.answer | safe }}</div>
+                  
+                      <div class="ai-feedback">
+                        <form method="post" action="/feedback" class="ai-feedback-form">
+                          <input type="hidden" name="conversationId" value="{{ conversationId }}">
+                          <input type="hidden" name="messageId" value="{{ message.id }}">
+                          <input type="hidden" name="feedback" value="up">
+                          <button type="submit" class="govuk-button govuk-button--secondary ai-feedback-btn ai-feedback-btn--up" aria-label="Mark answer as relevant">👍</button>
+                        </form>
+                        <form method="post" action="/feedback" class="ai-feedback-form">
+                          <input type="hidden" name="conversationId" value="{{ conversationId }}">
+                          <input type="hidden" name="messageId" value="{{ message.id }}">
+                          <input type="hidden" name="feedback" value="down">
+                          <button type="submit" class="govuk-button govuk-button--secondary ai-feedback-btn ai-feedback-btn--down" aria-label="Mark answer as not relevant">👎</button>
+                        </form>
+                      </div>
+                    </div>
                 </div>
 
                 {% if message.sources and message.sources.length > 0 %}
