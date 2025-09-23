@@ -13,7 +13,12 @@ export function buildNavigation(request) {
     {
       text: 'Observability',
       href: '/observability',
-      current: request?.path?.startsWith('/observability')
+      current: request?.path === '/observability'
+    },
+    {
+      text: 'AI Model Usage Simulation',
+      href: '/simulate-usage',
+      current: request?.path === '/simulate-usage'
     }
   ]
 }

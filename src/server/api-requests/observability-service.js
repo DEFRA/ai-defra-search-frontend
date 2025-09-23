@@ -1,3 +1,4 @@
+// Token usage metrics endpoint
 import { config } from '../../config/config.js'
 import { proxyFetch } from '../common/helpers/proxy/proxy-fetch.js'
 
@@ -149,6 +150,14 @@ export class ObservabilityService {
     }
     return statusMap[status] || { text: status, class: 'govuk-tag--grey' }
   }
+}
+
+// Add the method inside the class
+ObservabilityService.prototype.getTokenUsageMetrics = async function (
+  hours = 24
+) {
+  const endpoint = `/observability/metrics/token-usage?hours=${encodeURIComponent(hours)}`
+  return await this.makeRequest(endpoint)
 }
 
 export const observabilityService = new ObservabilityService()

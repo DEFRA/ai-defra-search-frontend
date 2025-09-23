@@ -1,0 +1,75 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/fieldset/macro.njk" import govukFieldset %}
+{% from "govuk/components/label/macro.njk" import govukLabel %}
+
+{% block content %}
+  {{ appHeading({ text: "AI Model Usage Simulation" }) }}
+
+  <form method="post" class="govuk-form-group">
+    <div class="govuk-form-group govuk-!-margin-bottom-4">
+      {{ govukLabel({ for: "model_id", text: "Model ID" }) }}
+      <select class="govuk-select" id="model_id" name="model_id" required>
+        <option value="eu.anthropic.claude-3-7-sonnet-20250219-v1:0"{% if (form.model_id | default('eu.anthropic.claude-3-7-sonnet-20250219-v1:0')) == 'eu.anthropic.claude-3-7-sonnet-20250219-v1:0' %} selected{% endif %}>eu.anthropic.claude-3-7-sonnet-20250219-v1:0</option>
+        <option value="eu.amazon.nova-lite-v1:0"{% if form.model_id == 'eu.amazon.nova-lite-v1:0' %} selected{% endif %}>eu.amazon.nova-lite-v1:0</option>
+      </select>
+    </div>
+    <div class="govuk-form-group">
+      {{ govukLabel({ for: "users", text: "Users" }) }}
+      {{ govukInput({ id: "users", name: "users", type: "number", value: form.users | default(2000), required: true }) }}
+    </div>
+    <div class="govuk-form-group">
+      {{ govukLabel({ for: "transactions_per_user", text: "Transactions per user" }) }}
+      {{ govukInput({ id: "transactions_per_user", name: "transactions_per_user", type: "number", value: form.transactions_per_user | default(10), required: true }) }}
+    </div>
+    <div class="govuk-form-group">
+      {{ govukLabel({ for: "input_tokens_per_tx", text: "Input tokens per transaction" }) }}
+      {{ govukInput({ id: "input_tokens_per_tx", name: "input_tokens_per_tx", type: "number", value: form.input_tokens_per_tx | default(2000), required: true }) }}
+    </div>
+    <div class="govuk-form-group">
+      {{ govukLabel({ for: "output_tokens_per_tx", text: "Output tokens per transaction" }) }}
+      {{ govukInput({ id: "output_tokens_per_tx", name: "output_tokens_per_tx", type: "number", value: form.output_tokens_per_tx | default(1500), required: true }) }}
+    </div>
+    <div class="govuk-form-group">
+      {{ govukLabel({ for: "days", text: "Days" }) }}
+      {{ govukInput({ id: "days", name: "days", type: "number", value: form.days | default(30), required: true }) }}
+    </div>
+    {{ govukButton({ text: "Simulate Usage" }) }}
+  </form>
+
+  {% if result %}
+    <h2 class="govuk-heading-m">Simulation Results</h2>
+    <div class="govuk-body">
+      <p>Here's the breakdown for this scenario:</p>
+      <ul class="govuk-list govuk-list--bullet">
+  <li>Users: {{ result.users }}</li>
+        <li>Transactions per user: {{ result.transactions_per_user }} per day</li>
+        <li>Days: {{ result.days }}</li>
+  <li>Total transactions: {{ result.users }} × {{ result.transactions_per_user }} × {{ result.days }} = {{ result.total_transactions }}</li>
+        <li>Input tokens per transaction: {{ result.input_tokens_per_tx }}</li>
+        <li>Output tokens per transaction: {{ result.output_tokens_per_tx }}</li>
+  <li>Total input tokens: {{ result.total_transactions }} × {{ result.input_tokens_per_tx }} = {{ result.total_input_tokens }}</li>
+  <li>Total output tokens: {{ result.total_transactions }} × {{ result.output_tokens_per_tx }} = {{ result.total_output_tokens }}</li>
+        <li>Total cost (USD): ${{ result.total_cost_usd | float | round(2) }}</li>
+        <li>Total cost (GBP): £{{ result.total_cost_gbp | float | round(2) }}</li>
+        <li>Per day: £{{ (result.total_cost_gbp / result.days) | float | round(2) }} per day</li>
+        <li>Per user (for 30 days): £{{ (result.total_cost_gbp / result.users) | float | round(2) }} per user per month</li>
+        <li>Per transaction: £{{ (result.total_cost_gbp / result.total_transactions) | float | round(3) }} per transaction</li>
+      </ul>
+  <p>The cost would be just over £{{ result.total_cost_gbp | float | round(0) }} for {{ result.users }} users making {{ result.transactions_per_user }} transactions per day for {{ result.days }} days.</p>
+    </div>
+  {% endif %}
+  {% if error %}
+    {{ govukErrorSummary({
+      titleText: "There is a problem",
+      errorList: [
+        {
+          text: error
+        }
+      ]
+    }) }}
+  {% endif %}
+{% endblock %}

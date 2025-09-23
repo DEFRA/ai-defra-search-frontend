@@ -18,6 +18,11 @@ export const observability = {
           method: 'GET',
           path: '/observability/execution/{executionId}',
           handler: observabilityController.executionDetailHandler
+        },
+        {
+          method: 'GET',
+          path: '/observability/metrics/token-usage',
+          handler: observabilityController.tokenUsageMetricsHandler
         }
       ])
     }

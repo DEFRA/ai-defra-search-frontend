@@ -5,6 +5,7 @@ import { about } from './about/index.js'
 import { health } from './health/index.js'
 import { debug } from './debug/index.js'
 import { observability } from './observability/index.js'
+import { usageSimulation } from './usage-simulation/index.js'
 import { howWeGenerateAnswers } from './how-we-generate-answers/index.js'
 import { serveStaticFiles } from './common/helpers/serve-static-files.js'
 
@@ -23,6 +24,7 @@ export const router = {
         about,
         debug,
         observability,
+        usageSimulation,
         howWeGenerateAnswers
       ])
 

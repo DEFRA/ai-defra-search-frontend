@@ -124,9 +124,86 @@
               }) }}
             {% endif %}
           </div>
+
         </div>
       </div>
     </div>
+
+    {# Token Usage & Cost Section #}
+    {% set periods = [
+      { 'label': 'Day', 'data': tokenUsageDay },
+      { 'label': 'Week', 'data': tokenUsageWeek },
+      { 'label': 'Month', 'data': tokenUsageMonth },
+      { 'label': 'Year', 'data': tokenUsageYear }
+    ] %}
+
+    {% for period in periods %}
+      {% if period.data %}
+        <div class="govuk-grid-row govuk-!-margin-bottom-6">
+          <div class="govuk-grid-column-full">
+            <h2 class="govuk-heading-l">Token Usage &amp; Cost ({{ period.label }})</h2>
+            <dl class="govuk-summary-list">
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Period (hours)</dt>
+                <dd class="govuk-summary-list__value">{{ period.data.period_hours }}</dd>
+              </div>
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Cutoff Time</dt>
+                <dd class="govuk-summary-list__value">{{ period.data.cutoff_time }}</dd>
+              </div>
+            </dl>
+            <h3 class="govuk-heading-m">Per Model</h3>
+            {% if period.data.models and period.data.models.items and period.data.models.items()|length > 0 %}
+              <table class="govuk-table">
+                <thead class="govuk-table__head">
+                  <tr class="govuk-table__row">
+                    <th class="govuk-table__header">Model</th>
+                    <th class="govuk-table__header">Input Tokens</th>
+                    <th class="govuk-table__header">Output Tokens</th>
+                    <th class="govuk-table__header">Executions</th>
+                    <th class="govuk-table__header">Cost (USD)</th>
+                    <th class="govuk-table__header">Cost (GBP)</th>
+                  </tr>
+                </thead>
+                <tbody class="govuk-table__body">
+                  {% for model_id, model in period.data.models.items() %}
+                  <tr class="govuk-table__row">
+                    <td class="govuk-table__cell">{{ model.name }}</td>
+                    <td class="govuk-table__cell">{{ model.input_tokens }}</td>
+                    <td class="govuk-table__cell">{{ model.output_tokens }}</td>
+                    <td class="govuk-table__cell">{{ model.executions }}</td>
+                    <td class="govuk-table__cell">{{ model.total_cost_usd }}</td>
+                    <td class="govuk-table__cell">{{ model.total_cost_gbp }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <p class="govuk-body">No model data available for this period.</p>
+            {% endif %}
+            <h3 class="govuk-heading-m">Overall</h3>
+            <dl class="govuk-summary-list">
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Input Tokens</dt>
+                <dd class="govuk-summary-list__value">{{ period.data.overall.input_tokens }}</dd>
+              </div>
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Output Tokens</dt>
+                <dd class="govuk-summary-list__value">{{ period.data.overall.output_tokens }}</dd>
+              </div>
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Total Cost (USD)</dt>
+                <dd class="govuk-summary-list__value">{{ period.data.overall.total_cost_usd }}</dd>
+              </div>
+              <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Total Cost (GBP)</dt>
+                <dd class="govuk-summary-list__value">{{ period.data.overall.total_cost_gbp }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
 
     {# Dashboard Summary Section #}
     {% if dashboard.available %}

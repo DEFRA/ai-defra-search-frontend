@@ -10,7 +10,11 @@ export const observabilityController = {
         performanceResult,
         securityEventsResult,
         securityMetricsResult,
-        recentExecutionsResult
+        recentExecutionsResult,
+        tokenUsageDayResult,
+        tokenUsageWeekResult,
+        tokenUsageMonthResult,
+        tokenUsageYearResult
       ] = await Promise.all([
         observabilityService.getHealth(),
         observabilityService.getSystemHealth(),
@@ -18,8 +22,29 @@ export const observabilityController = {
         observabilityService.getPerformanceMetrics(),
         observabilityService.getSecurityEvents(),
         observabilityService.getSecurityMetrics(),
-        observabilityService.getRecentExecutions()
+        observabilityService.getRecentExecutions(),
+        observabilityService.getTokenUsageMetrics(24),
+        observabilityService.getTokenUsageMetrics(168),
+        observabilityService.getTokenUsageMetrics(720),
+        observabilityService.getTokenUsageMetrics(8760)
       ])
+
+      // Helper to add .items() to models for Nunjucks compatibility
+      function addItemsMethodToModels(data) {
+        if (
+          data &&
+          data.models &&
+          typeof data.models === 'object' &&
+          !Array.isArray(data.models)
+        ) {
+          if (typeof data.models.items !== 'function') {
+            data.models.items = function () {
+              return Object.entries(this)
+            }
+          }
+        }
+        return data
+      }
 
       const viewData = {
         pageTitle: 'Observability Dashboard - AI DEFRA Search',
@@ -49,6 +74,18 @@ export const observabilityController = {
         executions: observabilityController.formatExecutionsData(
           recentExecutionsResult
         ),
+        tokenUsageDay: tokenUsageDayResult.success
+          ? addItemsMethodToModels(tokenUsageDayResult.data)
+          : null,
+        tokenUsageWeek: tokenUsageWeekResult.success
+          ? addItemsMethodToModels(tokenUsageWeekResult.data)
+          : null,
+        tokenUsageMonth: tokenUsageMonthResult.success
+          ? addItemsMethodToModels(tokenUsageMonthResult.data)
+          : null,
+        tokenUsageYear: tokenUsageYearResult.success
+          ? addItemsMethodToModels(tokenUsageYearResult.data)
+          : null,
         lastUpdated: observabilityService.formatTimestamp(
           new Date().toISOString()
         )
@@ -386,6 +423,23 @@ export const observabilityController = {
             stackTrace: execution.stack_trace
           }
         : null
+    }
+  },
+
+  async tokenUsageMetricsHandler(request, h) {
+    // Accepts ?hours= param, defaults to 24
+    const hours = parseInt(request.query.hours, 10) || 24
+    try {
+      const result = await observabilityService.getTokenUsageMetrics(hours)
+      if (!result.success) {
+        return h.response({ error: result.error }).code(500)
+      }
+      return h.response(result.data).code(200)
+    } catch (error) {
+      console.error('Error fetching token usage metrics:', error)
+      return h
+        .response({ error: 'Unable to fetch token usage metrics.' })
+        .code(500)
     }
   }
 }

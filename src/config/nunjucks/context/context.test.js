@@ -63,6 +63,11 @@ describe('context and cache', () => {
               current: false,
               text: 'Observability',
               href: '/observability'
+            },
+            {
+              current: false,
+              text: 'AI Model Usage Simulation',
+              href: '/simulate-usage'
             }
           ],
           serviceName: 'ai-defra-search-frontend',
@@ -157,6 +162,11 @@ describe('context and cache', () => {
               current: false,
               text: 'Observability',
               href: '/observability'
+            },
+            {
+              current: false,
+              text: 'AI Model Usage Simulation',
+              href: '/simulate-usage'
             }
           ],
           serviceName: 'ai-defra-search-frontend',
