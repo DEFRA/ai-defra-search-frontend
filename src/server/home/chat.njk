@@ -54,7 +54,8 @@
         </div>
     </div>
     <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
-    <form method="post" action="/" autocomplete="off">
+    <div id="question-form">
+      <form method="post" action="/" autocomplete="off">
       <input type="hidden" name="conversationId" value="{{ conversationId }}">
       <div id="question" class="govuk-form-group">
         <div class="govuk-grid-row">
@@ -71,7 +72,8 @@
         </div>
         <a class="govuk-link" href="{{ transcriptUrl }}">Download transcript of this chat</a>
       </div>
-    </form>
+      </form>
+    </div>
 
     {% if usage %}
       <h3 class="govuk-heading-m">Request Information</h3>

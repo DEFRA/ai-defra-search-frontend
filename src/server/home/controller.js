@@ -50,10 +50,9 @@ export const homeController = {
             phaseTag: 'Beta',
             phaseTagText:
               'This is a new service – your feedback will help us to improve it.',
-            error:
-              'Sorry, there was a problem processing your question. Please try again.',
+            error: response.data.answer,
             question: question || '',
-            conversationId: response.data.conversation_id || null,
+            conversationId: response.data?.conversation_id || null,
             conversationHistory: []
           })
         }
@@ -61,23 +60,6 @@ export const homeController = {
         const formattedUsage = chatService.formatUsage(response.data.usage)
         const formattedSourceDocs = chatService.formatSourceDocuments(
           response.data.source_documents
-        )
-
-        logger.info(
-          'Raw API response usage:',
-          JSON.stringify(response.data.usage, null, 2)
-        )
-        logger.info(
-          'Raw source_documents:',
-          JSON.stringify(response.data.source_documents, null, 2)
-        )
-        logger.info(
-          'Formatted source documents:',
-          JSON.stringify(formattedSourceDocs, null, 2)
-        )
-        logger.info(
-          'Formatted usage for display:',
-          JSON.stringify(formattedUsage, null, 2)
         )
 
         return h.view('home/chat', {

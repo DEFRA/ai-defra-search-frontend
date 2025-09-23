@@ -65,7 +65,25 @@
           } %}
 
           {% if error %}
-            {% set textareaOptions = textareaOptions | merge({ errorMessage: { text: error } }) %}
+            {% set textareaOptions = {
+              name: "question",
+              id: "question",
+              value: question,
+              label: {
+                text: "What would you like to know about AI guidance or information?",
+                classes: "govuk-label--m"
+              },
+              hint: {
+                text: "Enter a specific question, for example ‘What are the ethics guidelines for AI in government?’ or select a popular topic below to prefill this box."
+              },
+              attributes: {
+                "data-testid": "question-input"
+              },
+              rows: 3,
+              errorMessage: {
+                text: error
+              }
+            } %}
           {% endif %}
 
           {{ govukTextarea(textareaOptions) }}

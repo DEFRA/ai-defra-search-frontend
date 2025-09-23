@@ -15,11 +15,11 @@ import { getCacheEngine } from './common/helpers/session-cache/cache-engine.js'
 import { secureContext } from '@defra/hapi-secure-context'
 import { contentSecurityPolicy } from './common/helpers/content-security-policy.js'
 
-export async function createServer() {
+export async function createServer({ port } = {}) {
   setupProxy()
   const server = hapi.server({
     host: config.get('host'),
-    port: config.get('port'),
+    port: typeof port === 'number' ? port : config.get('port'),
     routes: {
       validate: {
         options: {

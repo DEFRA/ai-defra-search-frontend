@@ -38,13 +38,8 @@ export class ChatService {
       const data = await response.json()
       console.log('API response received successfully')
 
-      if (data.status !== 'success') {
-        console.error('API returned error status:', data.status)
-        throw new Error(`API returned error status: ${data.status}`)
-      }
-
       return {
-        success: true,
+        success: data.status === 'success',
         data: {
           answer: data.answer,
           source_documents: data.source_documents || [],
