@@ -4,7 +4,7 @@ import { proxyFetch } from '../common/helpers/proxy/proxy-fetch.js'
 export class ChatService {
   constructor() {
     this.baseUrl = config.get('apiBaseUrl')
-    this.chatEndpoint = '/langgraph/chat/enhanced'
+    this.chatEndpoint = '/v2/chat'
   }
 
   generateSessionId() {
@@ -14,7 +14,7 @@ export class ChatService {
   async sendQuestion(question, conversationId = null) {
     const payload = {
       question,
-      conversation_id: conversationId || null
+      conversationId: conversationId || null
     }
 
     console.log(`Sending request to API: ${this.baseUrl}${this.chatEndpoint}`)
@@ -38,16 +38,12 @@ export class ChatService {
       const data = await response.json()
       console.log('API response received successfully')
 
+      console.log('Raw API response data:', data)
+
       return {
-        success: data.status === 'success',
+        success: true,
         data: {
-          answer: data.answer,
-          source_documents: data.source_documents || [],
-          usage: data.usage || null,
-          question: data.question,
-          sessionId: data.session_id || null,
-          conversation_id: data.conversation_id || null,
-          conversation_history: data.conversation_history || []
+          conversationId: data.conversationId || null
         }
       }
     } catch (error) {
@@ -61,8 +57,8 @@ export class ChatService {
       return {
         success: false,
         error: error.message,
-        conversation_id: conversationId || null,
-        conversation_history: []
+        conversationId: conversationId || null,
+        conversationHistory: []
       }
     }
   }

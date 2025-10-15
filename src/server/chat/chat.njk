@@ -19,49 +19,24 @@
         <div id="chat-log" aria-label="Chat history" role="log" aria-live="polite">
         {% if conversationHistory and conversationHistory.length > 0 %}
             {% for message in conversationHistory %}
-            <div class="chat-message user">
-                <div class="chat-bubble user">
-                <span class="govuk-visually-hidden">User:</span>
-                <div class="govuk-body govuk-!-font-weight-bold">You</div>
-                <div class="govuk-body">{{ message.content | safe }}</div>
-                </div>
-            </div>
-            {% if message.answer %}
+              {% if message.role == 'assistant' %}
                 <div class="chat-message ai">
                   <div class="chat-bubble ai">
-                      <span class="govuk-visually-hidden">AI:</span>
-                      <div class="govuk-body govuk-!-font-weight-bold">AI</div>
-                      <div class="govuk-body">{{ message.answer | safe }}</div>
-                  
-                      <div class="ai-feedback">
-                        <form method="post" action="/feedback" class="ai-feedback-form">
-                          <input type="hidden" name="conversationId" value="{{ conversationId }}">
-                          <input type="hidden" name="messageId" value="{{ message.id }}">
-                          <input type="hidden" name="feedback" value="up">
-                          <button type="submit" class="govuk-button govuk-button--secondary ai-feedback-btn ai-feedback-btn--up" aria-label="Mark answer as relevant">👍</button>
-                        </form>
-                        <form method="post" action="/feedback" class="ai-feedback-form">
-                          <input type="hidden" name="conversationId" value="{{ conversationId }}">
-                          <input type="hidden" name="messageId" value="{{ message.id }}">
-                          <input type="hidden" name="feedback" value="down">
-                          <button type="submit" class="govuk-button govuk-button--secondary ai-feedback-btn ai-feedback-btn--down" aria-label="Mark answer as not relevant">👎</button>
-                        </form>
-                      </div>
+                    <span class="govuk-visually-hidden">AI:</span>
+                    <div class="govuk-body govuk-!-font-weight-bold">AI</div>
+                    <div class="govuk-body">{{ message.content | safe }}</div>
+                  </div>
+                </div>
+              {% endif %}
+              {% if message.role == 'user' %}
+                <div class="chat-message user">
+                    <div class="chat-bubble user">
+                    <span class="govuk-visually-hidden">User:</span>
+                    <div class="govuk-body govuk-!-font-weight-bold">You</div>
+                    <div class="govuk-body">{{ message.content | safe }}</div>
                     </div>
                 </div>
-
-                {% if message.sources and message.sources.length > 0 %}
-                    <div class="app-chat-sources">
-                        <p class="govuk-!-font-weight-bold govuk-body-s">Sources for this answer:</p>
-                        <ul class="govuk-list govuk-list--bullet">
-                        {% for source in message.sources %}
-                            <li><a class="govuk-link" href="{{ source.url }}" target="_blank" rel="noopener">{{ source.title }}</a></li>
-                        {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-
-            {% endif %}
+              {% endif %}
             {% endfor %}
         {% else %}
             <p class="govuk-body">No chat history yet.</p>
