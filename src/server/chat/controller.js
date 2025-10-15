@@ -8,17 +8,14 @@ const logger = createLogger('chat-controller')
 async function getConversation(conversationId, h) {
   logger.info(`Fetching conversation with ID: ${conversationId}`)
 
-  const conversation = await conversationHistoryService.getConversationHistory(conversationId)
+  const conversation =
+    await conversationHistoryService.getConversationHistory(conversationId)
 
   console.log('Conversation data:', conversation)
 
-  const viewModel = new ChatViewModel(
-    conversation
-  )
+  const viewModel = new ChatViewModel(conversation)
 
   return h.view('chat/chat', viewModel)
 }
 
-export {
-  getConversation,
-}
+export { getConversation }
