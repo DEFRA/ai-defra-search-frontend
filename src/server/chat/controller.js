@@ -1,4 +1,3 @@
-import { chatService } from '../api-requests/chat-service.js'
 import { conversationHistoryService } from '../api-requests/conversation-history-service.js'
 import { ChatViewModel } from './view-models.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
@@ -10,8 +9,6 @@ async function getConversation(conversationId, h) {
 
   const conversation =
     await conversationHistoryService.getConversationHistory(conversationId)
-
-  console.log('Conversation data:', conversation)
 
   const viewModel = new ChatViewModel(conversation)
 
