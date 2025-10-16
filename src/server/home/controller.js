@@ -20,6 +20,8 @@ export const homeController = {
   post: {
     handler: async (request, h) => {
       try {
+        logger.info('Received question submission')
+
         const { question, conversationId } = request.payload
 
         if (!question || question.trim().length === 0) {
@@ -57,29 +59,7 @@ export const homeController = {
           })
         }
 
-        const formattedUsage = chatService.formatUsage(response.data.usage)
-        const formattedSourceDocs = chatService.formatSourceDocuments(
-          response.data.source_documents
-        )
-
-        return h.view('home/chat', {
-          pageTitle: 'Search Results - AI DEFRA Search',
-          heading: 'Search Results',
-          serviceName: 'AI DEFRA Search',
-          phaseTag: 'Beta',
-          phaseTagText:
-            'This is a new service – your feedback will help us to improve it.',
-          question: response.data.question,
-          answer: response.data.answer,
-          sourceDocuments: formattedSourceDocs,
-          usage: formattedUsage,
-          sessionId: response.data.sessionId,
-          conversationId: response.data.conversation_id || null,
-          conversationHistory: response.data.conversation_history || [],
-          transcriptUrl: response.data.conversation_id
-            ? '/transcript/' + (response.data.conversation_id || '')
-            : ''
-        })
+        return h.redirect(`/chat/${response.data.conversationId}`)
       } catch (error) {
         logger.error('Error processing question:', error)
 

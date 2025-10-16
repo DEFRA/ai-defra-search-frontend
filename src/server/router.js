@@ -1,5 +1,6 @@
 import inert from '@hapi/inert'
 
+import { chat } from './chat/router.js'
 import { home } from './home/index.js'
 import { about } from './about/index.js'
 import { health } from './health/index.js'
@@ -20,6 +21,7 @@ export const router = {
 
       // Application specific routes, add your own routes here
       await server.register([
+        chat,
         home,
         about,
         debug,
