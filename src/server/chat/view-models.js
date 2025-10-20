@@ -17,7 +17,9 @@ class ChatViewModel extends BaseViewModel {
     this.conversationId = conversation.conversationId
     this.tokenUsage = conversation.tokenUsage || []
 
-    this.tokenUsage.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    this.tokenUsage.sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+    )
   }
 }
 
