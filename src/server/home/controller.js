@@ -51,10 +51,10 @@ export const homeController = {
             serviceName: 'AI DEFRA Search',
             phaseTag: 'Beta',
             phaseTagText:
-              'This is a new service – your feedback will help us to improve it.',
+              'This is a new service - your feedback will help us to improve it.',
             error: response.data.answer,
             question: question || '',
-            conversationId: response.data?.conversation_id || null,
+            conversationId: response.data?.conversationId || null,
             conversationHistory: []
           })
         }
@@ -69,7 +69,7 @@ export const homeController = {
           serviceName: 'AI DEFRA Search',
           phaseTag: 'Beta',
           phaseTagText:
-            'This is a new service – your feedback will help us to improve it.',
+            'This is a new service - your feedback will help us to improve it.',
           error: 'Sorry, there was an unexpected error. Please try again.',
           question: request.payload?.question || '',
           conversationId: request.payload?.conversationId || null,
