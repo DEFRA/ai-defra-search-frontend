@@ -65,51 +65,30 @@
       </form>
     </div>
 
-    {% if usage %}
+    {% if tokenUsage and tokenUsage.length > 0 %}
       <h3 class="govuk-heading-m">Request Information</h3>
-      <dl class="govuk-summary-list">
-        {% if usage.models and usage.models.length > 0 %}
-          {% for model in usage.models %}
-            <div class="govuk-summary-list__row">
-              <dt class="govuk-summary-list__key">AI Model {{ loop.index }}{% if usage.models.length > 1 %} of {{ usage.models.length }}{% endif %}</dt>
-              <dd class="govuk-summary-list__value">{{ model.modelId }}</dd>
-            </div>
-            <div class="govuk-summary-list__row">
-              <dt class="govuk-summary-list__key">Tokens</dt>
-              <dd class="govuk-summary-list__value">
-                Input: {{ model.tokens.input or 0 }}<br>
-                Output: {{ model.tokens.output or 0 }}<br>
-                <strong>Total: {{ model.tokens.total or 0 }}</strong>
-              </dd>
-            </div>
+      <table class="govuk-table">
+        <thead class="govuk-table__head">
+          <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">Stage</th>
+            <th scope="col" class="govuk-table__header">Model</th>
+            <th scope="col" class="govuk-table__header govuk-table__header--numeric">Input tokens</th>
+            <th scope="col" class="govuk-table__header govuk-table__header--numeric">Output tokens</th>
+            <th scope="col" class="govuk-table__header govuk-table__header--numeric">Total tokens</th>
+          </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+          {% for usageItem in tokenUsage %}
+          <tr class="govuk-table__row">
+            <td class="govuk-table__cell">{{ usageItem.stageName }}</td>
+            <td class="govuk-table__cell">{{ usageItem.model }}</td>
+            <td class="govuk-table__cell govuk-table__cell--numeric">{{ usageItem.inputTokens or 0 }}</td>
+            <td class="govuk-table__cell govuk-table__cell--numeric">{{ usageItem.outputTokens or 0 }}</td>
+            <td class="govuk-table__cell govuk-table__cell--numeric">{{ usageItem.totalTokens or 0 }}</td>
+          </tr>
           {% endfor %}
-          {% if usage.models.length > 1 %}
-            <div class="govuk-summary-list__row">
-              <dt class="govuk-summary-list__key"><strong>Total Tokens (All Models)</strong></dt>
-              <dd class="govuk-summary-list__value">
-                <strong>Input: {{ usage.totalTokens.input or 0 }}<br>
-                Output: {{ usage.totalTokens.output or 0 }}<br>
-                Total: {{ usage.totalTokens.total or 0 }}</strong>
-              </dd>
-            </div>
-          {% endif %}
-        {% else %}
-          <div class="govuk-summary-list__row">
-            <dt class="govuk-summary-list__key">AI Model</dt>
-            <dd class="govuk-summary-list__value">Not specified</dd>
-          </div>
-          <div class="govuk-summary-list__row">
-            <dt class="govuk-summary-list__key">Tokens used</dt>
-            <dd class="govuk-summary-list__value">Input: 0<br>Output: 0<br><strong>Total: 0</strong></dd>
-          </div>
-        {% endif %}
-        {% if usage.timestamp %}
-        <div class="govuk-summary-list__row">
-          <dt class="govuk-summary-list__key">Processed at</dt>
-          <dd class="govuk-summary-list__value">{{ usage.timestamp }}</dd>
-        </div>
-        {% endif %}
-      </dl>
+        </tbody>
+      </table>
     {% endif %}
   </div>
 </div>
