@@ -4,7 +4,7 @@ class BaseViewModel {
     this.serviceName = 'AI DEFRA Search'
     this.phaseTag = 'Beta'
     this.phaseTagText =
-      'This is a new service – your feedback will help us to improve it.'
+      'This is a new service - your feedback will help us to improve it.'
   }
 }
 
@@ -14,7 +14,12 @@ class ChatViewModel extends BaseViewModel {
     this.pageTitle = 'Conversation History - AI DEFRA Search'
     this.heading = 'Conversation History'
     this.conversationHistory = conversation.messages || []
-    this.conversationId = conversation.conversation_id
+    this.conversationId = conversation.conversationId
+    this.tokenUsage = conversation.tokenUsage || []
+
+    this.tokenUsage.sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+    )
   }
 }
 

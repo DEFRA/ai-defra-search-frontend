@@ -18,16 +18,6 @@ describe('#buildNavigation', () => {
         current: false,
         text: 'About',
         href: '/about'
-      },
-      {
-        current: false,
-        text: 'Observability',
-        href: '/observability'
-      },
-      {
-        current: false,
-        text: 'AI Model Usage Simulation',
-        href: '/simulate-usage'
       }
     ])
   })
@@ -43,16 +33,6 @@ describe('#buildNavigation', () => {
         current: false,
         text: 'About',
         href: '/about'
-      },
-      {
-        current: false,
-        text: 'Observability',
-        href: '/observability'
-      },
-      {
-        current: false,
-        text: 'AI Model Usage Simulation',
-        href: '/simulate-usage'
       }
     ])
   })
