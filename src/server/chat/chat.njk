@@ -24,7 +24,7 @@
                   <div class="chat-bubble ai">
                     <span class="govuk-visually-hidden">AI:</span>
                     <div class="govuk-body govuk-!-font-weight-bold">AI</div>
-                    <div class="govuk-body">{{ message.content | safe }}</div>
+                    <div class="govuk-body">{{ message.contentHtml | safe }}</div>
                   </div>
                 </div>
 
@@ -44,7 +44,7 @@
                     <div class="chat-bubble user">
                     <span class="govuk-visually-hidden">User:</span>
                     <div class="govuk-body govuk-!-font-weight-bold">You</div>
-                    <div class="govuk-body">{{ message.content | safe }}</div>
+                    <div class="govuk-body">{{ message.contentHtml | safe }}</div>
                     </div>
                 </div>
               {% endif %}

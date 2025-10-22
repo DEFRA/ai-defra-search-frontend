@@ -1,3 +1,5 @@
+import { marked } from 'marked'
+
 class BaseViewModel {
   constructor() {
     this.pageTitle = 'AI DEFRA Search'
@@ -19,6 +21,7 @@ class ChatViewModel extends BaseViewModel {
     this.conversationHistory = conversation.messages?.map((m) => {
       return {
         ...m,
+        contentHtml: marked.parse(m.content),
         sources: m.sources?.reduce((acc, src) => {
           const exists = acc.find((s) => s.url === src.url)
 
