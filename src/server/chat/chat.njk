@@ -27,6 +27,17 @@
                     <div class="govuk-body">{{ message.content | safe }}</div>
                   </div>
                 </div>
+
+                {% if message.sources and message.sources.length > 0 %}
+                    <div class="app-chat-sources">
+                        <p class="govuk-!-font-weight-bold govuk-body-s">Sources for this answer:</p>
+                        <ul class="govuk-list govuk-list--bullet">
+                        {% for source in message.sources %}
+                            <li><a class="govuk-link" href="{{ source.location }}" target="_blank" rel="noopener">{{ source.name }}</a></li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
               {% endif %}
               {% if message.role == 'user' %}
                 <div class="chat-message user">
