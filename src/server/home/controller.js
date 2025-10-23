@@ -6,14 +6,17 @@ const logger = createLogger('homeController')
 
 export const homeController = {
   get: {
-    handler(_request, h) {
+    handler(request, h) {
+      const { question } = request.query
+
       return h.view('home/index', {
         pageTitle: 'Ask a Question - AI DEFRA Search',
         heading: 'Ask a Question',
         serviceName: 'AI DEFRA Search',
         phaseTag: 'Beta',
         phaseTagText:
-          'This is a new service – your feedback will help us to improve it.'
+          'This is a new service – your feedback will help us to improve it.',
+        question
       })
     }
   },
