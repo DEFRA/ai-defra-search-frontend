@@ -1,5 +1,3 @@
-import { config } from '../../config/config.js'
-
 /**
  * About page controller for AI DEFRA Search service.
  * Provides information about the service, its purpose, and how it works.
@@ -9,7 +7,6 @@ export const aboutController = {
     return h.view('about/index', {
       pageTitle: 'About this service - AI DEFRA Search',
       heading: 'About this service',
-      
       phaseTag: 'Beta',
       breadcrumbs: [
         {

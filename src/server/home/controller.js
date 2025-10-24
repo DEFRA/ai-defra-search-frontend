@@ -1,5 +1,3 @@
-import { config } from '../../config/config.js'
-
 import { chatService } from '../api-requests/chat-service.js'
 import { conversationHistoryService } from '../api-requests/conversation-history-service.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
@@ -14,7 +12,6 @@ export const homeController = {
       return h.view('home/index', {
         pageTitle: 'Ask a Question - AI DEFRA Search',
         heading: 'Ask a Question',
-        
         phaseTag: 'Beta',
         phaseTagText:
           'This is a new service – your feedback will help us to improve it.',
@@ -33,7 +30,7 @@ export const homeController = {
           return h.view('home/index', {
             pageTitle: 'Ask a Question - AI DEFRA Search',
             heading: 'Ask a Question',
-            
+
             phaseTag: 'Beta',
             phaseTagText:
               'This is a new service – your feedback will help us to improve it.',
@@ -53,7 +50,7 @@ export const homeController = {
           return h.view('home/index', {
             pageTitle: 'Ask a Question - AI DEFRA Search',
             heading: 'Ask a Question',
-            
+
             phaseTag: 'Beta',
             phaseTagText:
               'This is a new service - your feedback will help us to improve it.',
@@ -71,7 +68,7 @@ export const homeController = {
         return h.view('home/index', {
           pageTitle: 'Ask a Question - AI DEFRA Search',
           heading: 'Ask a Question',
-          
+
           phaseTag: 'Beta',
           phaseTagText:
             'This is a new service - your feedback will help us to improve it.',

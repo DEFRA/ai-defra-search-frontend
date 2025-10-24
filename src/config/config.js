@@ -43,7 +43,7 @@ export const config = convict({
   serviceName: {
     doc: 'Applications Service Name',
     format: String,
-    default: 'AI Defra Search',
+    default: 'AI Defra Search'
   },
   apiBaseUrl: {
     doc: 'Base URL for the AI chat API',
