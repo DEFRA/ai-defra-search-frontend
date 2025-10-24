@@ -1,3 +1,5 @@
+import { config } from '../../config/config.js'
+
 import { createLogger } from '../common/helpers/logging/logger.js'
 import { debugService } from '../api-requests/debug-service.js'
 
@@ -9,7 +11,7 @@ export const debugController = {
       return h.view('debug/index', {
         pageTitle: 'Vector Store Debug - AI DEFRA Search',
         heading: 'Vector Store Debug',
-        serviceName: 'AI DEFRA Search',
+        
         phaseTag: 'Beta',
         phaseTagText: 'Debug tool for testing vector store functionality.'
       })
@@ -25,7 +27,7 @@ export const debugController = {
           return h.view('debug/index', {
             pageTitle: 'Vector Store Debug - AI DEFRA Search',
             heading: 'Vector Store Debug',
-            serviceName: 'AI DEFRA Search',
+            
             phaseTag: 'Beta',
             phaseTagText: 'Debug tool for testing vector store functionality.',
             error: 'Please enter a question before submitting.'
@@ -38,7 +40,7 @@ export const debugController = {
           return h.view('debug/index', {
             pageTitle: 'Vector Store Debug - AI DEFRA Search',
             heading: 'Vector Store Debug',
-            serviceName: 'AI DEFRA Search',
+            
             phaseTag: 'Beta',
             phaseTagText: 'Debug tool for testing vector store functionality.',
             results: result.data,
@@ -48,7 +50,7 @@ export const debugController = {
           return h.view('debug/index', {
             pageTitle: 'Vector Store Debug - AI DEFRA Search',
             heading: 'Vector Store Debug',
-            serviceName: 'AI DEFRA Search',
+            
             phaseTag: 'Beta',
             phaseTagText: 'Debug tool for testing vector store functionality.',
             error: result.error,
@@ -60,7 +62,7 @@ export const debugController = {
         return h.view('debug/index', {
           pageTitle: 'Vector Store Debug - AI DEFRA Search',
           heading: 'Vector Store Debug',
-          serviceName: 'AI DEFRA Search',
+          
           phaseTag: 'Beta',
           phaseTagText: 'Debug tool for testing vector store functionality.',
           error:
@@ -84,7 +86,7 @@ export const debugController = {
           return h.view('debug/index', {
             pageTitle: 'Vector Store Debug - AI DEFRA Search',
             heading: 'Vector Store Debug',
-            serviceName: 'AI DEFRA Search',
+            
             phaseTag: 'Beta',
             phaseTagText: 'Debug tool for testing vector store functionality.',
             error: 'Please enter at least one URL before submitting.',
@@ -122,7 +124,7 @@ export const debugController = {
           return h.view('debug/index', {
             pageTitle: 'Vector Store Debug - AI DEFRA Search',
             heading: 'Vector Store Debug',
-            serviceName: 'AI DEFRA Search',
+            
             phaseTag: 'Beta',
             phaseTagText: 'Debug tool for testing vector store functionality.',
             error: `URL validation errors:\n${errors.join('\n')}`,
@@ -136,7 +138,7 @@ export const debugController = {
           return h.view('debug/index', {
             pageTitle: 'Vector Store Debug - AI DEFRA Search',
             heading: 'Vector Store Debug',
-            serviceName: 'AI DEFRA Search',
+            
             phaseTag: 'Beta',
             phaseTagText: 'Debug tool for testing vector store functionality.',
             results: result.data,
@@ -146,7 +148,7 @@ export const debugController = {
           return h.view('debug/index', {
             pageTitle: 'Vector Store Debug - AI DEFRA Search',
             heading: 'Vector Store Debug',
-            serviceName: 'AI DEFRA Search',
+            
             phaseTag: 'Beta',
             phaseTagText: 'Debug tool for testing vector store functionality.',
             error: result.error,
@@ -158,7 +160,7 @@ export const debugController = {
         return h.view('debug/index', {
           pageTitle: 'Vector Store Debug - AI DEFRA Search',
           heading: 'Vector Store Debug',
-          serviceName: 'AI DEFRA Search',
+          
           phaseTag: 'Beta',
           phaseTagText: 'Debug tool for testing vector store functionality.',
           error:

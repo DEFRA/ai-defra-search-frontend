@@ -26,6 +26,7 @@ export function context(request) {
   return {
     assetPath: `${assetPath}/assets`,
     serviceName: config.get('serviceName'),
+    serviceVersion: config.get('serviceVersion'),
     serviceUrl: '/',
     breadcrumbs: [],
     navigation: buildNavigation(request),
