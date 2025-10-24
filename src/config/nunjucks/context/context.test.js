@@ -60,7 +60,8 @@ describe('context and cache', () => {
               href: '/about'
             }
           ],
-          serviceName: 'ai-defra-search-frontend',
+          serviceName: 'AI Defra Search',
+          serviceVersion: '0.1.0',
           serviceUrl: '/'
         })
       })
@@ -149,7 +150,8 @@ describe('context and cache', () => {
               href: '/about'
             }
           ],
-          serviceName: 'ai-defra-search-frontend',
+          serviceName: 'AI Defra Search',
+          serviceVersion: '0.1.0',
           serviceUrl: '/'
         })
       })

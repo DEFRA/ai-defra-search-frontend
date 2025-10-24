@@ -49,7 +49,7 @@ export const observabilityController = {
       const viewData = {
         pageTitle: 'Observability Dashboard - AI DEFRA Search',
         heading: 'Observability Dashboard',
-        serviceName: 'AI DEFRA Search',
+
         phaseTag: 'Beta',
         breadcrumbs: [
           {
@@ -97,7 +97,7 @@ export const observabilityController = {
       return h.view('observability/index', {
         pageTitle: 'Observability Dashboard - AI DEFRA Search',
         heading: 'Observability Dashboard',
-        serviceName: 'AI DEFRA Search',
+
         phaseTag: 'Beta',
         breadcrumbs: [
           {
@@ -130,7 +130,7 @@ export const observabilityController = {
       const viewData = {
         pageTitle: `Execution ${executionId} - Observability Dashboard`,
         heading: `Execution Details`,
-        serviceName: 'AI DEFRA Search',
+
         phaseTag: 'Beta',
         breadcrumbs: [
           {

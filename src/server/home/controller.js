@@ -12,7 +12,6 @@ export const homeController = {
       return h.view('home/index', {
         pageTitle: 'Ask a Question - AI DEFRA Search',
         heading: 'Ask a Question',
-        serviceName: 'AI DEFRA Search',
         phaseTag: 'Beta',
         phaseTagText:
           'This is a new service – your feedback will help us to improve it.',
@@ -31,7 +30,7 @@ export const homeController = {
           return h.view('home/index', {
             pageTitle: 'Ask a Question - AI DEFRA Search',
             heading: 'Ask a Question',
-            serviceName: 'AI DEFRA Search',
+
             phaseTag: 'Beta',
             phaseTagText:
               'This is a new service – your feedback will help us to improve it.',
@@ -51,7 +50,7 @@ export const homeController = {
           return h.view('home/index', {
             pageTitle: 'Ask a Question - AI DEFRA Search',
             heading: 'Ask a Question',
-            serviceName: 'AI DEFRA Search',
+
             phaseTag: 'Beta',
             phaseTagText:
               'This is a new service - your feedback will help us to improve it.',
@@ -69,7 +68,7 @@ export const homeController = {
         return h.view('home/index', {
           pageTitle: 'Ask a Question - AI DEFRA Search',
           heading: 'Ask a Question',
-          serviceName: 'AI DEFRA Search',
+
           phaseTag: 'Beta',
           phaseTagText:
             'This is a new service - your feedback will help us to improve it.',

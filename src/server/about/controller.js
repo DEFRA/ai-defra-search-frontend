@@ -7,7 +7,6 @@ export const aboutController = {
     return h.view('about/index', {
       pageTitle: 'About this service - AI DEFRA Search',
       heading: 'About this service',
-      serviceName: 'AI DEFRA Search',
       phaseTag: 'Beta',
       breadcrumbs: [
         {

@@ -19,8 +19,7 @@ export const config = convict({
   serviceVersion: {
     doc: 'The service version, this variable is injected into your docker container in CDP environments',
     format: String,
-    nullable: true,
-    default: null,
+    default: '0.1.0',
     env: 'SERVICE_VERSION'
   },
   host: {
@@ -44,7 +43,7 @@ export const config = convict({
   serviceName: {
     doc: 'Applications Service Name',
     format: String,
-    default: 'ai-defra-search-frontend'
+    default: 'AI Defra Search'
   },
   apiBaseUrl: {
     doc: 'Base URL for the AI chat API',
