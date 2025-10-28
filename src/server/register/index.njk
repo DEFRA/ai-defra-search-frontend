@@ -1,0 +1,115 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "heading/macro.njk" import appHeading %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      
+      {% if errorMessage or errorMessages %}
+        {% set errorList = [] %}
+        {% if errorMessage %}
+          {% set errorList = errorList.concat([{ text: errorMessage.text, href: "#emailaddress" }]) %}
+        {% endif %}
+        {% if errorMessages.emailaddress %}
+          {% set errorList = errorList.concat([{ text: errorMessages.emailaddress.text, href: "#emailaddress" }]) %}
+        {% endif %}
+        {% if errorMessages.firstname %}
+          {% set errorList = errorList.concat([{ text: errorMessages.firstname.text, href: "#firstname" }]) %}
+        {% endif %}
+        {% if errorMessages.lastname %}
+          {% set errorList = errorList.concat([{ text: errorMessages.lastname.text, href: "#lastname" }]) %}
+        {% endif %}
+        {% if errorMessages.project %}
+          {% set errorList = errorList.concat([{ text: errorMessages.project.text, href: "#project" }]) %}
+        {% endif %}
+        
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errorList
+        }) }}
+      {% endif %}
+
+      {{ appHeading({
+        text: heading,
+        caption: "Create your account to access AI tools and services"
+      }) }}
+
+      <p class="govuk-body">
+        Register to get access to AI Self Service tools and request API keys for experimentation.
+      </p>
+
+      <form method="post" novalidate>
+        {{ govukInput({
+          label: {
+            text: "Email address",
+            classes: "govuk-label--m"
+          },
+          hint: {
+            text: "We'll use this to send you updates and notifications"
+          },
+          id: "emailaddress",
+          name: "emailaddress",
+          type: "email",
+          autocomplete: "email",
+          spellcheck: false,
+          value: emailaddress,
+          errorMessage: errorMessages.emailaddress if errorMessages.emailaddress
+        }) }}
+
+        {{ govukInput({
+          label: {
+            text: "First name",
+            classes: "govuk-label--m"
+          },
+          id: "firstname",
+          name: "firstname",
+          type: "text",
+          autocomplete: "given-name",
+          value: firstname,
+          errorMessage: errorMessages.firstname if errorMessages.firstname
+        }) }}
+
+        {{ govukInput({
+          label: {
+            text: "Last name",
+            classes: "govuk-label--m"
+          },
+          id: "lastname",
+          name: "lastname",
+          type: "text",
+          autocomplete: "family-name",
+          value: lastname,
+          errorMessage: errorMessages.lastname if errorMessages.lastname
+        }) }}
+
+        {{ govukInput({
+          label: {
+            text: "Project name",
+            classes: "govuk-label--m"
+          },
+          hint: {
+            text: "The name of the project or team you're working on"
+          },
+          id: "project",
+          name: "project",
+          type: "text",
+          value: project,
+          errorMessage: errorMessages.project if errorMessages.project
+        }) }}
+
+        {{ govukButton({
+          text: "Register",
+          type: "submit"
+        }) }}
+      </form>
+
+      <p class="govuk-body">
+        <a class="govuk-link" href="/login">Already have an account? Sign in</a>
+      </p>
+
+    </div>
+  </div>
+{% endblock %}

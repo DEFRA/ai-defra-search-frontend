@@ -1,5 +1,6 @@
 import path from 'path'
 import hapi from '@hapi/hapi'
+import hapiCookie from '@hapi/cookie'
 import Scooter from '@hapi/scooter'
 
 import { router } from './router.js'
@@ -14,6 +15,7 @@ import { sessionCache } from './common/helpers/session-cache/session-cache.js'
 import { getCacheEngine } from './common/helpers/session-cache/cache-engine.js'
 import { secureContext } from '@defra/hapi-secure-context'
 import { contentSecurityPolicy } from './common/helpers/content-security-policy.js'
+import { magicLinkAuth } from './common/helpers/magic-link-auth.js'
 
 export async function createServer({ port } = {}) {
   setupProxy()
@@ -53,7 +55,17 @@ export async function createServer({ port } = {}) {
       strictHeader: false
     }
   })
+
+  const magiclinkCache = server.cache({
+    expiresIn: 1000 * 60 * 15,
+    segment: 'magiclinks'
+  }) // 15 mins
+
+  server.app.magiclinkCache = magiclinkCache
+
   await server.register([
+    hapiCookie,
+    magicLinkAuth,
     requestLogger,
     requestTracing,
     secureContext,

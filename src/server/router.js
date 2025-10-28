@@ -9,6 +9,10 @@ import { observability } from './observability/index.js'
 import { usageSimulation } from './usage-simulation/index.js'
 import { howWeGenerateAnswers } from './how-we-generate-answers/index.js'
 import { serveStaticFiles } from './common/helpers/serve-static-files.js'
+import { verifyLogin } from './verify-login/index.js'
+import { login } from './login/index.js'
+import { logout } from './logout/index.js'
+import { register } from './register/index.js'
 
 export const router = {
   plugin: {
@@ -27,7 +31,11 @@ export const router = {
         debug,
         observability,
         usageSimulation,
-        howWeGenerateAnswers
+        howWeGenerateAnswers,
+        verifyLogin,
+        login,
+        logout,
+        register
       ])
 
       // Static assets

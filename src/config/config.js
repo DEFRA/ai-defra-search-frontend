@@ -224,6 +224,39 @@ export const config = convict({
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
     }
+  },
+  serviceUri: {
+    doc: 'Service URI to redirect Magic Link',
+    format: String,
+    default: 'http://localhost:3000',
+    env: 'SERVICE_URI'
+  },
+  backendApiUrl: {
+    doc: 'Backend API URL for fetching user data, API keys, and bedrock operations',
+    format: String,
+    default: 'http://localhost:3001',
+    env: 'BACKEND_API_URL'
+  },
+  notify: {
+    apiKey: {
+      doc: 'API Key for Gov Notify',
+      format: String,
+      default:
+        'test-00000000-0000-0000-0000-000000000000-00000000-0000-0000-0000-000000000000',
+      env: 'NOTIFY_API_KEY'
+    },
+    templateId: {
+      doc: 'Template ID for Gov Notify',
+      format: String,
+      default: '5d96278a-7383-457d-92a0-ef2f2f09028c',
+      env: 'NOTIFY_TEMPLATE_ID'
+    },
+    testToken: {
+      doc: 'Test Token for Gov Notify',
+      format: String,
+      default: '',
+      env: 'TEST_TOKEN'
+    }
   }
 })
 

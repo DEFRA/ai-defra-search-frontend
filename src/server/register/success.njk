@@ -1,0 +1,48 @@
+{% extends 'layouts/page.njk' %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "heading/macro.njk" import appHeading %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      
+      {{ govukPanel({
+        titleText: "Registration successful",
+        html: "Your account has been created successfully"
+      }) }}
+
+      <h2 class="govuk-heading-m">What happens next</h2>
+      
+      <p class="govuk-body">
+        Your registration has been processed and your account is now active. You can now:
+      </p>
+
+      <ul class="govuk-list govuk-list--bullet">
+        <li>Sign in to access AI Self Service tools</li>
+        <li>Request API keys for experimentation</li>
+        <li>Access supported Bedrock foundation models</li>
+      </ul>
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Sign in now",
+          href: "/login",
+          isStartButton: true
+        }) }}
+        
+        {{ govukButton({
+          text: "Return to home",
+          href: "/",
+          classes: "govuk-button--secondary"
+        }) }}
+      </div>
+
+      <h2 class="govuk-heading-s">Need help?</h2>
+      <p class="govuk-body">
+        If you have any questions about using the AI Self Service, please contact your system administrator.
+      </p>
+
+    </div>
+  </div>
+{% endblock %}
