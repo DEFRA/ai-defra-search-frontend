@@ -15,28 +15,14 @@ async function getDashboard(request, h) {
     
     if (!emailAddress || !emailAddress.email) {
       logger.warn('No email address found in session')
-      return h.view('dashboard/dashboard', {
-        pageTitle: 'Dashboard - AI DEFRA Search',
-        heading: 'Dashboard',
-        error: 'Please log in to view your dashboard',
-        hasData: false,
-        phaseTag: 'Beta',
-        phaseTagText: 'This is a new service - your feedback will help us to improve it.'
-      })
+      return h.view('dashboard/dashboard', DashboardViewModel.createNoLoginView())
     }
 
     const userData = await getByEmail(emailAddress.email, true)
     
     if (!userData || !userData.conversationHistory || userData.conversationHistory.length === 0) {
       logger.info('No conversation history found for user')
-      return h.view('dashboard/dashboard', {
-        pageTitle: 'Dashboard - AI DEFRA Search',
-        heading: 'Dashboard',
-        message: 'No conversation history found. Start a conversation to see your usage statistics.',
-        hasData: false,
-        phaseTag: 'Beta',
-        phaseTagText: 'This is a new service - your feedback will help us to improve it.'
-      })
+      return h.view('dashboard/dashboard', DashboardViewModel.createNoConversationsView())
     }
 
     const conversationIds = userData.conversationHistory.map(conv => conv.conversationId)
@@ -48,44 +34,7 @@ async function getDashboard(request, h) {
     } catch (tokenError) {
       logger.error('Failed to fetch token usage, showing partial dashboard:', tokenError)
       
-      return h.view('dashboard/dashboard', {
-        pageTitle: 'Dashboard - AI DEFRA Search',
-        heading: 'Usage Dashboard',
-        hasData: true,
-        userInfo: {
-          email: userData.email,
-          firstname: userData.firstname || '',
-          lastname: userData.lastname || '',
-          project: userData.project || ''
-        },
-        conversationHistory: userData.conversationHistory.sort((a, b) => 
-          new Date(b.createdAt) - new Date(a.createdAt)
-        ),
-        stats: {
-          totalConversations: conversationIds.length,
-          totalInputTokens: 0,
-          totalOutputTokens: 0,
-          totalTokens: 0,
-          totalCostGbp: 0,
-          totalCostUsd: 0,
-          totalCostGbpFormatted: '0.0000',
-          averageTokensPerConversation: 0,
-          averageCostPerConversation: 0,
-          averageCostPerConversationFormatted: '0.0000'
-        },
-        overallUsage: {
-          totalInputTokens: 0,
-          totalOutputTokens: 0,
-          totalTokens: 0
-        },
-        usageByModel: [],
-        usageByModelRows: [],
-        usageByConversation: [],
-        usageByConversationRows: [],
-        phaseTag: 'Beta',
-        phaseTagText: 'This is a new service - your feedback will help us to improve it.',
-        error: 'Token usage data is currently unavailable. Your conversation history is shown below.'
-      })
+      return h.view('dashboard/dashboard', DashboardViewModel.createTokenUsageErrorView(userData, conversationIds))
     }
     
     const costData = calculateTotalCosts(tokenUsage)
@@ -104,14 +53,7 @@ async function getDashboard(request, h) {
   } catch (error) {
     logger.error('Error loading dashboard:', error)
     
-    return h.view('dashboard/dashboard', {
-      pageTitle: 'Dashboard - AI DEFRA Search',
-      heading: 'Dashboard',
-      error: 'Sorry, there was an error loading your dashboard. Please try again.',
-      hasData: false,
-      phaseTag: 'Beta',
-      phaseTagText: 'This is a new service - your feedback will help us to improve it.'
-    })
+    return h.view('dashboard/dashboard', DashboardViewModel.createGeneralErrorView())
   }
 }
 
