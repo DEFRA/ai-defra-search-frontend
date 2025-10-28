@@ -1,13 +1,38 @@
 import { chatService } from '../api-requests/chat-service.js'
 import { conversationHistoryService } from '../api-requests/conversation-history-service.js'
+import { addConversationHistory, getByEmail } from '../api-requests/users.js'
+import { getEmailAddress } from '../session/index.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
 const logger = createLogger('homeController')
 
 export const homeController = {
   get: {
-    handler(request, h) {
+    handler: async (request, h) => {
       const { question } = request.query
+      let conversationHistory = []
+
+      try {
+        const emailAddress = getEmailAddress(request)
+
+        if (emailAddress) {
+          const userData = await getByEmail(emailAddress.email, true)
+          
+          if (userData && userData.conversationHistory) {
+            conversationHistory = userData.conversationHistory
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              .map(item => ({
+                conversationId: item.conversationId,
+                question: item.question,
+                createdAt: item.createdAt
+              }))
+          }
+        }
+      } catch (error) {
+        logger.error('Error fetching conversation history:', error)
+      }
+
+      logger.info(`conversationHistory: ${JSON.stringify(conversationHistory)}`)
 
       return h.view('home/index', {
         pageTitle: 'Ask a Question - AI DEFRA Search',
@@ -15,7 +40,8 @@ export const homeController = {
         phaseTag: 'Beta',
         phaseTagText:
           'This is a new service – your feedback will help us to improve it.',
-        question
+        question,
+        conversationHistory
       })
     }
   },
@@ -46,6 +72,8 @@ export const homeController = {
           conversationId
         )
 
+        console.log('Chat service response:', response)
+
         if (!response.success) {
           return h.view('home/index', {
             pageTitle: 'Ask a Question - AI DEFRA Search',
@@ -59,6 +87,22 @@ export const homeController = {
             conversationId: response.data?.conversationId || null,
             conversationHistory: []
           })
+        }
+
+        const emailAddress = getEmailAddress(request)
+        if (emailAddress && response.data?.conversationId) {
+          try {
+            await addConversationHistory({
+              emailaddress: emailAddress.email,
+              conversationId: response.data.conversationId,
+              question: question.trim()
+            })
+            logger.info('Successfully saved conversation history for user')
+          } catch (error) {
+            logger.error('Failed to save conversation history:', error)
+          }
+        } else {
+          logger.warn('Could not save conversation history - missing email or conversationId')
         }
 
         return h.redirect(`/chat/${response.data.conversationId}`)

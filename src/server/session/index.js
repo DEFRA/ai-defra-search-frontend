@@ -45,4 +45,8 @@ function clearSession(request) {
   request.yar.clear(emailAddressKey)
 }
 
-export { get, set, getbyKey, setWithKey, hasSessionWithProperty, clearSession }
+function getEmailAddress(request) {
+  return request.yar?.get(emailAddressKey)
+}
+
+export { get, set, getbyKey, setWithKey, hasSessionWithProperty, clearSession, getEmailAddress }

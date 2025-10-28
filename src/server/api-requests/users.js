@@ -29,7 +29,8 @@ const getByEmail = async (email, full = false) => {
           email: data.user.emailaddress,
           firstname: data.user.firstname,
           lastname: data.user.lastname,
-          project: data.user.project
+          project: data.user.project,
+          conversationHistory: data.user.conversationHistory || [],
         }
       } else {
         return { email: data.user.emailaddress }
@@ -59,7 +60,7 @@ const registerUser = async (userDetails) => {
     }
 
     const backendApiUrl = config.get('backendApiUrl')
-    const url = `${backendApiUrl}/register`
+    const url = `${backendApiUrl}/users/register`
 
     const payload = {
       emailaddress,
@@ -88,7 +89,7 @@ const registerUser = async (userDetails) => {
 
     const data = await response.json()
 
-    if (data.message === 'User created successfully' && data.user) {
+    if (data.message === 'User registered successfully' && data.user) {
       logger.info('Successfully registered user via API')
 
       return {
@@ -100,6 +101,7 @@ const registerUser = async (userDetails) => {
           lastname: data.user.lastname,
           project: data.user.project,
           active: data.user.active,
+          conversationHistory: data.user.conversationHistory || [],
           createdAt: data.user.createdAt,
           updatedAt: data.user.updatedAt
         }
@@ -116,4 +118,57 @@ const registerUser = async (userDetails) => {
   }
 }
 
-export { getByEmail, registerUser }
+const addConversationHistory = async (conversationData) => {
+  logger.info('Adding user conversation history via API')
+
+  try {
+    const { emailaddress, conversationId, question } = conversationData
+
+    if (!emailaddress || !conversationId || !question) {
+      logger.error('Missing required fields for conversation history')
+      return {
+        error: 'Missing required fields: emailaddress, conversationId, question'
+      }
+    }
+
+    const backendApiUrl = config.get('backendApiUrl')
+    const url = `${backendApiUrl}/users/conversation/history`
+
+    const payload = {
+      emailaddress,
+      conversationId,
+      question
+    }
+
+    logger.info(`Making POST request to: ${url}`)
+    logger.info(`Payload: ${JSON.stringify(payload)}`)
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (!response.ok) {
+      logger.error(`Conversation history request failed with status: ${response.status}`)
+      const errorText = await response.text()
+      logger.error(`Error response: ${errorText}`)
+      return { error: `Request failed with status ${response.status}` }
+    }
+
+    const data = await response.json()
+
+    logger.info('Successfully added conversation history via API')
+    return {
+      success: true,
+      data
+    }
+  } catch (error) {
+    logger.error(`Error adding conversation history: ${error.message}`)
+    return { error: `Request failed: ${error.message}` }
+  }
+}
+
+export { getByEmail, registerUser, addConversationHistory }

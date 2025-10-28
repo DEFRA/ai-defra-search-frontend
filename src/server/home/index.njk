@@ -22,20 +22,17 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-one-third">
       <div class="govuk-body">
-        <h3 class="govuk-heading-s">Popular topics</h3>
-        <p class="govuk-body">Select a topic to prefill your question:</p>
-        <ul class="govuk-list govuk-list--bullet">
-          <li><a class="govuk-link" href="?question=AI%20ethics%20and%20governance">AI ethics and governance</a></li>
-          <li><a class="govuk-link" href="?question=Data%20protection%20in%20AI%20systems">Data protection in AI systems</a></li>
-          <li><a class="govuk-link" href="?question=AI%20procurement%20guidelines">AI procurement guidelines</a></li>
-          <li><a class="govuk-link" href="?question=Risk%20assessment%20frameworks">Risk assessment frameworks</a></li>
-          <li><a class="govuk-link" href="?question=AI%20implementation%20best%20practices">AI implementation best practices</a></li>
+        <h3 class="govuk-heading-s">Conversations</h3>
+        <ul class="govuk-list govuk-list">
+          {% for conversation in conversationHistory %}
+            <li><a class="govuk-link" href="chat/{{ conversation.conversationId }}">{{ conversation.question }}</a></li>
+          {% endfor %}
         </ul>
       </div>
     </div>
     <div class="govuk-grid-column-two-thirds">
       {{ appHeading({ text: heading }) }}
-      
+
       {% if error %}
         {{ govukErrorSummary({
           titleText: "There is a problem",
