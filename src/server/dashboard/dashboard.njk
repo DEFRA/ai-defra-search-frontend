@@ -1,0 +1,259 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/phase-banner/macro.njk" import govukPhaseBanner %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+
+{% block beforeContent %}
+  {{ govukPhaseBanner({
+    tag: {
+      text: phaseTag
+    },
+    html: phaseTagText
+  }) }}
+{% endblock %}
+
+{% block content %}
+
+  {% if error %}
+    {{ govukNotificationBanner({
+      type: "error",
+      html: error
+    }) }}
+  {% endif %}
+
+  {% if message and not hasData %}
+    {{ govukNotificationBanner({
+      type: "information",
+      html: message
+    }) }}
+  {% endif %}
+
+  {{ appHeading({
+    text: heading,
+    caption: "Token usage and conversation statistics"
+  }) }}
+
+  {% if hasData %}
+  
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-full">
+        
+        <h2 class="govuk-heading-l">Account Summary</h2>
+        
+        {{ govukSummaryList({
+          rows: [
+            {
+              key: {
+                text: "Email"
+              },
+              value: {
+                text: userInfo.email
+              }
+            },
+            {
+              key: {
+                text: "Name"
+              },
+              value: {
+                text: (userInfo.firstname + " " + userInfo.lastname) if userInfo.firstname else "Not provided"
+              }
+            },
+            {
+              key: {
+                text: "Project"
+              },
+              value: {
+                text: userInfo.project or "Not specified"
+              }
+            }
+          ]
+        }) }}
+
+        <h2 class="govuk-heading-l">Usage Overview</h2>
+        
+        <div class="govuk-grid-row">
+          <div class="govuk-grid-column-one-quarter">
+            <div class="govuk-body govuk-!-text-align-centre govuk-!-padding-4">
+              <span class="govuk-heading-xl govuk-!-margin-bottom-1">{{ stats.totalConversations }}</span>
+              <p class="govuk-body-s govuk-!-margin-bottom-0">Total Conversations</p>
+            </div>
+          </div>
+          <div class="govuk-grid-column-one-quarter">
+            <div class="govuk-body govuk-!-text-align-centre govuk-!-padding-4">
+              <span class="govuk-heading-xl govuk-!-margin-bottom-1">{{ stats.totalTokens }}</span>
+              <p class="govuk-body-s govuk-!-margin-bottom-0">Total Tokens</p>
+            </div>
+          </div>
+          <div class="govuk-grid-column-one-quarter">
+            <div class="govuk-body govuk-!-text-align-centre govuk-!-padding-4">
+              <span class="govuk-heading-xl govuk-!-margin-bottom-1">£{{ stats.totalCostGbpFormatted }}</span>
+              <p class="govuk-body-s govuk-!-margin-bottom-0">Total Cost (GBP)</p>
+            </div>
+          </div>
+          <div class="govuk-grid-column-one-quarter">
+            <div class="govuk-body govuk-!-text-align-centre govuk-!-padding-4">
+              <span class="govuk-heading-xl govuk-!-margin-bottom-1">£{{ stats.averageCostPerConversationFormatted }}</span>
+              <p class="govuk-body-s govuk-!-margin-bottom-0">Average Cost per Conversation</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="govuk-grid-row govuk-!-margin-top-4">
+          <div class="govuk-grid-column-one-half">
+            {{ govukInsetText({
+              html: 'Exchange rate: 1 USD = 0.81 GBP (approximate)<br>Costs calculated based on model pricing per 1,000 tokens.'
+            }) }}
+          </div>
+        </div>
+
+        {% if usageByModel and usageByModel.length > 0 %}
+        <h2 class="govuk-heading-l">Usage by AI Model</h2>
+        
+        {{ govukTable({
+          caption: "Token usage broken down by AI model",
+          captionClasses: "govuk-table__caption--m govuk-visually-hidden",
+          head: [
+            {
+              text: "Model"
+            },
+            {
+              text: "Input Tokens"
+            },
+            {
+              text: "Output Tokens"
+            },
+            {
+              text: "Total Tokens"
+            },
+            {
+              text: "Cost (GBP)"
+            }
+          ],
+          rows: usageByModelRows
+        }) }}
+        {% endif %}
+
+        {% if usageByConversation and usageByConversation.length > 0 %}
+        <h2 class="govuk-heading-l">Usage by Conversation</h2>
+        
+        {{ govukInsetText({
+          text: "Click on a conversation ID to view the full conversation history."
+        }) }}
+
+        {{ govukTable({
+          caption: "Token usage for each of your conversations",
+          captionClasses: "govuk-table__caption--m govuk-visually-hidden",
+          head: [
+            {
+              text: "Date"
+            },
+            {
+              text: "Question"
+            },
+            {
+              text: "Conversation ID"
+            },
+            {
+              text: "Input Tokens"
+            },
+            {
+              text: "Output Tokens"
+            },
+            {
+              text: "Total Tokens"
+            },
+            {
+              text: "Cost (GBP)"
+            }
+          ],
+          rows: usageByConversationRows
+        }) }}
+
+        <h3 class="govuk-heading-m">Model Usage per Conversation</h3>
+        
+        {% for conv in usageByConversation %}
+          {% if conv.models and conv.models.length > 0 %}
+          <h4 class="govuk-heading-s">
+            Conversation: {{ conv.question | truncate(40) if conv.question else "Unknown" }}
+            <span class="govuk-caption-s">{{ conv.formattedCreatedAt }}</span>
+          </h4>
+          
+          {{ govukTable({
+            caption: "Model usage for conversation " + conv.conversationId,
+            captionClasses: "govuk-table__caption--s govuk-visually-hidden",
+            head: [
+              {
+                text: "Model"
+              },
+              {
+                text: "Input Tokens"
+              },
+              {
+                text: "Output Tokens"
+              },
+              {
+                text: "Total Tokens"
+              },
+              {
+                text: "Cost (GBP)"
+              }
+            ],
+            rows: conv.modelRows
+          }) }}
+          {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        {# Show conversation history when token data is unavailable #}
+        {% if conversationHistory and conversationHistory.length > 0 %}
+        <h2 class="govuk-heading-l">Your Conversations</h2>
+        
+        <ul class="govuk-list">
+          {% for conv in conversationHistory %}
+          <li class="govuk-!-margin-bottom-3">
+            <a href="/chat/{{ conv.conversationId }}" class="govuk-link">
+              {{ conv.question if conv.question else "Conversation " + conv.conversationId.substring(0, 8) }}
+            </a>
+            {% if conv.createdAt %}
+            <br><span class="govuk-body-s govuk-!-colour-dark-grey">
+              {{ conv.createdAt | date('j M Y, H:i') }}
+            </span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        {{ govukInsetText({
+          html: 'Token usage helps you understand how much of the AI system resources your conversations have used. <strong>Input tokens</strong> represent your questions and context, while <strong>output tokens</strong> represent the AI responses.'
+        }) }}
+      </div>
+    </div>
+
+  {% else %}
+    
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        <p class="govuk-body-l">
+          Your usage dashboard will appear here once you start having conversations with the AI system.
+        </p>
+        
+        <p class="govuk-body">
+          <a href="/" class="govuk-link">Start your first conversation</a> to begin tracking your usage.
+        </p>
+      </div>
+    </div>
+    
+  {% endif %}
+
+{% endblock %}

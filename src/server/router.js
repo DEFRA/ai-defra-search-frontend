@@ -13,6 +13,7 @@ import { verifyLogin } from './verify-login/index.js'
 import { login } from './login/index.js'
 import { logout } from './logout/index.js'
 import { register } from './register/index.js'
+import { dashboard } from './dashboard/router.js'
 
 export const router = {
   plugin: {
@@ -35,7 +36,8 @@ export const router = {
         verifyLogin,
         login,
         logout,
-        register
+        register,
+        dashboard
       ])
 
       // Static assets

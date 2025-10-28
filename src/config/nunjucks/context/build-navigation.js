@@ -39,6 +39,11 @@ export function buildNavigation(request) {
   if (isAuthenticated) {
     baseItems.push(
       {
+        text: 'Dashboard',
+        href: '/dashboard',
+        current: request?.path === '/dashboard'
+      },
+      {
         text: 'Logout',
         href: '/logout',
         current: request?.path === '/logout'

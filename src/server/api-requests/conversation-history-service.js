@@ -57,6 +57,41 @@ export class ConversationHistoryService {
       throw error
     }
   }
+
+  async getTokenUsage(conversationIds) {
+    if (!conversationIds || !Array.isArray(conversationIds)) {
+      throw new Error('conversationIds array is required')
+    }
+
+    if (conversationIds.length === 0) {
+      throw new Error('conversationIds array cannot be empty')
+    }
+
+    const url = `${this.baseUrl}/conversation-history/token-usage`
+    
+    try {
+      const response = await proxyFetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          conversation_ids: conversationIds
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log(`Token usage data fetched successfully: ${JSON.stringify(data)}`)
+      return data
+    } catch (error) {
+      console.error('Failed to fetch token usage:', error)
+      throw error
+    }
+  }
 }
 
 export const conversationHistoryService = new ConversationHistoryService()
