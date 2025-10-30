@@ -13,14 +13,14 @@ async function getDashboard(request, h) {
   try {
     const emailAddress = getEmailAddress(request)
     
-    if (!emailAddress || !emailAddress.email) {
+    if (!emailAddress?.email) {
       logger.warn('No email address found in session')
       return h.view('dashboard/dashboard', DashboardViewModel.createNoLoginView())
     }
 
     const userData = await getByEmail(emailAddress.email, true)
     
-    if (!userData || !userData.conversationHistory || userData.conversationHistory.length === 0) {
+    if (!userData?.conversationHistory?.length) {
       logger.info('No conversation history found for user')
       return h.view('dashboard/dashboard', DashboardViewModel.createNoConversationsView())
     }
@@ -33,7 +33,6 @@ async function getDashboard(request, h) {
       tokenUsage = await conversationHistoryService.getTokenUsage(conversationIds)
     } catch (tokenError) {
       logger.error('Failed to fetch token usage, showing partial dashboard:', tokenError)
-      
       return h.view('dashboard/dashboard', DashboardViewModel.createTokenUsageErrorView(userData, conversationIds))
     }
     
@@ -52,7 +51,6 @@ async function getDashboard(request, h) {
 
   } catch (error) {
     logger.error('Error loading dashboard:', error)
-    
     return h.view('dashboard/dashboard', DashboardViewModel.createGeneralErrorView())
   }
 }

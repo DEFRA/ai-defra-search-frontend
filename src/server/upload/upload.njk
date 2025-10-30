@@ -1,0 +1,62 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: errorMessage.text,
+              href: "#file"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      <form method="POST" enctype="multipart/form-data">
+        {{ govukFileUpload({
+          id: "file",
+          name: "file",
+          label: {
+            text: heading,
+            classes: "govuk-label--l",
+            isPageHeading: true
+          },
+          hint: {
+            text: hintText
+          },
+          errorMessage: errorMessage if errorMessage else false
+        }) }}
+
+        {{ govukTextarea({
+          name: "description",
+          id: "description",
+          label: {
+            text: "Description (optional)",
+            classes: "govuk-label--m"
+          },
+          hint: {
+            text: "Provide a brief description of the document you're uploading"
+          },
+          value: description,
+          rows: 4
+        }) }}
+
+        {{ govukButton({
+          text: "Upload file",
+          attributes: {
+            id: "submit"
+          }
+        }) }}
+      </form>
+    </div>
+  </div>
+{% endblock %}

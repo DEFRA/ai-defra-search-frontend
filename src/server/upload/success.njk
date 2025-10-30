@@ -1,0 +1,41 @@
+{% extends 'layouts/page.njk' %}
+
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      
+      {{ govukPanel({
+        titleText: heading,
+        html: 'Your file <strong>' + fileName + '</strong> has been uploaded successfully'
+      }) }}
+
+      <p class="govuk-body">What happens next</p>
+      <p class="govuk-body">
+        Your document has been uploaded and is being processed. You can now:
+      </p>
+      
+      <ul class="govuk-list govuk-list--bullet">
+        <li>Upload another document</li>
+        <li>Return to the dashboard</li>
+        <li>Start a new chat session</li>
+      </ul>
+
+      <div class="govuk-button-group">
+        {{ govukButton({
+          text: "Upload another file",
+          href: "/upload",
+          classes: "govuk-button--secondary"
+        }) }}
+        
+        {{ govukButton({
+          text: "Go to dashboard",
+          href: "/dashboard"
+        }) }}
+      </div>
+
+    </div>
+  </div>
+{% endblock %}

@@ -14,6 +14,7 @@ import { login } from './login/index.js'
 import { logout } from './logout/index.js'
 import { register } from './register/index.js'
 import { dashboard } from './dashboard/router.js'
+import { upload } from './upload/index.js'
 
 export const router = {
   plugin: {
@@ -37,7 +38,8 @@ export const router = {
         login,
         logout,
         register,
-        dashboard
+        dashboard,
+        upload
       ])
 
       // Static assets

@@ -44,6 +44,16 @@ export function buildNavigation(request) {
         current: request?.path === '/dashboard'
       },
       {
+        text: 'Upload',
+        href: '/upload',
+        current: request?.path === '/upload'
+      },
+      {
+        text: 'Document Library',
+        href: '/upload/files',
+        current: request?.path === '/upload/files'
+      },
+      {
         text: 'Logout',
         href: '/logout',
         current: request?.path === '/logout'

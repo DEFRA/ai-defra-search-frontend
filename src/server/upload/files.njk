@@ -1,0 +1,125 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/table/macro.njk" import govukTable %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: errorMessage.text
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-xl">{{ heading }}</h1>
+      
+      {% if message %}
+        {{ govukInsetText({
+          html: '<p>' + message + '</p><p><a href="/upload" class="govuk-link">Upload a file</a></p>'
+        }) }}
+      {% else %}
+        {% if showRefresh %}
+          {{ govukNotificationBanner({
+            titleText: "Processing in progress",
+            html: '<p class="govuk-notification-banner__heading">Some files are still being processed. Click "Refresh status" to check for updates.</p>'
+          }) }}
+        {% endif %}
+
+        <div class="govuk-button-group">
+          <form action="/upload/files/refresh" method="post" class="govuk-button-group__item">
+            {{ govukButton({
+              text: "Refresh status",
+              classes: "govuk-button--secondary"
+            }) }}
+          </form>
+          <div class="govuk-button-group__item">
+            {{ govukButton({
+              text: "Upload another file",
+              href: "/upload",
+              classes: "govuk-button--secondary"
+            }) }}
+          </div>
+        </div>
+
+        {% if uploads and uploads.length > 0 %}
+          {% set tableRows = [] %}
+          {% for upload in uploads %}
+            {% if upload.status == "ready" %}
+              {% set statusHtml = govukTag({
+                text: "Ready",
+                classes: "govuk-tag--green"
+              }) %}
+            {% elif upload.status == "processing" or upload.status == "pending" %}
+              {% set statusHtml = govukTag({
+                text: "Processing", 
+                classes: "govuk-tag--blue"
+              }) %}
+            {% elif upload.status == "rejected" %}
+              {% set statusHtml = govukTag({
+                text: "Rejected",
+                classes: "govuk-tag--red"
+              }) %}
+            {% elif upload.status == "error" %}
+              {% set statusHtml = govukTag({
+                text: "Error",
+                classes: "govuk-tag--red"
+              }) %}
+            {% else %}
+              {% set statusHtml = govukTag({
+                text: upload.status or "Unknown",
+                classes: "govuk-tag--grey"
+              }) %}
+            {% endif %}
+
+            {% set tableRows = (tableRows.push([
+              {
+                text: upload.filename
+              },
+              {
+                html: statusHtml
+              },
+              {
+                text: upload.formattedDate or "Unknown"
+              },
+              {
+                html: ('<code class="govuk-!-font-size-14">' + upload.fileId + '</code>') if upload.fileId else '<span class="govuk-hint">-</span>'
+              }
+            ]), tableRows) %}
+          {% endfor %}
+
+          {{ govukTable({
+            caption: "Uploaded files and their processing status",
+            captionClasses: "govuk-table__caption--m",
+            head: [
+              {
+                text: "File name"
+              },
+              {
+                text: "Status"
+              },
+              {
+                text: "Uploaded"
+              },
+              {
+                text: "File ID"
+              }
+            ],
+            rows: tableRows
+          }) }}
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
