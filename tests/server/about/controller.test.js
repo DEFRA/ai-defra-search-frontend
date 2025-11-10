@@ -1,7 +1,7 @@
-import { createServer } from '../server.js'
-import { statusCodes } from '../common/constants/status-codes.js'
+import { createServer } from '../../../src/server/server.js'
+import { statusCodes } from '../../../src/server/common/constants/status-codes.js'
 
-describe('#homeController', () => {
+describe('#aboutController', () => {
   let server
 
   beforeAll(async () => {
@@ -16,10 +16,10 @@ describe('#homeController', () => {
   test('Should provide expected response', async () => {
     const { result, statusCode } = await server.inject({
       method: 'GET',
-      url: '/'
+      url: '/about'
     })
 
-    expect(result).toEqual(expect.stringContaining('Home |'))
+    expect(result).toEqual(expect.stringContaining('About |'))
     expect(statusCode).toBe(statusCodes.ok)
   })
 })

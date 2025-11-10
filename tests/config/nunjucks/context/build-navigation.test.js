@@ -1,4 +1,4 @@
-import { buildNavigation } from './build-navigation.js'
+import { buildNavigation } from '../../../../src/config/nunjucks/context/build-navigation.js'
 
 function mockRequest (options) {
   return { ...options }

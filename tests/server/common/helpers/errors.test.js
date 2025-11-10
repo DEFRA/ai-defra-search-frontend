@@ -1,8 +1,8 @@
 import { vi } from 'vitest'
 
-import { catchAll } from './errors.js'
-import { createServer } from '../../server.js'
-import { statusCodes } from '../constants/status-codes.js'
+import { catchAll } from '../../../../src/server/common/helpers/errors.js'
+import { createServer } from '../../../../src/server/server.js'
+import { statusCodes } from '../../../../src/server/common/constants/status-codes.js'
 
 describe('#errors', () => {
   let server

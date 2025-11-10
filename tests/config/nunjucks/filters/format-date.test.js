@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 
-import { formatDate } from './format-date.js'
+import { formatDate } from '../../../../src/config/nunjucks/filters/format-date.js'
 
 describe('#formatDate', () => {
   beforeAll(() => {

@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 
 import hapi from '@hapi/hapi'
-import { statusCodes } from '../constants/status-codes.js'
+import { statusCodes } from '../../../../src/server/common/constants/status-codes.js'
 
 describe('#startServer', () => {
   let createServerSpy
@@ -12,8 +12,8 @@ describe('#startServer', () => {
   beforeAll(async () => {
     vi.stubEnv('PORT', '3097')
 
-    createServerImport = await import('../../server.js')
-    startServerImport = await import('./start-server.js')
+    createServerImport = await import('../../../../src/server/server.js')
+    startServerImport = await import('../../../../src/server/common/helpers/start-server.js')
 
     createServerSpy = vi.spyOn(createServerImport, 'createServer')
     hapiServerSpy = vi.spyOn(hapi, 'server')

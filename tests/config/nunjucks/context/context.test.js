@@ -11,7 +11,7 @@ vi.mock('node:fs', async () => {
     readFileSync: () => mockReadFileSync()
   }
 })
-vi.mock('../../../server/common/helpers/logging/logger.js', () => ({
+vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   createLogger: () => ({ error: (...args) => mockLoggerError(...args) })
 }))
 
@@ -30,7 +30,7 @@ describe('context and cache', () => {
       let contextResult
 
       beforeAll(async () => {
-        contextImport = await import('./context.js')
+        contextImport = await import('../../../../src/config/nunjucks/context/context.js')
       })
 
       beforeEach(() => {
@@ -86,7 +86,7 @@ describe('context and cache', () => {
       let contextImport
 
       beforeAll(async () => {
-        contextImport = await import('./context.js')
+        contextImport = await import('../../../../src/config/nunjucks/context/context.js')
       })
 
       beforeEach(() => {
@@ -111,7 +111,7 @@ describe('context and cache', () => {
       let contextImport
 
       beforeAll(async () => {
-        contextImport = await import('./context.js')
+        contextImport = await import('../../../../src/config/nunjucks/context/context.js')
       })
 
       beforeEach(() => {
