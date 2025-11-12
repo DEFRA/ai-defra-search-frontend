@@ -1,0 +1,57 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/password-input/macro.njk" import govukPasswordInput %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% set pageTitle = "UCD Bot Login" %}
+{% set serviceName = "UCD chatbot for Defra" %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: errorMessage,
+              href: "#password"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-xl">
+        UCD chatbot for Defra
+      </h1>
+
+      <p class="govuk-body">Use this chatbot to assist you with user centred design work.</p>
+
+      <p class="govuk-body">This is a prototype. You need a password to access it.</p>
+
+      <form action="/login" method="post" novalidate>
+
+        {{ govukPasswordInput({
+            label: {
+                text: "Password"
+            },
+            id: "password",
+            name: "password",
+            autocomplete: "current-password",
+            errorMessage: {
+                text: errorMessage
+            } if errorMessage,
+            classes: "govuk-input--width-20"
+        }) }}
+
+        {{ govukButton({
+          text: "Continue"
+        }) }}
+
+      </form>
+
+    </div>
+  </div>
+{% endblock %}

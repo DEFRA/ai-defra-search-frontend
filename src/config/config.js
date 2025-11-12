@@ -219,6 +219,13 @@ export const config = convict({
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
     }
+  },
+  prototypePassword: {
+    doc: 'Password for accessing the prototype',
+    format: String,
+    default: 'correctpassword',
+    env: 'PROTOTYPE_PASSWORD',
+    sensitive: true
   }
 })
 

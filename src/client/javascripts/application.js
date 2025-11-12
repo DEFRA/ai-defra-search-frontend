@@ -1,4 +1,5 @@
 import {
+  initAll,
   createAll,
   Button,
   Checkboxes,
@@ -14,3 +15,5 @@ createAll(ErrorSummary)
 createAll(Header)
 createAll(Radios)
 createAll(SkipLink)
+
+initAll()

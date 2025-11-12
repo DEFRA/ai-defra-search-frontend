@@ -15,35 +15,60 @@ describe('Authentication routes controller', () => {
     await server.stop({ timeout: 0 })
   })
 
+  test('GET /login should return the login page', async () => {
+    const { result, statusCode } = await server.inject({
+      method: 'GET',
+      url: '/login'
+    })
 
-//   Happy path: User enters correct password and successfully lands on empty signed-in screen
-// Unhappy path: User enters incorrect password and sees an appropriate error message
-// Unhappy path: User navigates directly to signed-in screen and is automatically redirected to the password screen
-  
-  test('When user provides correct password, redirect to empty signed-in screen', async () => {
+    const { window } = new JSDOM(result.body)
+    const page = window.document
+
+    expect(page.title).toBe('UCD chatbot for Defra')
+
+    const form = page.querySelector('form[action="/login"]')
+    expect(form).not.toBeNull()
+
+    const passwordInput = form.querySelector('input[name="password"]')
+
+    expect(passwordInput).not.toBeNull()
+    expect(passwordInput.type).toBe('hidden')
+  })
+
+  test('POST /login with correct credentials should redirect to signed-in screen', async () => {
     const { result, statusCode } = await server.inject({
       method: 'POST',
-      url: '/login'
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
     })
 
     expect(statusCode).toBe(statusCodes.PERMANENT_REDIRECT)
     expect(result.location).toBe('/start')
   })
 
-   test('When user provides an incorrect password, return an incorrect password error message', async () => {
+  test('POST /login with incorrect password should return an error page', async () => {
     const { result, statusCode } = await server.inject({
       method: 'POST',
-      url: '/login'
+      url: '/login',
+      payload: {
+        password: 'incorrectpassword'
+      }
     })
 
     expect(statusCode).toBe(statusCodes.OK)
-    const dom = new JSDOM(result.body);
-    dom.window.document.querySelectorAll('.govuk-error-summary__list li').
 
+    const { document: page } = (new JSDOM(result.body)).window
+
+    const errorSummary = page.querySelector('.govuk-error-summary')
+
+    expect(page.title).toBe('UCD chatbot for Defra')
+    expect(errorSummary).not.toBeNull()
   })
 
 
-   test('When user navigates to the  signed-in screen (/start), they are redirected to the password screen', async () => {
+  test('POST /start when not authenticated should redirect to login', async () => {
     const { result, statusCode } = await server.inject({
       method: 'POST',
       url: '/start'
