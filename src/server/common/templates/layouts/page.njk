@@ -30,7 +30,7 @@
 {% endblock %}
 
 {% block pageTitle %}
-  {{ pageTitle }} | {{ serviceName }}
+  {{ pageTitle }}{% if pageTitle %} | {% endif %}{{ serviceName }}
 {% endblock %}
 
 {% block beforeContent %}

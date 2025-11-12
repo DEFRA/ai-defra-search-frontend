@@ -1,6 +1,6 @@
 import { config } from '../../config/config.js'
 
-const PROTOTYPE_PASSWORD = config.get('prototypePassword')
+const prototypePassword = config.get('prototypePassword')
 
 /**
  * Authentication controller for the login page.
@@ -8,28 +8,14 @@ const PROTOTYPE_PASSWORD = config.get('prototypePassword')
  */
 export const loginGetController = {
   handler (_request, h) {
-    return h.view('auth/login', {
-      pageTitle: 'Login'
-    })
+    return h.view('auth/login')
   }
 }
 
 export const loginPostController = {
   handler (request, h) {
-    const { password } = request.payload
-
-    if (password === PROTOTYPE_PASSWORD) {
-      // Set authenticated session
-      request.yar.set('authenticated', true)
-      
-      // Redirect to the start page
-      return h.redirect('/start').code(308)
-    }
-
-    // Return login page with error
     return h.view('auth/login', {
-      pageTitle: 'Login Failed',
-      errorMessage: 'Incorrect password. Please try again.'
+      errorMessage: 'Enter the correct password'
     }).code(200)
   }
 }

@@ -16,12 +16,14 @@ describe('Authentication routes controller', () => {
   })
 
   test('GET /login should return the login page', async () => {
-    const { result, statusCode } = await server.inject({
+    const response = await server.inject({
       method: 'GET',
       url: '/login'
     })
 
-    const { window } = new JSDOM(result.body)
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
     const page = window.document
 
     expect(page.title).toBe('UCD chatbot for Defra')
@@ -32,11 +34,11 @@ describe('Authentication routes controller', () => {
     const passwordInput = form.querySelector('input[name="password"]')
 
     expect(passwordInput).not.toBeNull()
-    expect(passwordInput.type).toBe('hidden')
+    expect(passwordInput.type).toBe('password')
   })
 
   test('POST /login with correct credentials should redirect to signed-in screen', async () => {
-    const { result, statusCode } = await server.inject({
+    const response = await server.inject({
       method: 'POST',
       url: '/login',
       payload: {
@@ -44,12 +46,12 @@ describe('Authentication routes controller', () => {
       }
     })
 
-    expect(statusCode).toBe(statusCodes.PERMANENT_REDIRECT)
-    expect(result.location).toBe('/start')
+    expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(response.headers.location).toBe('/start')
   })
 
   test('POST /login with incorrect password should return an error page', async () => {
-    const { result, statusCode } = await server.inject({
+    const response = await server.inject({
       method: 'POST',
       url: '/login',
       payload: {
@@ -57,24 +59,25 @@ describe('Authentication routes controller', () => {
       }
     })
 
-    expect(statusCode).toBe(statusCodes.OK)
+    expect(response.statusCode).toBe(statusCodes.OK)
 
-    const { document: page } = (new JSDOM(result.body)).window
-
-    const errorSummary = page.querySelector('.govuk-error-summary')
+    const { window } = new JSDOM(response.result)
+    const page = window.document
 
     expect(page.title).toBe('UCD chatbot for Defra')
+
+    const errorSummary = page.querySelector('.govuk-error-summary')
     expect(errorSummary).not.toBeNull()
   })
 
 
-  test('POST /start when not authenticated should redirect to login', async () => {
-    const { result, statusCode } = await server.inject({
-      method: 'POST',
+  test('GET /start when not authenticated should redirect to login', async () => {
+    const response = await server.inject({
+      method: 'GET',
       url: '/start'
     })
 
-    expect(statusCode).toBe(statusCodes.PERMANENT_REDIRECT)
-    expect(result.location).toBe('/login')
+    expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(response.headers.location).toBe('/login')
   })
 })
