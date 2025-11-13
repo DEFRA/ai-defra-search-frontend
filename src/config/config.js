@@ -223,7 +223,7 @@ export const config = convict({
   prototypePassword: {
     doc: 'Password for accessing the prototype',
     format: String,
-    default: 'correctpassword',
+    default: null,
     env: 'PROTOTYPE_PASSWORD',
     sensitive: true
   }

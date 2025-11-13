@@ -1,7 +1,9 @@
 import path from 'path'
 import hapi from '@hapi/hapi'
+import cookie from '@hapi/cookie'
 import Scooter from '@hapi/scooter'
 
+import { auth } from './common/helpers/auth/auth.js'
 import { router } from './router.js'
 import { config } from '../config/config.js'
 import { pulse } from './common/helpers/pulse.js'
@@ -53,7 +55,9 @@ export async function createServer () {
       strictHeader: false
     }
   })
+
   await server.register([
+    cookie,
     requestLogger,
     requestTracing,
     secureContext,
@@ -62,6 +66,7 @@ export async function createServer () {
     nunjucksConfig,
     Scooter,
     contentSecurityPolicy,
+    auth,
     router // Register all the controllers/routes defined in src/server/router.js
   ])
 
