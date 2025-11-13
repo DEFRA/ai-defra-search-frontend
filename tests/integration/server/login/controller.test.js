@@ -108,4 +108,43 @@ describe('Login routes', () => {
 
     expect(startResponse.statusCode).toBe(statusCodes.OK)
   })
+
+  test('POST /start with question should redirect back to start page', async () => {
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const questionResponse = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      },
+      payload: {
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(questionResponse.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(questionResponse.headers.location).toBe('/start')
+  })
+
+  test('POST /start when not authenticated should redirect to login', async () => {
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      payload: {
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(response.headers.location).toBe('/login')
+  })
 })

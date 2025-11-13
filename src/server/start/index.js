@@ -1,4 +1,4 @@
-import { startGetController } from './controller.js'
+import { startGetController, startPostController } from './controller.js'
 
 /**
  * Sets up the routes used for authentication.
@@ -13,6 +13,11 @@ export const start = {
           method: 'GET',
           path: '/start',
           ...startGetController
+        },
+        {
+          method: 'POST',
+          path: '/start',
+          ...startPostController
         }
       ])
     }
