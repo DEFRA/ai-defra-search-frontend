@@ -9,6 +9,10 @@ services:
       - path: .env
         required: false
     environment:
+      PORT: 3000
+      NODE_ENV: development
+      REDIS_HOST: redis
+      USE_SINGLE_INSTANCE_CACHE: true
       PROTOTYPE_PASSWORD: correctpassword
     volumes:
       - ./src/:/home/node/src
