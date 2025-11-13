@@ -1,0 +1,17 @@
+services:
+  ai-defra-search-frontend:
+    build:
+      target: development
+    image: ai-defra-search-frontend-development
+    container_name: ai-defra-search-frontend-test
+    command: npm run test
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PROTOTYPE_PASSWORD: correctpassword
+    volumes:
+      - ./src/:/home/node/src
+      - ./test/:/home/node/test
+      - ./package.json:/home/node/package.json
+      - ./coverage:/home/node/coverage
