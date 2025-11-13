@@ -1,0 +1,160 @@
+openapi: 3.0.3
+info:
+  title: Chat Service API
+  description: Mock API for chat service backend
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local mock server
+
+paths:
+  /chat:
+    post:
+      summary: Send a chat message
+      description: Sends a message to the chat service and receives a response with conversation history
+      operationId: postChat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - question
+              properties:
+                conversation_id:
+                  type: string
+                  format: uuid
+                  description: Optional conversation ID. If not provided, a new conversation will be created
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                question:
+                  type: string
+                  description: The user's question or message
+                  example: "What is the weather like today?"
+            examples:
+              newConversation:
+                summary: New conversation
+                value:
+                  question: "Hello, how are you?"
+              existingConversation:
+                summary: Existing conversation
+                value:
+                  conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                  question: "Can you tell me more?"
+      responses:
+        '200':
+          description: Successful response with conversation messages
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - conversation_id
+                  - messages
+                properties:
+                  conversation_id:
+                    type: string
+                    format: uuid
+                    description: The conversation identifier
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  messages:
+                    type: array
+                    description: Array of messages in the conversation
+                    items:
+                      type: object
+                      required:
+                        - role
+                        - model
+                        - content
+                      properties:
+                        role:
+                          type: string
+                          enum:
+                            - user
+                            - assistant
+                          description: The role of the message sender
+                          example: "user"
+                        model:
+                          type: string
+                          description: The model used for the response (for assistant messages)
+                          example: "gpt-4"
+                        content:
+                          type: string
+                          description: The message content
+                          example: "Hello! How can I help you today?"
+              examples:
+                singleExchange:
+                  summary: Single message exchange
+                  value:
+                    conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                    messages:
+                      - role: "user"
+                        model: "user-input"
+                        content: "Hello, how are you?"
+                      - role: "assistant"
+                        model: "gpt-4"
+                        content: "Hello! I'm doing well, thank you for asking. How can I assist you today?"
+        '400':
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid request: question field is required"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - question
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+        question:
+          type: string
+    
+    ChatResponse:
+      type: object
+      required:
+        - conversation_id
+        - messages
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    
+    Message:
+      type: object
+      required:
+        - role
+        - model
+        - content
+      properties:
+        role:
+          type: string
+          enum:
+            - user
+            - assistant
+        model:
+          type: string
+        content:
+          type: string
