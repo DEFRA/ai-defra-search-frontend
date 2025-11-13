@@ -1,9 +1,10 @@
 import statusCodes from 'http-status-codes'
-import {JSDOM} from 'jsdom'
+import { JSDOM } from 'jsdom'
+
 import { createServer } from '../../../../src/server/server.js'
 
 
-describe('Authentication routes controller', () => {
+describe('Login routes', () => {
   let server
 
   beforeAll(async () => {
