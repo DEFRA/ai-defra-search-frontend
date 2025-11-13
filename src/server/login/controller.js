@@ -26,6 +26,6 @@ export const loginPostController = {
 
     return h.view('login/login', {
       errorMessage: 'Enter the correct password'
-    }).code(200)
+    })
   }
 }
