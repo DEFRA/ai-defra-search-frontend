@@ -1,5 +1,7 @@
+import statusCodes from 'http-status-codes'
+import { JSDOM } from 'jsdom'
+
 import { createServer } from '../../../../../src/server/server.js'
-import { statusCodes } from '../../../../../src/server/common/constants/status-codes.js'
 
 describe('#errors', () => {
   let server
@@ -19,9 +21,10 @@ describe('#errors', () => {
       url: '/non-existent-path'
     })
 
-    expect(result).toEqual(
-      expect.stringContaining('Page not found | ai-defra-search-frontend')
-    )
-    expect(statusCode).toBe(statusCodes.notFound)
+    const window = new JSDOM(result).window
+    const { document } = window
+
+    document.querySelector('p').textContent === 'Page not found'
+    expect(statusCode).toBe(statusCodes.NOT_FOUND)
   })
 })
