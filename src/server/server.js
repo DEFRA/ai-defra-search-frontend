@@ -67,8 +67,14 @@ export async function createServer () {
     Scooter,
     contentSecurityPolicy,
     auth,
-    router // Register all the controllers/routes defined in src/server/router.js
+    router
   ])
+
+  server.app.cache = server.cache({
+    cache: config.get('session.cache.name'),
+    segment: config.get('session.cache.segment'),
+    expiresIn: config.get('session.cache.ttl')
+  })
 
   server.ext('onPreResponse', catchAll)
 

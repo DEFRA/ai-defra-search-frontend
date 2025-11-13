@@ -22,16 +22,6 @@ describe('Login routes', () => {
     await server.stop({ timeout: 0 })
   })
 
-  test('GET /start when not authenticated should redirect to login', async () => {
-    const response = await server.inject({
-      method: 'GET',
-      url: '/start'
-    })
-
-    expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
-    expect(response.headers.location).toBe('/login')
-  })
-
   test('GET /login should return the login page', async () => {
     const response = await server.inject({
       method: 'GET',
@@ -85,5 +75,37 @@ describe('Login routes', () => {
 
     const errorSummary = page.querySelector('.govuk-error-summary')
     expect(errorSummary).not.toBeNull()
+  })
+
+  test('GET /start when not authenticated should redirect to login', async () => {
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(response.headers.location).toBe('/login')
+  })
+
+  test('GET /start when authenticated should return the start page', async () => {
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const startResponse = await server.inject({
+      method: 'GET',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      }
+    })
+
+    expect(startResponse.statusCode).toBe(statusCodes.OK)
   })
 })

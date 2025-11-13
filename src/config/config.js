@@ -132,6 +132,12 @@ export const config = convict({
         default: 'session',
         env: 'SESSION_CACHE_NAME'
       },
+      segment: {
+        doc: 'server side session cache segment',
+        format: String,
+        default: 'session',
+        env: 'SESSION_CACHE_SEGMENT'
+      },
       ttl: {
         doc: 'server side session cache ttl',
         format: Number,
