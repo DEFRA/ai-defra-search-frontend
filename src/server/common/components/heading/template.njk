@@ -1,11 +1,34 @@
-<div class="govuk-grid-row app-heading" data-testid="app-heading">
-  <div class="govuk-grid-column-two-thirds">
-    <h1 class="govuk-heading-xl govuk-!-margin-bottom-2"
-        data-testid="app-heading-title">{{ params.text }}</h1>
+{%- set organisationLabel = params.organisationLabel if params.organisationLabel else {} -%}
+{%- set serviceLabel = params.serviceLabel if params.serviceLabel else {} -%}
+{%- set navigation = params.navigation if params.navigation else {} -%}
 
-    {% if params.caption %}
-      <span class="govuk-caption-m"
-            data-testid="app-heading-caption">{{ params.caption }}</span>
+<header class="defra-header" role="banner">
+  <div class="defra-header__container {{ params.containerClasses if params.containerClasses }}">
+    <div class="defra-header__logo">
+      <a href="{{ organisationLabel.href if organisationLabel.href else '#' }}" class="defra-header__link defra-header__link--organisation-name">
+        {{ organisationLabel.text if organisationLabel.text else "Defra" }}
+      </a>
+      {% if serviceLabel.text %}
+      <a href="{{ serviceLabel.href if serviceLabel.href else '#' }}" class="defra-header__link defra-header__link--service-name">
+        {{ serviceLabel.text }}
+      </a>
+      {% endif %}
+    </div>
+
+    {% if navigation.items and navigation.items.length %}
+    <div class="defra-header__content">
+      <nav class="defra-header__navigation" aria-label="{{ navigation.label if navigation.label else 'Account navigation' }}">
+        <ul class="defra-header__navigation-list">
+          {% for item in navigation.items %}
+          <li class="defra-header__navigation-item">
+            <a class="defra-header__navigation-link" href="{{ item.href }}"{% if item.active %} aria-current="page"{% endif %}{{ item.attributes | dump | safe if item.attributes }}>
+              {{ item.html | safe if item.html else item.text }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </nav>
+    </div>
     {% endif %}
   </div>
-</div>
+</header>

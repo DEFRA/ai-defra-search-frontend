@@ -44,7 +44,7 @@ export const config = convict({
   serviceName: {
     doc: 'Applications Service Name',
     format: String,
-    default: 'ai-defra-search-frontend'
+    default: 'AI Assistant'
   },
   root: {
     doc: 'Project root',
@@ -131,6 +131,12 @@ export const config = convict({
         format: String,
         default: 'session',
         env: 'SESSION_CACHE_NAME'
+      },
+      segment: {
+        doc: 'server side session cache segment',
+        format: String,
+        default: 'session',
+        env: 'SESSION_CACHE_SEGMENT'
       },
       ttl: {
         doc: 'server side session cache ttl',
@@ -219,6 +225,13 @@ export const config = convict({
       default: 'x-cdp-request-id',
       env: 'TRACING_HEADER'
     }
+  },
+  prototypePassword: {
+    doc: 'Password for accessing the prototype',
+    format: String,
+    default: null,
+    env: 'PROTOTYPE_PASSWORD',
+    sensitive: true
   }
 })
 

@@ -28,14 +28,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-#      - name: Create Test Coverage Reports
-#        run: |
-#          npm ci
-#          npm run build:frontend
-#          npm test
+      - name: Test code and Create Test Coverage Reports
+        run: |
+          mkdir -p coverage
+          chmod -R a+rw ./coverage
+          docker compose -f compose.yml -f compose.test.yml run --rm "ai-defra-search-frontend"
 
-#      - name: SonarCloud Scan
-#        uses: SonarSource/sonarqube-scan-action@v5.3.1 #  (or check latest version on https://github.com/marketplace/actions/official-sonarqube-scan)
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

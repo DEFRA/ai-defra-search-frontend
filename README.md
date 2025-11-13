@@ -4,196 +4,107 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_ai-defra-search-frontend&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DEFRA_ai-defra-search-frontend)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_ai-defra-search-frontend&metric=coverage)](https://sonarcloud.io/summary/new_code?id=DEFRA_ai-defra-search-frontend)
 
-Core delivery platform Node.js Frontend Template.
+Frontend service for the AI DEFRA Search application. This service provides the user interface for users to interact with the AI Assistant.
 
-- [Requirements](#requirements)
-  - [Node.js](#nodejs)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Environment Variables](#environment-variables)
+- [Running the Application](#running-the-application)
+  - [Building the Docker Image](#building-the-docker-image)
+  - [Starting the Docker Container](#starting-the-docker-container)
+- [Tests](#tests)
 - [Server-side Caching](#server-side-caching)
-- [Redis](#redis)
-- [Local Development](#local-development)
-  - [Setup](#setup)
-  - [Development](#development)
-  - [Production](#production)
-  - [Npm scripts](#npm-scripts)
-  - [Update dependencies](#update-dependencies)
-  - [Formatting](#formatting)
-    - [Windows prettier issue](#windows-prettier-issue)
-- [Docker](#docker)
-  - [Development image](#development-image)
-  - [Production image](#production-image)
-  - [Docker Compose](#docker-compose)
-  - [Dependabot](#dependabot)
-  - [SonarCloud](#sonarcloud)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
 
-## Requirements
+## Prerequisites
 
-### Node.js
+- Docker
+- Docker Compose
 
-Please install [Node.js](http://nodejs.org/) `>= v22` and [npm](https://nodejs.org/) `>= v9`. You will find it
-easier to use the Node Version Manager [nvm](https://github.com/creationix/nvm)
+## Setup
 
-To use the correct version of Node.js for this application, via nvm:
+Clone the repository and install dependencies:
 
 ```bash
+git clone https://github.com/DEFRA/ai-defra-search-frontend.git
 cd ai-defra-search-frontend
-nvm use
-```
-
-## Server-side Caching
-
-We use Catbox for server-side caching. By default the service will use CatboxRedis when deployed and CatboxMemory for
-local development.
-You can override the default behaviour by setting the `SESSION_CACHE_ENGINE` environment variable to either `redis` or
-`memory`.
-
-Please note: CatboxMemory (`memory`) is _not_ suitable for production use! The cache will not be shared between each
-instance of the service and it will not persist between restarts.
-
-## Redis
-
-Redis is an in-memory key-value store. Every instance of a service has access to the same Redis key-value store similar
-to how services might have a database (or MongoDB). All frontend services are given access to a namespaced prefixed that
-matches the service name. e.g. `my-service` will have access to everything in Redis that is prefixed with `my-service`.
-
-If your service does not require a session cache to be shared between instances or if you don't require Redis, you can
-disable setting `SESSION_CACHE_ENGINE=false` or changing the default value in `src/config/index.js`.
-
-## Proxy
-
-We are using forward-proxy which is set up by default. To make use of this: `import { fetch } from 'undici'` then
-because of the `setGlobalDispatcher(new ProxyAgent(proxyUrl))` calls will use the ProxyAgent Dispatcher
-
-If you are not using Wreck, Axios or Undici or a similar http that uses `Request`. Then you may have to provide the
-proxy dispatcher:
-
-To add the dispatcher to your own client:
-
-```javascript
-import { ProxyAgent } from 'undici'
-
-return await fetch(url, {
-  dispatcher: new ProxyAgent({
-    uri: proxyUrl,
-    keepAliveTimeout: 10,
-    keepAliveMaxTimeout: 10
-  })
-})
-```
-
-## Local Development
-
-### Setup
-
-Install application dependencies:
-
-```bash
 npm install
 ```
 
-### Development
+## Environment Variables
 
-To run the application in `development` mode run:
-
-```bash
-npm run dev
-```
-
-### Production
-
-To mimic the application running in `production` mode locally run:
+Create a `.env` file in the root of the project from the example template:
 
 ```bash
-npm start
+cp .example.env .env
 ```
 
-### Npm scripts
+Update the values in `.env` as needed for your local environment.
 
-All available Npm scripts can be seen in [package.json](./package.json)
-To view them in your command line run:
+The following environment variables can be configured for the application:
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `AWS_REGION` | Yes | `eu-west-2` | The AWS region to use for AWS services |
+| `AWS_DEFAULT_REGION` | Yes | `eu-west-2` | The default AWS region (should match AWS_REGION) |
+| `AWS_ACCESS_KEY_ID` | Yes | `test` | AWS access key ID (use `test` for local development with Localstack) |
+| `AWS_SECRET_ACCESS_KEY` | Yes | `test` | AWS secret access key (use `test` for local development with Localstack) |
+| `PROTOTYPE_PASSWORD` | No | - | Password protection for the prototype (leave empty to disable) |
+
+## Running the Application
+
+### Building the Docker Image
+
+Container images are built using Docker Compose. First, build the Docker image:
 
 ```bash
-npm run
+docker compose build
 ```
 
-### Update dependencies
+### Starting the Docker Container
 
-To update dependencies use [npm-check-updates](https://github.com/raineorshine/npm-check-updates):
-
-> The following script is a good start. Check out all the options on
-> the [npm-check-updates](https://github.com/raineorshine/npm-check-updates)
+After building the image, run the service locally in a container alongside Redis:
 
 ```bash
-ncu --interactive --format group
+docker compose up
 ```
 
-### Formatting
-
-#### Windows prettier issue
-
-If you are having issues with formatting of line breaks on Windows update your global git config by running:
+Use the `-d` flag at the end of the above command to run in detached mode (e.g., if you wish to view logs in another application such as Docker Desktop):
 
 ```bash
-git config --global core.autocrlf false
+docker compose up -d
 ```
 
-## Docker
+The application will be available at `http://localhost:3000`.
 
-### Development image
-
-> [!TIP]
-> For Apple Silicon users, you may need to add `--platform linux/amd64` to the `docker run` command to ensure
-> compatibility fEx: `docker build --platform=linux/arm64 --no-cache --tag ai-defra-search-frontend`
-
-Build:
+To stop the containers:
 
 ```bash
-docker build --target development --no-cache --tag ai-defra-search-frontend:development .
+docker compose down
 ```
 
-Run:
+## Tests
+
+### Running Tests
+
+Run the tests with:
 
 ```bash
-docker run -p 3000:3000 ai-defra-search-frontend:development
+npm run docker:test
 ```
 
-### Production image
+This command will:
+1. Stop any running containers
+2. Build the service
+3. Run the test suite
+4. Generate coverage reports in the `./coverage` directory
 
-Build:
+## Server-side Caching
 
-```bash
-docker build --no-cache --tag ai-defra-search-frontend .
-```
+We use Catbox for server-side caching. By default, the service will use CatboxRedis when deployed and CatboxMemory for local development. You can override the default behavior by setting the `SESSION_CACHE_ENGINE` environment variable to either `redis` or `memory`.
 
-Run:
-
-```bash
-docker run -p 3000:3000 ai-defra-search-frontend
-```
-
-### Docker Compose
-
-A local environment with:
-
-- Localstack for AWS services (S3, SQS)
-- Redis
-- MongoDB
-- This service.
-- A commented out backend example.
-
-```bash
-docker compose up --build -d
-```
-
-### Dependabot
-
-We have added an example dependabot configuration file to the repository. You can enable it by renaming
-the [.github/example.dependabot.yml](.github/example.dependabot.yml) to `.github/dependabot.yml`
-
-### SonarCloud
-
-Instructions for setting up SonarCloud can be found in [sonar-project.properties](./sonar-project.properties).
+Please note: CatboxMemory (`memory`) is _not_ suitable for production use! The cache will not be shared between each instance of the service and it will not persist between restarts.
 
 ## Licence
 
