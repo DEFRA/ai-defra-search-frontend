@@ -7,6 +7,23 @@ import { setupChatApiMocks, cleanupChatApiMocks, setupChatApiErrorMock } from '.
 describe('Start routes', () => {
   let server
 
+  /**
+   * Helper function to authenticate and return cookie header
+   * @returns {Promise<string>} Cookie header string for authenticated requests
+   */
+  async function loginAndGetCookie () {
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+    return cookie.join(';')
+  }
+
   beforeEach(async () => {
     // Restart server to clear cookies between tests
     await server.stop()
@@ -36,21 +53,13 @@ describe('Start routes', () => {
   })
 
   test('GET /start when authenticated should return the start page', async () => {
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const startResponse = await server.inject({
       method: 'GET',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       }
     })
 
@@ -60,21 +69,13 @@ describe('Start routes', () => {
   test('POST /start with question should return page with response', async () => {
     setupChatApiMocks()
 
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const questionResponse = await server.inject({
       method: 'POST',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       },
       payload: {
         question: 'What is user centred design?'
@@ -109,21 +110,13 @@ describe('Start routes', () => {
   })
 
   test('POST /start - when question not in request then should display validation error', async () => {
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       },
       payload: {
       }
@@ -139,21 +132,13 @@ describe('Start routes', () => {
   })
 
   test('POST /start - when question length too short then should display validation error', async () => {
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       },
       payload: {
         question: ''
@@ -170,21 +155,13 @@ describe('Start routes', () => {
   })
 
   test('POST /start - when question length too long then should display validation error', async () => {
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       },
       payload: {
         question: 'f'.repeat(501)
@@ -204,21 +181,13 @@ describe('Start routes', () => {
     // Setup 500 error mock
     setupChatApiErrorMock(500)
 
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       },
       payload: {
         question: 'What is user centred design?'
@@ -239,21 +208,13 @@ describe('Start routes', () => {
     // Setup 502 error mock
     setupChatApiErrorMock(502)
 
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       },
       payload: {
         question: 'What is user centred design?'
@@ -274,21 +235,13 @@ describe('Start routes', () => {
     // Setup 503 error mock
     setupChatApiErrorMock(503)
 
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       },
       payload: {
         question: 'What is user centred design?'
@@ -309,21 +262,13 @@ describe('Start routes', () => {
     // Setup 504 error mock
     setupChatApiErrorMock(504)
 
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       },
       payload: {
         question: 'What is user centred design?'
@@ -344,21 +289,13 @@ describe('Start routes', () => {
     // Setup network timeout mock
     setupChatApiErrorMock(null, 'timeout')
 
-    const loginResponse = await server.inject({
-      method: 'POST',
-      url: '/login',
-      payload: {
-        password: 'correctpassword'
-      }
-    })
-
-    const cookie = loginResponse.headers['set-cookie']
+    const cookie = await loginAndGetCookie()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       headers: {
-        cookie: cookie.join(';')
+        cookie
       },
       payload: {
         question: 'What is user centred design?'
