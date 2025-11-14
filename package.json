@@ -55,6 +55,7 @@
     "hapi-pulse": "3.0.1",
     "http-status-codes": "2.3.0",
     "ioredis": "5.6.1",
+    "joi": "17.13.3",
     "jsdom": "27.2.0",
     "lodash": "4.17.21",
     "node-fetch": "3.3.2",

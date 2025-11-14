@@ -102,4 +102,96 @@ describe('Start routes', () => {
     expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
     expect(response.headers.location).toBe('/login')
   })
+
+  test('POST /start - when question not in request then should display validation error', async () => {
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      },
+      payload: {
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const errorSummary = page.querySelector('.govuk-error-summary')
+    expect(errorSummary).not.toBeNull()
+  })
+
+  test('POST /start - when question length too short then should display validation error', async () => {
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      },
+      payload: {
+        question: ''
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const errorSummary = page.querySelector('.govuk-error-summary')
+    expect(errorSummary).not.toBeNull()
+  })
+
+  test('POST /start - when question length too long then should display validation error', async () => {
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      },
+      payload: {
+        question: 'f'.repeat(501)
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const errorSummary = page.querySelector('.govuk-error-summary')
+    expect(errorSummary).not.toBeNull()
+  })
 })

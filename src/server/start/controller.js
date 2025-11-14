@@ -1,4 +1,14 @@
+import Joi from 'joi'
 import { sendQuestion } from '../common/helpers/chat-api.js'
+
+const startPostSchema = Joi.object({
+  question: Joi.string().min(1).max(500).required().messages({
+    'string.empty': 'Question must be at least 1 character',
+    'string.min': 'Question must be at least 1 character',
+    'string.max': 'Question must be no more than 500 characters',
+    'any.required': 'Question is required'
+  })
+})
 
 export const startGetController = {
   handler (_request, h) {
@@ -7,6 +17,19 @@ export const startGetController = {
 }
 
 export const startPostController = {
+  options: {
+    validate: {
+      payload: startPostSchema,
+      failAction: (request, h, error) => {
+        const errorMessage = error.details[0]?.message || 'Question must be between 1 and 500 characters'
+
+        return h.view('start/start', {
+          question: request.payload?.question,
+          errorMessage
+        }).code(400).takeover()
+      }
+    }
+  },
   async handler (request, h) {
     const { question } = request.payload
 
