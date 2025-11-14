@@ -22,6 +22,16 @@ describe('Login routes', () => {
     await server.stop({ timeout: 0 })
   })
 
+    test('GET / should redirect to login', async () => {
+    const response = await server.inject({
+      method: 'GET',
+      url: '/'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(response.headers.location).toBe('/login')
+  })
+
   test('GET /login should return the login page', async () => {
     const response = await server.inject({
       method: 'GET',
