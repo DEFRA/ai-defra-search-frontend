@@ -232,6 +232,12 @@ export const config = convict({
     default: null,
     env: 'PROTOTYPE_PASSWORD',
     sensitive: true
+  },
+  chatApiUrl: {
+    doc: 'Chat API base URL',
+    format: String,
+    default: 'http://localhost:3018',
+    env: 'CHAT_API_URL'
   }
 })
 

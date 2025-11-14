@@ -109,7 +109,7 @@ describe('Login routes', () => {
     expect(startResponse.statusCode).toBe(statusCodes.OK)
   })
 
-  test('POST /start with question should redirect back to start page', async () => {
+  test('POST /start with question should return page with response', async () => {
     const loginResponse = await server.inject({
       method: 'POST',
       url: '/login',
@@ -131,8 +131,18 @@ describe('Login routes', () => {
       }
     })
 
-    expect(questionResponse.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
-    expect(questionResponse.headers.location).toBe('/start')
+    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(questionResponse.result)
+    const page = window.document
+
+    // Check the page contains the question and response from mock API
+    const bodyText = page.body.textContent
+
+    expect(bodyText).toContain('You asked:')
+    expect(bodyText).toContain('What is UCD?')
+    expect(bodyText).toContain('UCD Bot')
+    expect(bodyText).toContain('User-Centred Design (UCD)')
   })
 
   test('POST /start when not authenticated should redirect to login', async () => {

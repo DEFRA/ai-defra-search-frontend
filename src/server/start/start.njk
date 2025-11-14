@@ -2,6 +2,8 @@
 
 {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 {% block content %}
   <div class="govuk-grid-row">
@@ -10,6 +12,38 @@
       <h1 class="govuk-heading-xl">
         Ask a question
       </h1>
+
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: errorMessage,
+              href: "#question"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      {% if messages %}
+        <div class="govuk-!-margin-bottom-8">
+          {% for message in messages %}
+            {% if message.role === "user" %}
+              <h2 class="govuk-heading-m">You asked:</h2>
+              {{ govukInsetText({
+                text: message.content
+              }) }}
+            {% endif %}
+
+            {% if message.role === "assistant" %}
+              <h2 class="govuk-heading-m">UCD Bot</h2>
+              {{ govukInsetText({
+                html: '<p class="govuk-body" style="white-space: pre-wrap;">' + message.content + '</p>'
+              }) }}
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
 
       <p class="govuk-body">Enter your question below and the AI assistant will help you.</p>
 
@@ -25,7 +59,8 @@
           hint: {
             text: "Ask anything about user centred design, accessibility, or Defra guidance"
           },
-          rows: 5
+          rows: 5,
+          value: question if question else ""
         }) }}
 
         {{ govukButton({

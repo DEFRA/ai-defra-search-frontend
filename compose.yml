@@ -19,6 +19,9 @@ services:
         condition: service_started
     env_file:
       - .env
+    extra_hosts:
+      # Allow container to connect to Mockoon running on host machine
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./src/:/home/node/src
       - ./package.json:/home/node/package.json

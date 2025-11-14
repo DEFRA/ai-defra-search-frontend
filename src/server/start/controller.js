@@ -1,3 +1,5 @@
+import { sendQuestion } from '../common/helpers/chat-api.js'
+
 export const startGetController = {
   handler (_request, h) {
     return h.view('start/start')
@@ -5,13 +7,27 @@ export const startGetController = {
 }
 
 export const startPostController = {
-  handler (request, h) {
+  async handler (request, h) {
     const { question } = request.payload
 
-    // Log the question for verification
-    request.logger.info({ question }, 'Question submitted')
+    try {
+      // Call the chat API with the user's question
+      const response = await sendQuestion(question)
 
-    // For now, just redirect back to the form
-    return h.redirect('/start')
+      // Re-render the page with the response (textarea cleared)
+      return h.view('start/start', {
+        messages: response.messages,
+        conversationId: response.conversation_id
+      })
+    } catch (error) {
+      // Log the error
+      request.logger.error({ error, question }, 'Error calling chat API')
+
+      // Re-render the page with the question and error message
+      return h.view('start/start', {
+        question,
+        errorMessage: 'Sorry, there was a problem getting a response. Please try again.'
+      })
+    }
   }
 }
