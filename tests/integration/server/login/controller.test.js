@@ -76,4 +76,14 @@ describe('Login routes', () => {
     const errorSummary = page.querySelector('.govuk-error-summary')
     expect(errorSummary).not.toBeNull()
   })
+
+  test('GET /start when not authenticated should redirect to login', async () => {
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(response.headers.location).toBe('/login')
+  })
 })
