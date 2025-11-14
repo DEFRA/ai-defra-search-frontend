@@ -2,7 +2,7 @@ import statusCodes from 'http-status-codes'
 import { JSDOM } from 'jsdom'
 
 import { createServer } from '../../../../src/server/server.js'
-
+import { setupChatApiMocks, cleanupChatApiMocks } from '../../../mocks/chat-api-handlers.js'
 
 describe('Start routes', () => {
   let server
@@ -14,12 +14,18 @@ describe('Start routes', () => {
   })
 
   beforeAll(async () => {
+    // Setup HTTP mocks for chat API
+    setupChatApiMocks()
+
     server = await createServer()
     await server.initialize()
   })
 
   afterAll(async () => {
     await server.stop({ timeout: 0 })
+
+    // Clean up HTTP mocks
+    cleanupChatApiMocks()
   })
 
   test('GET /start when not authenticated should redirect to login', async () => {
