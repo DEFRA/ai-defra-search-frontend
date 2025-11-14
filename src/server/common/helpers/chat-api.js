@@ -6,7 +6,7 @@ import { config } from '../../../config/config.js'
  * Calls the chat API with a user question and returns the response.
  *
  * @param {string} question - The user's question
- * @returns {Promise<Object>} The API response containing conversation_id and messages
+ * @returns {Promise<Object>} The API response containing conversationId and messages
  * @throws {Error} If the API request fails
  */
 async function sendQuestion (question) {
@@ -27,7 +27,12 @@ async function sendQuestion (question) {
     }
 
     const data = await response.json()
-    return data
+    
+    // Transform snake_case to camelCase for conversation_id
+    return {
+      conversationId: data.conversation_id,
+      messages: data.messages
+    }
   } catch (error) {
     throw new Error(`Failed to connect to chat API at ${url}: ${error.message}`)
   }

@@ -31,7 +31,7 @@ export const startPostController = {
       // Re-render the page with the response (textarea cleared)
       return h.view('start/start', {
         messages: response.messages,
-        conversationId: response.conversation_id
+        conversationId: response.conversationId
       })
     } catch (error) {
       // Log the error
