@@ -1,17 +1,10 @@
 import statusCodes from 'http-status-codes'
-import { JSDOM } from 'jsdom'
-
+import {JSDOM} from 'jsdom'
 import { createServer } from '../../../../src/server/server.js'
 
 
-describe('Login routes', () => {
+describe('Authentication routes controller', () => {
   let server
-
-  beforeEach(async () => {
-    // Restart server to clear cookies between tests
-    await server.stop()
-    await server.start()
-  })
 
   beforeAll(async () => {
     server = await createServer()
@@ -44,7 +37,7 @@ describe('Login routes', () => {
     expect(passwordInput.type).toBe('password')
   })
 
-  test('POST /login with correct password should redirect to signed-in screen', async () => {
+  test('POST /login with correct credentials should redirect to signed-in screen', async () => {
     const response = await server.inject({
       method: 'POST',
       url: '/login',
@@ -75,5 +68,16 @@ describe('Login routes', () => {
 
     const errorSummary = page.querySelector('.govuk-error-summary')
     expect(errorSummary).not.toBeNull()
+  })
+
+
+  test('GET /start when not authenticated should redirect to login', async () => {
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(response.headers.location).toBe('/login')
   })
 })
