@@ -12,7 +12,7 @@ export const startPostController = {
     validate: {
       payload: startPostSchema,
       failAction: (request, h, error) => {
-        const errorMessage = error.details[0]?.message || 'Question must be between 1 and 500 characters'
+        const errorMessage = error.details[0]?.message
 
         return h.view('start/start', {
           question: request.payload?.question,
