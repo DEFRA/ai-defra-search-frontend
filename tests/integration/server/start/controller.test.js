@@ -2,7 +2,7 @@ import statusCodes from 'http-status-codes'
 import { JSDOM } from 'jsdom'
 
 import { createServer } from '../../../../src/server/server.js'
-import { setupChatApiMocks, cleanupChatApiMocks } from '../../../mocks/chat-api-handlers.js'
+import { setupChatApiMocks, cleanupChatApiMocks, setupChatApiErrorMock } from '../../../mocks/chat-api-handlers.js'
 
 describe('Start routes', () => {
   let server
@@ -199,5 +199,195 @@ describe('Start routes', () => {
 
     const errorSummary = page.querySelector('.govuk-error-summary')
     expect(errorSummary).not.toBeNull()
+  })
+
+  test('POST /start - when chat API returns 500 error then should display error message', async () => {
+    // Setup 500 error mock
+    setupChatApiErrorMock(500)
+
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      },
+      payload: {
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('What is user centred design?') // Question should be preserved
+
+    // Restore mocks for other tests
+    setupChatApiMocks()
+  })
+
+  test('POST /start - when chat API returns 502 Bad Gateway then should display error message', async () => {
+    // Setup 502 error mock
+    setupChatApiErrorMock(502)
+
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      },
+      payload: {
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('What is user centred design?')
+
+    // Restore mocks for other tests
+    setupChatApiMocks()
+  })
+
+  test('POST /start - when chat API returns 503 Service Unavailable then should display error message', async () => {
+    // Setup 503 error mock
+    setupChatApiErrorMock(503)
+
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      },
+      payload: {
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('What is user centred design?')
+
+    // Restore mocks for other tests
+    setupChatApiMocks()
+  })
+
+  test('POST /start - when chat API returns 504 Gateway Timeout then should display error message', async () => {
+    // Setup 504 error mock
+    setupChatApiErrorMock(504)
+
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      },
+      payload: {
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('What is user centred design?')
+
+    // Restore mocks for other tests
+    setupChatApiMocks()
+  })
+
+  test('POST /start - when chat API connection times out then should display error message', async () => {
+    // Setup network timeout mock
+    setupChatApiErrorMock(null, 'timeout')
+
+    const loginResponse = await server.inject({
+      method: 'POST',
+      url: '/login',
+      payload: {
+        password: 'correctpassword'
+      }
+    })
+
+    const cookie = loginResponse.headers['set-cookie']
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie: cookie.join(';')
+      },
+      payload: {
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('What is user centred design?')
+
+    // Restore mocks for other tests
+    setupChatApiMocks()
   })
 })
