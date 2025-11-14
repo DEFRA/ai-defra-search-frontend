@@ -20,7 +20,7 @@
     "lint:scss": "stylelint \"src/**/*.scss\" --cache --cache-location .cache/stylelint --cache-strategy content --color --ignore-path .gitignore",
     "pretest": "npm run build:frontend",
     "docker:test": "docker compose down && docker compose -f compose.yml -f compose.test.yml run  --build --rm 'ai-defra-search-frontend'",
-    "test": "TZ=UTC vitest run --coverage",
+    "test": "TZ=UTC vitest run --coverage --pool=forks --poolOptions.forks.singleFork=true",
     "test:watch": "TZ=UTC vitest",
     "server:watch": "nodemon --inspect=0.0.0.0 --ext js,njk,json --legacy-watch ./src",
     "server:debug": "nodemon --inspect-brk=0.0.0.0 --ext js,njk,json --legacy-watch ./src",
