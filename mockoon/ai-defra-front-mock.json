@@ -19,7 +19,7 @@
           "uuid": "58fc13fb-a892-445a-b066-fa8d254100fd",
           "body": "{\n  \"conversation_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"model\": \"user-input\",\n      \"content\": \"What is UCD?\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"model\": \"gpt-4\",\n      \"content\": \"User-Centred Design (UCD) is an iterative design process that focuses on understanding users and their needs throughout the entire design and development process. It involves:\\n\\n1. **Understanding users**: Researching and understanding the needs, wants, and limitations of end users at each stage of the design process.\\n\\n2. **Involving users**: Actively engaging users through interviews, testing, and feedback sessions to ensure the design meets their needs.\\n\\n3. **Iterative design**: Continuously refining and improving designs based on user feedback and testing results.\\n\\n4. **Multidisciplinary approach**: Bringing together different perspectives including designers, developers, researchers, and users.\\n\\nIn the context of Defra services, UCD helps ensure that government services are accessible, easy to use, and meet the needs of citizens, farmers, and other stakeholders who interact with Defra's digital services.\"\n    }\n  ]\n}",
           "latency": 0,
-          "statusCode": 200,
+          "statusCode": 502,
           "label": "Successful response with conversation messages",
           "headers": [
             {

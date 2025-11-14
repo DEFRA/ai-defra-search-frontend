@@ -14,9 +14,6 @@ describe('Start routes', () => {
   })
 
   beforeAll(async () => {
-    // Setup HTTP mocks for chat API
-    setupChatApiMocks()
-
     server = await createServer()
     await server.initialize()
   })
@@ -61,6 +58,8 @@ describe('Start routes', () => {
   })
 
   test('POST /start with question should return page with response', async () => {
+    setupChatApiMocks()
+
     const loginResponse = await server.inject({
       method: 'POST',
       url: '/login',
@@ -234,9 +233,6 @@ describe('Start routes', () => {
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
     expect(bodyText).toContain('What is user centred design?') // Question should be preserved
-
-    // Restore mocks for other tests
-    setupChatApiMocks()
   })
 
   test('POST /start - when chat API returns 502 Bad Gateway then should display error message', async () => {
@@ -272,9 +268,6 @@ describe('Start routes', () => {
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
     expect(bodyText).toContain('What is user centred design?')
-
-    // Restore mocks for other tests
-    setupChatApiMocks()
   })
 
   test('POST /start - when chat API returns 503 Service Unavailable then should display error message', async () => {
@@ -310,9 +303,6 @@ describe('Start routes', () => {
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
     expect(bodyText).toContain('What is user centred design?')
-
-    // Restore mocks for other tests
-    setupChatApiMocks()
   })
 
   test('POST /start - when chat API returns 504 Gateway Timeout then should display error message', async () => {
@@ -348,9 +338,6 @@ describe('Start routes', () => {
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
     expect(bodyText).toContain('What is user centred design?')
-
-    // Restore mocks for other tests
-    setupChatApiMocks()
   })
 
   test('POST /start - when chat API connection times out then should display error message', async () => {
@@ -386,8 +373,5 @@ describe('Start routes', () => {
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
     expect(bodyText).toContain('What is user centred design?')
-
-    // Restore mocks for other tests
-    setupChatApiMocks()
   })
 })
