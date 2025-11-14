@@ -236,8 +236,7 @@ export const config = convict({
   chatApiUrl: {
     doc: 'Chat API base URL',
     format: String,
-    default: 'http://localhost:3018',
-    env: 'CHAT_API_URL'
+    default: 'http://host.docker.internal:3018'
   }
 })
 
