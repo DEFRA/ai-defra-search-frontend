@@ -1,3 +1,5 @@
+import statusCodes from 'http-status-codes'
+
 import { sendQuestion } from './chat-api.js'
 import { startPostSchema } from './chat-schema.js'
 
@@ -17,7 +19,7 @@ export const startPostController = {
         return h.view('start/start', {
           question: request.payload?.question,
           errorMessage
-        }).code(400).takeover()
+        }).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
   },

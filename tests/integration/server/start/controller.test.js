@@ -177,9 +177,9 @@ describe('Start routes', () => {
     expect(errorSummary).not.toBeNull()
   })
 
-  test('POST /start - when chat API returns 500 error then should display error message', async () => {
+  test('POST /start - when chat API returns 500 INTERNAL_SERVER_ERROR error then should display error message', async () => {
     // Setup 500 error mock
-    setupChatApiErrorMock(500)
+    setupChatApiErrorMock(statusCodes.INTERNAL_SERVER_ERROR)
 
     const cookie = await loginAndGetCookie()
 
@@ -206,7 +206,7 @@ describe('Start routes', () => {
 
   test('POST /start - when chat API returns 502 Bad Gateway then should display error message', async () => {
     // Setup 502 error mock
-    setupChatApiErrorMock(502)
+    setupChatApiErrorMock(statusCodes.BAD_GATEWAY)
 
     const cookie = await loginAndGetCookie()
 
@@ -233,7 +233,7 @@ describe('Start routes', () => {
 
   test('POST /start - when chat API returns 503 Service Unavailable then should display error message', async () => {
     // Setup 503 error mock
-    setupChatApiErrorMock(503)
+    setupChatApiErrorMock(statusCodes.SERVICE_UNAVAILABLE)
 
     const cookie = await loginAndGetCookie()
 
@@ -260,7 +260,7 @@ describe('Start routes', () => {
 
   test('POST /start - when chat API returns 504 Gateway Timeout then should display error message', async () => {
     // Setup 504 error mock
-    setupChatApiErrorMock(504)
+    setupChatApiErrorMock(statusCodes.GATEWAY_TIMEOUT)
 
     const cookie = await loginAndGetCookie()
 
