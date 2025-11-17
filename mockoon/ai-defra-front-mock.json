@@ -35,13 +35,13 @@
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
-          "default": true,
+          "default": false,
           "crudKey": "id",
           "callbacks": []
         },
         {
           "uuid": "50b2ed53-f551-4ff8-a457-428ac24b2112",
-          "body": "{\n  \"conversation_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"model\": \"user-input\",\n      \"content\": \"Hello, how are you?\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"model\": \"gpt-4\",\n      \"content\": \"Hello! I'm doing well, thank you for asking. How can I assist you today?\"\n    }\n  ]\n}",
+          "body": "{\n  \"conversation_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"model\": \"user-input\",\n      \"content\": \"Hello, how are you?\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"model\": \"gpt-4\",\n      \"content\": \"new Hello! I'm doing well, thank you for asking. How can I assist you today?\"\n    }\n  ]\n}",
           "latency": 0,
           "statusCode": 200,
           "label": "singleExchange",
@@ -59,7 +59,7 @@
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
-          "default": false,
+          "default": true,
           "crudKey": "id",
           "callbacks": []
         },
