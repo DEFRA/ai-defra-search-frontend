@@ -12,7 +12,7 @@ export const login = {
           {
                   method: 'GET',
                   path: '/',
-                  handler: (request, h) => {
+                  handler: (_request, h) => {
                     return h.redirect('/login')
                   }
                 },
