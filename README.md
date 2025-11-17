@@ -44,13 +44,14 @@ Update the values in `.env` as needed for your local environment.
 
 The following environment variables can be configured for the application:
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `AWS_REGION` | Yes | `eu-west-2` | The AWS region to use for AWS services |
-| `AWS_DEFAULT_REGION` | Yes | `eu-west-2` | The default AWS region (should match AWS_REGION) |
-| `AWS_ACCESS_KEY_ID` | Yes | `test` | AWS access key ID (use `test` for local development with Localstack) |
-| `AWS_SECRET_ACCESS_KEY` | Yes | `test` | AWS secret access key (use `test` for local development with Localstack) |
-| `PROTOTYPE_PASSWORD` | No | - | Password protection for the prototype (leave empty to disable) |
+| Variable | Required | Default | Description                                                              |
+|----------|----------|---------|--------------------------------------------------------------------------|
+| `AWS_REGION` | Yes      | `eu-west-2` | The AWS region to use for AWS services                                   |
+| `AWS_DEFAULT_REGION` | Yes      | `eu-west-2` | The default AWS region (should match AWS_REGION)                         |
+| `AWS_ACCESS_KEY_ID` | Yes      | `test` | AWS access key ID (use `test` for local development with Localstack)     |
+| `AWS_SECRET_ACCESS_KEY` | Yes      | `test` | AWS secret access key (use `test` for local development with Localstack) |
+| `PROTOTYPE_PASSWORD` | No       | - | Password protection for the prototype                                    |
+| `API_BASE_URL` | Yes      | - | ai-defra-search-agent chat API URL                                       |
 
 ## Running the Application
 

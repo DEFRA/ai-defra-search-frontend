@@ -9,6 +9,13 @@ export const login = {
     name: 'login',
     register (server) {
       server.route([
+          {
+                  method: 'GET',
+                  path: '/',
+                  handler: (_request, h) => {
+                    return h.redirect('/login')
+                  }
+                },
         {
           method: 'GET',
           path: '/login',
