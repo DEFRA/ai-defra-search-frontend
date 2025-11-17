@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 
-import { config } from '../../../config/config.js'
+import { config } from '../../config/config.js'
 
 /**
  * Calls the chat API with a user question and returns the response.
@@ -27,7 +27,7 @@ async function sendQuestion (question) {
     }
 
     const data = await response.json()
-    
+
     // Transform snake_case to camelCase for conversation_id
     return {
       conversationId: data.conversation_id,

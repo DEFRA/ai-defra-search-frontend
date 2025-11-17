@@ -1,5 +1,5 @@
-import { sendQuestion } from '../common/helpers/chat-api.js'
-import { startPostSchema } from '../../schema/chatSchema.js'
+import { sendQuestion } from './chat-api.js'
+import { startPostSchema } from './chat-schema.js'
 
 export const startGetController = {
   handler (_request, h) {
