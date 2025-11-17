@@ -238,16 +238,6 @@ export const config = convict({
     format: String,
     default: null,
     env: 'API_BASE_URL'
-  },
-  minChatMessageLength: {
-    doc: 'The minimum allowed length of a chat message - required for validation',
-    format: Number,
-    default: 1
-  },
-  maxChatMessageLength: {
-    doc: 'The maximum allowed length of a chat message - required for validation',
-    format: Number,
-    default: 500
   }
 })
 
