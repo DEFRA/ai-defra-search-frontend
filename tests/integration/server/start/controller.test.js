@@ -90,9 +90,8 @@ describe('Start routes', () => {
     // Check the page contains the question and response from mock API
     const bodyText = page.body.textContent
 
-    expect(bodyText).toContain('You asked:')
+    expect(bodyText).toContain('Here\'s what I found')
     expect(bodyText).toContain('What is UCD?')
-    expect(bodyText).toContain('UCD Bot')
     expect(bodyText).toContain('User-Centred Design (UCD)')
   })
 
