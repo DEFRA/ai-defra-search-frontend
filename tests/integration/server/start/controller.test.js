@@ -154,6 +154,7 @@ describe('Start routes', () => {
       method: 'POST',
       url: '/start',
       payload: {
+        modelName: 'Sonnet 3.7',
         question: 'What is user centred design?'
       }
     })
@@ -193,6 +194,7 @@ describe('Start routes', () => {
         cookie
       },
       payload: {
+        modelName: 'Sonnet 3.7',
         question: ''
       }
     })
@@ -216,6 +218,7 @@ describe('Start routes', () => {
         cookie
       },
       payload: {
+        modelName: 'Sonnet 3.7',
         question: 'f'.repeat(501)
       }
     })
@@ -242,6 +245,7 @@ describe('Start routes', () => {
         cookie
       },
       payload: {
+        modelName: 'Sonnet 3.7',
         question: 'What is user centred design?'
       }
     })
@@ -269,6 +273,7 @@ describe('Start routes', () => {
         cookie
       },
       payload: {
+        modelName: 'Sonnet 3.7',
         question: 'What is user centred design?'
       }
     })
@@ -296,6 +301,7 @@ describe('Start routes', () => {
         cookie
       },
       payload: {
+        modelName: 'Sonnet 3.7',
         question: 'What is user centred design?'
       }
     })
@@ -323,6 +329,7 @@ describe('Start routes', () => {
         cookie
       },
       payload: {
+        modelName: 'Sonnet 3.7',
         question: 'What is user centred design?'
       }
     })
@@ -350,6 +357,7 @@ describe('Start routes', () => {
         cookie
       },
       payload: {
+        modelName: 'Sonnet 3.7',
         question: 'What is user centred design?'
       }
     })
