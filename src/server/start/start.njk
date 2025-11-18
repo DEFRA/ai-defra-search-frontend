@@ -4,6 +4,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+{% from "model-select/macro.njk" import defraModelSelect %}
 
 {% block content %}
   <div class="govuk-grid-row">
@@ -12,6 +13,10 @@
       <h1 class="govuk-heading-xl">
         Ask a question
       </h1>
+
+      {{ defraModelSelect({
+        models: models
+      }) }}
 
       {% if errorMessage %}
         {{ govukErrorSummary({

@@ -2,7 +2,12 @@ import statusCodes from 'http-status-codes'
 import { JSDOM } from 'jsdom'
 
 import { createServer } from '../../../../src/server/server.js'
-import { setupChatApiMocks, cleanupChatApiMocks, setupChatApiErrorMock } from '../../../mocks/chat-api-handlers.js'
+import { cleanupChatApiMocks, setupChatApiErrorMock, setupChatApiMocks } from '../../../mocks/chat-api-handlers.js'
+import {
+  cleanupModelsApiMocks,
+  setupModelsApiErrorMock,
+  setupModelsApiMocks
+} from '../../../mocks/models-api-handlers.js'
 
 describe('Start routes', () => {
   let server
@@ -40,6 +45,7 @@ describe('Start routes', () => {
 
     // Clean up HTTP mocks
     cleanupChatApiMocks()
+    cleanupModelsApiMocks()
   })
 
   test('GET /start when not authenticated should redirect to login', async () => {
@@ -53,6 +59,8 @@ describe('Start routes', () => {
   })
 
   test('GET /start when authenticated should return the start page', async () => {
+    setupModelsApiMocks()
+
     const cookie = await loginAndGetCookie()
 
     const startResponse = await server.inject({
@@ -64,6 +72,22 @@ describe('Start routes', () => {
     })
 
     expect(startResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(startResponse.result)
+    const page = window.document
+
+    // Check for model selection heading
+    const heading = page.querySelector('h2')
+    expect(heading?.textContent).toContain('Select AI model')
+
+    // Check for model options
+    const radioButtons = page.querySelectorAll('input[type="radio"]')
+    expect(radioButtons.length).toBeGreaterThan(0)
+
+    // Check for model names
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Sonnet 3.7')
+    expect(bodyText).toContain('Haiku')
   })
 
   test('POST /start with question should return page with response', async () => {
@@ -118,8 +142,7 @@ describe('Start routes', () => {
       headers: {
         cookie
       },
-      payload: {
-      }
+      payload: {}
     })
 
     expect(response.statusCode).toBe(statusCodes.BAD_REQUEST)
@@ -310,5 +333,53 @@ describe('Start routes', () => {
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
     expect(bodyText).toContain('What is user centred design?')
+  })
+
+  test('GET /start - when models API returns 500 error should display error page', async () => {
+    // Setup 500 error mock for models API
+    setupModelsApiErrorMock(statusCodes.INTERNAL_SERVER_ERROR)
+
+    const cookie = await loginAndGetCookie()
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start',
+      headers: {
+        cookie
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    // Check that error message is displayed
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Sorry, there was a problem with the service request')
+  })
+
+  test('GET /start - when models API times out should display error page', async () => {
+    // Setup network timeout mock for models API
+    setupModelsApiErrorMock(null, 'timeout')
+
+    const cookie = await loginAndGetCookie()
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start',
+      headers: {
+        cookie
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    // Check that error message is displayed
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Sorry, there was a problem with the service request')
   })
 })

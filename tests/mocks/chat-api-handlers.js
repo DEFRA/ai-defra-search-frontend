@@ -35,7 +35,7 @@ function setupChatApiMocks () {
  */
 function setupChatApiErrorMock (statusCode, errorType) {
   nock.cleanAll()
-  
+
   if (errorType === 'timeout') {
     nock(chatApiBaseUrl)
       .post('/chat')
@@ -55,4 +55,3 @@ function cleanupChatApiMocks () {
 }
 
 export { setupChatApiMocks, cleanupChatApiMocks, setupChatApiErrorMock }
-

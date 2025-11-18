@@ -1,0 +1,30 @@
+{%- set models = params.models if params.models else [] -%}
+
+{% if models.length > 0 %}
+  <fieldset class="govuk-fieldset govuk-!-margin-bottom-8">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+      <h2 class="govuk-fieldset__heading">
+        Select AI model
+      </h2>
+    </legend>
+
+    <div class="govuk-radios" data-module="govuk-radios">
+      {% for model in models %}
+        <div class="govuk-radios__item">
+          <input
+            class="govuk-radios__input"
+            id="model-{{ loop.index }}"
+            name="model"
+            type="radio"
+            value="{{ model.modelName }}"
+            {% if loop.first %}checked{% endif %}
+          />
+          <label class="govuk-label govuk-radios__label defra-model-select__label" for="model-{{ loop.index }}">
+            <div class="defra-model-select__model-name">{{ model.modelName }}</div>
+            <div class="defra-model-select__model-description">{{ model.modelDescription }}</div>
+          </label>
+        </div>
+      {% endfor %}
+    </div>
+  </fieldset>
+{% endif %}
