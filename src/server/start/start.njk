@@ -6,7 +6,7 @@
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 {% block content %}
-  <div class="govuk-grid-row">
+  <div class="govuk-grid-row app-start-grey-row">
     <div class="govuk-grid-column-two-thirds">
 
       <h1 class="govuk-heading-xl">
@@ -47,12 +47,6 @@
 
       <form action="/start" method="post" novalidate>
         <div class="govuk-form-group">
-          {{ govukLabel({
-            for: "question",
-            text: "What can I help you with?",
-            classes: "govuk-label--m"
-          }) }}
-
           {{ govukHint({
             id: "question-hint",
             html: "For example:<br><ul class='govuk-list govuk-list--bullet govuk-hint'><li>Extract the key information from this meeting transcript</li><li>What are the common steps in GDS lead user Research Discovery project?</li></ul>"

@@ -1,3 +1,5 @@
+@use "govuk-frontend" as *;
+
 // Start page chat input styles
 .app-question-input-container {
   // Use flex layout so the textarea (form group) and button can sit side by side
@@ -40,7 +42,7 @@
   // CSS-only auto-grow using field-sizing (modern browsers)
   // This works without JavaScript for better accessibility
   field-sizing: content;
-  
+
   // Fallback for browsers that don't support field-sizing
   // The JavaScript enhancement will still work for these browsers
   @supports not (field-sizing: content) {
@@ -68,7 +70,7 @@
   .app-icon-button {
     position: absolute;
     left: 100%;
-    bottom: 0px;
+    bottom: 0; // was 0px
     right: auto;
     top: auto;
   }
@@ -129,4 +131,19 @@
   height: 28px;
   background: #ffffff;
   border-radius: 50%;
+}
+
+// Add a grey background panel for the /start page grid row
+
+.app-start-grey-row {
+  background-color: govuk-colour("light-grey");
+  padding: govuk-spacing(6) 0; // vertical space similar to screenshot
+  margin-top: govuk-spacing(4);
+  margin-bottom: govuk-spacing(8);
+
+  // Ensure columns don't stick to the edges of the grey panel
+  .govuk-grid-column-two-thirds {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
 }
