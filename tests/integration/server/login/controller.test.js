@@ -3,7 +3,6 @@ import { JSDOM } from 'jsdom'
 
 import { createServer } from '../../../../src/server/server.js'
 
-
 describe('Login routes', () => {
   let server
 
@@ -22,7 +21,7 @@ describe('Login routes', () => {
     await server.stop({ timeout: 0 })
   })
 
-    test('GET / should redirect to login', async () => {
+  test('GET / should redirect to login', async () => {
     const response = await server.inject({
       method: 'GET',
       url: '/'

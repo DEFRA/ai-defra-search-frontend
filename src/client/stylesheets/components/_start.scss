@@ -1,35 +1,110 @@
 // Start page chat input styles
 .app-question-input-container {
-  position: relative;
+  // Use flex layout so the textarea (form group) and button can sit side by side
+  display: flex;
+  // Return to bottom alignment to match original layout
+  align-items: flex-end;
+  // Keep items on one line by default
+  flex-wrap: nowrap;
+  // Use gap for consistent spacing between textarea and button
+  column-gap: 8px;
+  row-gap: 8px;
 
-  // Add padding to the form group to make space for the button
+  // Allow wrapping on smaller screens only
+  @media (max-width: 40.0625em) { // ~641px
+    flex-wrap: wrap;
+  }
+
   .govuk-form-group {
+    // Allow the form group to shrink so the button can fit on the same line
+    flex: 1 1 auto;
+    width: auto; // override GOV.UK default width: 100%
+    min-width: 0; // allow shrinking in flex containers
+    max-width: 100%;
     margin-bottom: 0;
   }
 }
 
+.app-auto-grow-textarea {
+  // Keep textarea size stable regardless of focus state to avoid layout jump
+  box-sizing: border-box;
+  border-width: 2px; // ensure consistent border thickness in all states
+  min-height: 40px;
+  max-height: 10em;
+  overflow-y: auto !important;
+  resize: none;
+  transition: height 0.1s ease;
+
+  &:focus {
+    border-width: 2px; // match unfocused to prevent height change
+  }
+}
+
+// Wrapper to place the submit button at the bottom-right corner of the textarea
+.app-question-input {
+  // Keep wrapper as positioning context for the button
+  position: relative;
+  display: block;
+
+  .govuk-textarea {
+    width: 100%;
+    display: block;
+  }
+
+  // Place the button just outside the textarea, to the right, aligned to the bottom edge
+  .app-icon-button {
+    position: absolute;
+    left: 100%;
+    bottom: 0px;
+    right: auto;
+    top: auto;
+  }
+
+  // On small screens, place the button below the textarea with a small gap
+  @media (max-width: 40.0625em) { // ~641px
+    .app-icon-button {
+      left: auto;
+      right: 0;
+      top: calc(100% + 8px);
+      bottom: auto;
+      margin-left: 0;
+    }
+  }
+}
+
 .app-icon-button {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  display: flex;
+  // Position the button inline next to the textarea
+  position: static;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
   padding: 0;
-  margin: 0;
+  // Rely on container gap for spacing; avoid margins that can misalign baselines
+  flex: 0 0 auto; // do not shrink; keep intrinsic width
+  margin-left: 0;
+  margin-top: 0;
+  align-self: flex-end;
   background: #00703c;
   border: 0;
-  border-radius: 4px;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none; // neutralise native pressed offset on WebKit
 
   &:hover {
     background: #005a30;
   }
 
   &:active {
-    top: 1px;
+    // Keep the button visually in place on mousedown
+    background: #00441f;
+    transform: none;
+  }
+
+  &:focus-visible {
+    outline: 3px solid #0b0c0c; // visible focus without shifting layout
+    outline-offset: 2px;
   }
 }
 
@@ -42,4 +117,3 @@
   background: #ffffff;
   border-radius: 50%;
 }
-
