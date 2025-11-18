@@ -10,7 +10,7 @@
     <div class="govuk-grid-column-two-thirds">
 
       <h1 class="govuk-heading-xl">
-        Ask a question
+        What can I help you with?
       </h1>
 
       {% if errorMessage %}
@@ -45,27 +45,37 @@
         </div>
       {% endif %}
 
-      <p class="govuk-body">Enter your question below and the AI assistant will help you.</p>
-
       <form action="/start" method="post" novalidate>
 
-        {{ govukTextarea({
-          name: "question",
-          id: "question",
-          label: {
-            text: "What would you like to know?",
-            classes: "govuk-label--m"
-          },
-          hint: {
-            text: "Ask anything about user centred design, accessibility, or Defra guidance"
-          },
-          rows: 5,
-          value: question if question else ""
-        }) }}
-
-        {{ govukButton({
-          text: "Submit question"
-        }) }}
+        <div style="display: flex; align-items: flex-start; gap: 10px;">
+          <div style="flex: 1;">
+            {{ govukTextarea({
+              name: "question",
+              id: "question",
+              label: {
+                text: "What can I help you with?",
+                classes: "govuk-label--m"
+              },
+              hint: {
+                html: "For example:<br><ul class='govuk-list govuk-list--bullet govuk-hint'><li>Extract the key information from this meeting transcript</li><li>What are the common steps in GDS lead user Research Discovery project?</li></ul>"
+              },
+              rows: 1,
+              attributes: {
+                style: "max-height: 10em; overflow-y: auto;",
+                placeholder: "Ask anything"
+              },
+              value: question if question else ""
+            }) }}
+          </div>
+          <div>
+            {{ govukButton({
+              text: "→",
+              attributes: {
+                style: "margin-top: 0;"
+              }
+            }) }}
+          </div>
+        </div>
 
       </form>
 
