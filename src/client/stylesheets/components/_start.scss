@@ -35,6 +35,17 @@
   resize: none;
   transition: height 0.1s ease;
 
+  // CSS-only auto-grow using field-sizing (modern browsers)
+  // This works without JavaScript for better accessibility
+  field-sizing: content;
+  
+  // Fallback for browsers that don't support field-sizing
+  // The JavaScript enhancement will still work for these browsers
+  @supports not (field-sizing: content) {
+    // Keep current behavior for older browsers
+    min-height: 40px;
+  }
+
   &:focus {
     border-width: 2px; // match unfocused to prevent height change
   }
