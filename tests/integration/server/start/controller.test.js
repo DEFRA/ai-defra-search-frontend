@@ -102,6 +102,7 @@ describe('Start routes', () => {
         cookie
       },
       payload: {
+        modelName: 'Sonnet 3.7',
         question: 'What is user centred design?'
       }
     })
@@ -118,6 +119,34 @@ describe('Start routes', () => {
     expect(bodyText).toContain('What is UCD?')
     expect(bodyText).toContain('UCD Bot')
     expect(bodyText).toContain('User-Centred Design (UCD)')
+  })
+
+  test('POST /start with different models should send the selected model in the request', async () => {
+    setupChatApiMocks()
+
+    const cookie = await loginAndGetCookie()
+
+    const haikuResponse = await server.inject({
+      method: 'POST',
+      url: '/start',
+      headers: {
+        cookie
+      },
+      payload: {
+        modelName: 'Haiku',
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(haikuResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(haikuResponse.result)
+    const page = window.document
+
+    // Verify the selected model is preserved in the form
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('You asked:')
+    expect(bodyText).toContain('What is UCD?')
   })
 
   test('POST /start when not authenticated should redirect to login', async () => {

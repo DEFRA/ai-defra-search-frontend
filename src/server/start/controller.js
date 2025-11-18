@@ -8,7 +8,7 @@ import { createLogger } from '../common/helpers/logging/logger.js'
 const END_POINT_PATH = 'start/start'
 
 export const startGetController = {
-  async handler (request, h) {
+  async handler (_request, h) {
     const logger = createLogger()
     try {
       const models = await getModels()
@@ -28,11 +28,16 @@ export const startPostController = {
   options: {
     validate: {
       payload: startPostSchema,
-      failAction: (request, h, error) => {
+      failAction: async (request, h, error) => {
         const errorMessage = error.details[0]?.message
+
+        let models = []
+        models = await getModels()
 
         return h.view(END_POINT_PATH, {
           question: request.payload?.question,
+          modelName: request.payload?.modelName,
+          models,
           errorMessage
         }).code(statusCodes.BAD_REQUEST).takeover()
       }
@@ -40,23 +45,29 @@ export const startPostController = {
   },
   async handler (request, h) {
     const logger = createLogger()
-    const { question } = request.payload
+    const { modelName, question } = request.payload
+
+    let models = []
 
     try {
-      // Call the chat API with the user's question
+      models = await getModels()
+      // Call the chat API with the user's question and selected model
       const response = await sendQuestion(question)
 
       // Re-render the page with the response
       return h.view(END_POINT_PATH, {
         messages: response.messages,
-        conversationId: response.conversationId
+        conversationId: response.conversationId,
+        modelName,
+        models
       })
     } catch (error) {
       logger.error({ error, question }, 'Error calling chat API')
 
-      // Re-render the page with the question and error message
       return h.view(END_POINT_PATH, {
         question,
+        modelName,
+        models,
         errorMessage: 'Sorry, there was a problem getting a response. Please try again.'
       })
     }

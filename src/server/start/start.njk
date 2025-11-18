@@ -14,10 +14,6 @@
         Ask a question
       </h1>
 
-      {{ defraModelSelect({
-        models: models
-      }) }}
-
       {% if errorMessage %}
         {{ govukErrorSummary({
           titleText: "There is a problem",
@@ -53,6 +49,10 @@
       <p class="govuk-body">Enter your question below and the AI assistant will help you.</p>
 
       <form action="/start" method="post" novalidate>
+
+        {{ defraModelSelect({
+          models: models
+        }) }}
 
         {{ govukTextarea({
           name: "question",
