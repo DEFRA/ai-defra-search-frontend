@@ -6,12 +6,8 @@
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 {% block content %}
-  <div class="govuk-grid-row app-start-grey-row">
+  <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-
-      <h1 class="govuk-heading-xl">
-        What can I help you with?
-      </h1>
 
       {% if errorMessage %}
         {{ govukErrorSummary({
@@ -26,55 +22,107 @@
       {% endif %}
 
       {% if messages %}
-        <div class="govuk-!-margin-bottom-8">
+        <div class="app-response-section">
+          <h2 class="govuk-heading-l govuk-!-margin-bottom-6">
+            Here's what I found
+          </h2>
+
           {% for message in messages %}
             {% if message.role === "user" %}
-              <h2 class="govuk-heading-m">You asked:</h2>
-              {{ govukInsetText({
-                text: message.content
-              }) }}
+              <div class="app-user-question">
+                <p class="govuk-body">"{{ message.content }}"</p>
+              </div>
             {% endif %}
 
             {% if message.role === "assistant" %}
-              <h2 class="govuk-heading-m">UCD Bot</h2>
-              {{ govukInsetText({
-                html: '<p class="govuk-body" style="white-space: pre-wrap;">' + message.content + '</p>'
-              }) }}
+              <div class="app-assistant-response govuk-!-margin-bottom-8">
+                <p class="govuk-body" style="white-space: pre-wrap;">{{ message.content }}</p>
+              </div>
             {% endif %}
           {% endfor %}
         </div>
       {% endif %}
 
-      <form action="/start" method="post" novalidate>
-        <div class="govuk-form-group">
-          {{ govukHint({
-            id: "question-hint",
-            html: "For example:<br><ul class='govuk-list govuk-list--bullet govuk-hint'><li>Extract the key information from this meeting transcript</li><li>What are the common steps in GDS lead user Research Discovery project?</li></ul>"
-          }) }}
-
-          <div class="app-question-input">
-            <textarea
-              class="govuk-textarea app-auto-grow-textarea"
-              id="question"
-              name="question"
-              rows="1"
-              placeholder="Ask anything"
-              aria-describedby="question-hint"
-            >{{ question if question else "" }}</textarea>
-
-            <button type="submit" class="app-icon-button" aria-label="Search">
-              <span class="app-icon-button__inner">
-                <svg width="25" height="25" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                  <path d="M0 12.1094C0 5.41992 5.41992 0 12.1094 0C18.7988 0 24.2188 5.41992 24.2188 12.1094C24.2188 18.7988 18.7988 24.2188 12.1094 24.2188C5.41992 24.2188 0 18.7988 0 12.1094Z" fill="#ffffff" />
-                  <path d="M7.01172 13.5205L10.5469 9.83398V18.75C10.5469 19.3994 11.0693 19.9219 11.7188 19.9219H12.5C13.1494 19.9219 13.6719 19.3994 13.6719 18.75V9.83398L17.207 13.5205C17.6611 13.9941 18.418 14.0039 18.8818 13.54L19.4141 13.0029C19.873 12.5439 19.873 11.8018 19.4141 11.3477L12.9395 4.86816C12.4805 4.40918 11.7383 4.40918 11.2842 4.86816L4.7998 11.3477C4.34082 11.8066 4.34082 12.5488 4.7998 13.0029L5.33203 13.54C5.80078 14.0039 6.55762 13.9941 7.01172 13.5205Z" fill="#00703c" />
-                </svg>
-              </span>
-              <span class="govuk-visually-hidden">Search</span>
-            </button>
-          </div>
-        </div>
-      </form>
-
     </div>
   </div>
+
+  {% if not messages %}
+    <div class="app-question-prompt-section app-question-prompt-section--initial">
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds">
+          <h1 class="govuk-heading-xl govuk-!-margin-bottom-6">
+            What can I help you with?
+          </h1>
+
+          <p class="govuk-hint">For example:</p>
+          <ul class="govuk-list govuk-list--bullet govuk-hint govuk-!-margin-bottom-4">
+            <li>Extract the key information from this meeting transcript</li>
+            <li>What are the common steps in a GDS lead User Research Discovery project?</li>
+          </ul>
+
+          <form action="/start" method="post" novalidate>
+            <div class="govuk-form-group">
+              <label for="question" class="govuk-visually-hidden">
+                What can I help you with?
+              </label>
+
+              <div class="app-question-input">
+                <textarea
+                  class="govuk-textarea app-auto-grow-textarea"
+                  id="question"
+                  name="question"
+                  rows="1"
+                  placeholder="Ask anything"
+                >{{ question if question else "" }}</textarea>
+
+                <button type="submit" class="app-icon-button" aria-label="Submit question">
+                  <span class="app-icon-button__inner">
+                    <svg width="25" height="25" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                      <path d="M0 12.1094C0 5.41992 5.41992 0 12.1094 0C18.7988 0 24.2188 5.41992 24.2188 12.1094C24.2188 18.7988 18.7988 24.2188 12.1094 24.2188C5.41992 24.2188 0 18.7988 0 12.1094Z" fill="#ffffff" />
+                      <path d="M7.01172 13.5205L10.5469 9.83398V18.75C10.5469 19.3994 11.0693 19.9219 11.7188 19.9219H12.5C13.1494 19.9219 13.6719 19.3994 13.6719 18.75V9.83398L17.207 13.5205C17.6611 13.9941 18.418 14.0039 18.8818 13.54L19.4141 13.0029C19.873 12.5439 19.873 11.8018 19.4141 11.3477L12.9395 4.86816C12.4805 4.40918 11.7383 4.40918 11.2842 4.86816L4.7998 11.3477C4.34082 11.8066 4.34082 12.5488 4.7998 13.0029L5.33203 13.54C5.80078 14.0039 6.55762 13.9941 7.01172 13.5205Z" fill="#00703c" />
+                    </svg>
+                  </span>
+                  <span class="govuk-visually-hidden">Submit question</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="app-question-prompt-section app-question-prompt-section--conversation">
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-full">
+          <form action="/start" method="post" novalidate>
+            <div class="govuk-form-group">
+              <label for="question" class="govuk-label govuk-label--m">
+                What can I help you with?
+              </label>
+
+              <div class="app-question-input">
+                <textarea
+                  class="govuk-textarea app-auto-grow-textarea"
+                  id="question"
+                  name="question"
+                  rows="1"
+                  placeholder=""
+                >{{ question if question else "" }}</textarea>
+
+                <button type="submit" class="app-icon-button" aria-label="Submit question">
+                  <span class="app-icon-button__inner">
+                    <svg width="25" height="25" viewBox="0 0 25 25" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                      <path d="M0 12.1094C0 5.41992 5.41992 0 12.1094 0C18.7988 0 24.2188 5.41992 24.2188 12.1094C24.2188 18.7988 18.7988 24.2188 12.1094 24.2188C5.41992 24.2188 0 18.7988 0 12.1094Z" fill="#ffffff" />
+                      <path d="M7.01172 13.5205L10.5469 9.83398V18.75C10.5469 19.3994 11.0693 19.9219 11.7188 19.9219H12.5C13.1494 19.9219 13.6719 19.3994 13.6719 18.75V9.83398L17.207 13.5205C17.6611 13.9941 18.418 14.0039 18.8818 13.54L19.4141 13.0029C19.873 12.5439 19.873 11.8018 19.4141 11.3477L12.9395 4.86816C12.4805 4.40918 11.7383 4.40918 11.2842 4.86816L4.7998 11.3477C4.34082 11.8066 4.34082 12.5488 4.7998 13.0029L5.33203 13.54C5.80078 14.0039 6.55762 13.9941 7.01172 13.5205Z" fill="#00703c" />
+                    </svg>
+                  </span>
+                  <span class="govuk-visually-hidden">Submit question</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}

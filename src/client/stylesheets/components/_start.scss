@@ -1,5 +1,57 @@
 @use "govuk-frontend" as *;
 
+// Response section styles
+.app-response-section {
+  margin-bottom: govuk-spacing(6);
+}
+
+// User question with blue left border (blockquote style)
+.app-user-question {
+  border-left: 4px solid govuk-colour("blue");
+  padding: govuk-spacing(3);
+  background-color: govuk-colour("light-grey");
+  margin-bottom: govuk-spacing(6);
+
+  p {
+    margin-bottom: 0;
+    color: #505a5f; // Slightly muted text color
+  }
+}
+
+// Assistant response
+.app-assistant-response {
+  p {
+    margin-bottom: 0;
+  }
+}
+
+// Grey section at the bottom for the question prompt
+// Matches the header container width (max-width: 960px)
+.app-question-prompt-section {
+  background-color: govuk-colour("light-grey");
+  padding: govuk-spacing(5) 0;
+  margin-top: govuk-spacing(8);
+
+  // Only break out to full viewport width in conversation mode (post-submission)
+  &--conversation {
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+  }
+
+  // Inner container matches header dimensions
+  > .govuk-grid-row {
+    margin: 0 auto;
+    max-width: 960px;
+    padding-left: 15px;
+    padding-right: 15px;
+
+    @media (min-width: 48.0625em) {
+      padding-left: 30px;
+      padding-right: 30px;
+    }
+  }
+}
+
 // Start page chat input styles
 .app-question-input-container {
   // Use flex layout so the textarea (form group) and button can sit side by side
@@ -133,8 +185,7 @@
   border-radius: 50%;
 }
 
-// Add a grey background panel for the /start page grid row
-
+// Add a grey background panel for the /start page grid row (deprecated, keeping for backwards compatibility)
 .app-start-grey-row {
   background-color: govuk-colour("light-grey");
   padding: govuk-spacing(6) 0; // vertical space similar to screenshot
