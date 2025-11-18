@@ -30,7 +30,9 @@
   box-sizing: border-box;
   border-width: 2px; // ensure consistent border thickness in all states
   min-height: 40px;
-  max-height: 10em;
+  // Limit to 10 rows maximum (line-height * 10 rows)
+  // Using calc to account for line-height of ~1.5 and font-size of ~19px (GOV.UK default)
+  max-height: calc(1.5em * 10);
   overflow-y: auto !important;
   resize: none;
   transition: height 0.1s ease;
