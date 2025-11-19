@@ -1,0 +1,25 @@
+// Model Select Component Styles
+
+.govuk-radios__input {
+  margin-right: 16px;
+}
+
+.defra-model-select__label {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0;
+  margin-left: 0;
+  margin-right: 24px;
+}
+
+.defra-model-select__model-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.defra-model-select__model-description {
+  font-size: 0.9375rem;
+  color: #626a6e;
+  font-weight: normal;
+  text-align: left;
+}

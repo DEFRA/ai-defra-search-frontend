@@ -1,13 +1,26 @@
 import statusCodes from 'http-status-codes'
 
 import { sendQuestion } from './chat-api.js'
+import { getModels } from './models-api.js'
 import { startPostSchema } from './chat-schema.js'
+import { createLogger } from '../common/helpers/logging/logger.js'
 
 const END_POINT_PATH = 'start/start'
 
 export const startGetController = {
-  handler (_request, h) {
-    return h.view(END_POINT_PATH)
+  async handler (_request, h) {
+    const logger = createLogger()
+    try {
+      const models = await getModels()
+      return h.view(END_POINT_PATH, { models })
+    } catch (error) {
+      logger.error({ error }, 'Error calling chat API')
+      return h.view('error/index', {
+        pageTitle: 'Something went wrong',
+        heading: statusCodes.INTERNAL_SERVER_ERROR,
+        message: 'Sorry, there was a problem with the service request'
+      }).code(statusCodes.INTERNAL_SERVER_ERROR)
+    }
   }
 }
 
@@ -15,34 +28,46 @@ export const startPostController = {
   options: {
     validate: {
       payload: startPostSchema,
-      failAction: (request, h, error) => {
+      failAction: async (request, h, error) => {
         const errorMessage = error.details[0]?.message
+
+        let models = []
+        models = await getModels()
 
         return h.view(END_POINT_PATH, {
           question: request.payload?.question,
+          modelName: request.payload?.modelName,
+          models,
           errorMessage
         }).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
   },
   async handler (request, h) {
-    const { question } = request.payload
+    const logger = createLogger()
+    const { modelName, question } = request.payload
+
+    let models = []
 
     try {
-      // Call the chat API with the user's question
-      const response = await sendQuestion(question)
+      models = await getModels()
+      // Call the chat API with the user's question and selected model
+      const response = await sendQuestion(question, modelName)
 
       // Re-render the page with the response
       return h.view(END_POINT_PATH, {
         messages: response.messages,
-        conversationId: response.conversationId
+        conversationId: response.conversationId,
+        modelName,
+        models
       })
     } catch (error) {
-      request.logger.error({ error, question }, 'Error calling chat API')
+      logger.error({ error, question }, 'Error calling chat API')
 
-      // Re-render the page with the question and error message
       return h.view(END_POINT_PATH, {
         question,
+        modelName,
+        models,
         errorMessage: 'Sorry, there was a problem getting a response. Please try again.'
       })
     }
