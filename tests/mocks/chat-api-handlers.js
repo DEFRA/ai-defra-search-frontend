@@ -9,7 +9,10 @@ function setupChatApiMocks () {
   // POST /chat - successful response
   nock(chatApiBaseUrl)
     .persist() // Keep this mock active for all tests
-    .post('/chat')
+    .post('/chat', (body) => {
+      // Verify the request body contains both question and modelName
+      return typeof body.question === 'string' && typeof body.modelName === 'string'
+    })
     .reply(200, {
       conversation_id: 'mock-conversation-123',
       messages: [
@@ -38,11 +41,17 @@ function setupChatApiErrorMock (statusCode, errorType) {
 
   if (errorType === 'timeout') {
     nock(chatApiBaseUrl)
-      .post('/chat')
+      .post('/chat', (body) => {
+        // Verify the request body contains both question and modelName
+        return typeof body.question === 'string' && typeof body.modelName === 'string'
+      })
       .replyWithError('ETIMEDOUT')
   } else {
     nock(chatApiBaseUrl)
-      .post('/chat')
+      .post('/chat', (body) => {
+        // Verify the request body contains both question and modelName
+        return typeof body.question === 'string' && typeof body.modelName === 'string'
+      })
       .reply(statusCode, { error: 'Error from chat API' })
   }
 }
