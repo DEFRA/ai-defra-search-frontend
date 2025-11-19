@@ -122,6 +122,7 @@ describe('Start routes', () => {
 
   test('POST /start with different models should send the selected model in the request', async () => {
     setupChatApiMocks()
+    setupModelsApiMocks()
 
     const cookie = await loginAndGetCookie()
 
@@ -144,8 +145,9 @@ describe('Start routes', () => {
 
     // Verify the selected model is preserved in the form
     const bodyText = page.body.textContent
-    expect(bodyText).toContain('You asked:')
+    expect(bodyText).toContain('Here\'s what I found')
     expect(bodyText).toContain('What is UCD?')
+    expect(bodyText).toContain('User-Centred Design (UCD)')
   })
 
   test('POST /start when not authenticated should redirect to login', async () => {
