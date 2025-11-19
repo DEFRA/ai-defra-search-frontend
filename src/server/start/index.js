@@ -9,7 +9,7 @@ export const start = {
     name: 'start',
     register (server) {
       server.route([
-      
+
         {
           method: 'GET',
           path: '/start',

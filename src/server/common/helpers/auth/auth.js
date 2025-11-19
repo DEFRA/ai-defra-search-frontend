@@ -31,6 +31,6 @@ const auth = {
   }
 }
 
-export { 
+export {
   auth
 }
