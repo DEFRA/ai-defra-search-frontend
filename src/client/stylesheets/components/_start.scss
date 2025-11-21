@@ -2,6 +2,9 @@
 @use "../variables" as vars;
 
 // Auto-expanding textarea - uses overflow and max-height
+@use "../variables" as vars;
+
+// Auto-expanding textarea - uses overflow and max-height
 .app-auto-grow-textarea {
   box-sizing: border-box;
   min-height: vars.$size-button;
