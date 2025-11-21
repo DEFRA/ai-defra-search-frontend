@@ -1,177 +1,57 @@
 @use "govuk-frontend" as *;
+@use "../variables" as vars;
 
-// Response section styles
-.app-response-section {
-  margin-bottom: govuk-spacing(6);
-}
-
-// User question with blue left border (blockquote style)
-.app-user-question {
-  border-left: 4px solid govuk-colour("blue");
-  padding: govuk-spacing(3);
-  background-color: govuk-colour("light-grey");
-  margin-bottom: govuk-spacing(6);
-
-  p {
-    margin-bottom: 0;
-    color: #505a5f; // Slightly muted text color
-  }
-}
-
-// Assistant response
-.app-assistant-response {
-  p {
-    margin-bottom: 0;
-  }
-}
-
-// Grey section at the bottom for the question prompt
-// Matches the header container width (max-width: 960px)
-.app-question-prompt-section {
-  background-color: govuk-colour("light-grey");
-  padding: govuk-spacing(5) 0;
-  margin-top: govuk-spacing(8);
-
-  // Only break out to full viewport width in conversation mode (post-submission)
-  &--conversation {
-    margin-left: calc(-50vw + 50%);
-    margin-right: calc(-50vw + 50%);
-  }
-
-  // Inner container matches header dimensions
-  > .govuk-grid-row {
-    margin: 0 auto;
-    max-width: 960px;
-    padding-left: 15px;
-    padding-right: 15px;
-
-    @media (min-width: 48.0625em) {
-      padding-left: 30px;
-      padding-right: 30px;
-    }
-  }
-}
-
-// Start page chat input styles
-.app-question-input-container {
-  // Use flex layout so the textarea (form group) and button can sit side by side
-  display: flex;
-  // Return to bottom alignment to match original layout
-  align-items: flex-end;
-  // Keep items on one line by default
-  flex-wrap: nowrap;
-  // Use gap for consistent spacing between textarea and button
-  column-gap: 8px;
-  row-gap: 8px;
-
-  // Allow wrapping on smaller screens only
-  @media (max-width: 40.0625em) { // ~641px
-    flex-wrap: wrap;
-  }
-
-  .govuk-form-group {
-    // Allow the form group to shrink so the button can fit on the same line
-    flex: 1 1 auto;
-    width: auto; // override GOV.UK default width: 100%
-    min-width: 0; // allow shrinking in flex containers
-    max-width: 100%;
-    margin-bottom: 0;
-  }
-}
-
+// Auto-expanding textarea - uses overflow and max-height
 .app-auto-grow-textarea {
-  // Keep textarea size stable regardless of focus state to avoid layout jump
   box-sizing: border-box;
-  border-width: 2px; // ensure consistent border thickness in all states
-  min-height: 40px;
-  // Limit to 10 rows maximum (line-height * 10 rows)
-  // Using calc to account for line-height of ~1.5 and font-size of ~19px (GOV.UK default)
+  min-height: vars.$size-button;
   max-height: calc(1.5em * 10);
-  overflow-y: auto !important;
+  overflow-y: auto;
   resize: none;
-  transition: height 0.1s ease;
-
-  // CSS-only auto-grow using field-sizing (modern browsers)
-  // This works without JavaScript for better accessibility
+  margin-bottom: 0;
   field-sizing: content;
-
-  // Fallback for browsers that don't support field-sizing
-  // The JavaScript enhancement will still work for these browsers
-  @supports not (field-sizing: content) {
-    // Keep current behavior for older browsers
-    min-height: 40px;
-  }
-
-  &:focus {
-    border-width: 2px; // match unfocused to prevent height change
-  }
 }
 
-// Wrapper to place the submit button at the bottom-right corner of the textarea
 .app-question-input {
-  // Keep wrapper as positioning context for the button
   position: relative;
-  display: block;
+  display: flex;
+  align-items: flex-end;
 
-  .govuk-textarea {
-    width: 100%;
-    display: block;
-  }
+  @media (max-width: 40.0625em) {
+    flex-wrap: wrap;
 
-  // Place the button just outside the textarea, to the right, aligned to the bottom edge
-  .app-icon-button {
-    position: absolute;
-    left: 100%;
-    bottom: 0; // was 0px
-    right: auto;
-    top: auto;
-  }
-
-  // On small screens, place the button below the textarea with a small gap
-  @media (max-width: 40.0625em) { // ~641px
     .app-icon-button {
-      left: auto;
+      position: absolute;
       right: 0;
-      top: calc(100% + 8px);
-      bottom: auto;
-      margin-left: 0;
+      top: calc(100% + #{vars.$spacing-small});
     }
   }
 }
 
 .app-icon-button {
-  // Position the button inline next to the textarea
-  position: static;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: vars.$size-button;
+  height: vars.$size-button;
   padding: 0;
-  // Rely on container gap for spacing; avoid margins that can misalign baselines
-  flex: 0 0 auto; // do not shrink; keep intrinsic width
-  margin-left: 0;
-  margin-top: 0;
-  align-self: flex-end;
-  background: #00703c;
-  border: 0;
+  flex: 0 0 auto;
+  background: vars.$defra-green-button;
+  border: none;
   cursor: pointer;
   appearance: none;
-  -webkit-appearance: none; // neutralise native pressed offset on WebKit
 
   &:hover {
-    background: #005a30;
+    background: vars.$defra-green-button-hover;
   }
 
   &:active {
-    // Keep the button visually in place on mousedown
-    background: #00441f;
-    transform: none;
+    background: vars.$defra-green-button-active;
   }
 
   &:focus-visible {
-    outline: 3px solid #0b0c0c; // visible focus without shifting layout
-    outline-offset: 2px;
+    outline: vars.$outline-width solid vars.$black;
+    outline-offset: vars.$outline-offset;
   }
 }
 
@@ -179,22 +59,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: #ffffff;
+  width: vars.$size-button-inner;
+  height: vars.$size-button-inner;
+  background: vars.$white;
   border-radius: 50%;
 }
 
-// Add a grey background panel for the /start page grid row (deprecated, keeping for backwards compatibility)
-.app-start-grey-row {
+.app-prompt-input-container {
   background-color: govuk-colour("light-grey");
-  padding: govuk-spacing(6) 0; // vertical space similar to screenshot
-  margin-top: govuk-spacing(4);
-  margin-bottom: govuk-spacing(8);
+  padding: govuk-spacing(4) govuk-spacing(8);
+  margin-left: -govuk-spacing(3);
+  margin-right: -govuk-spacing(3);
+}
 
-  // Ensure columns don't stick to the edges of the grey panel
-  .govuk-grid-column-two-thirds {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
+.app-user-message {
+  border-left: 4px solid vars.$defra-green;
+  background-color: govuk-colour("light-grey");
+  padding: govuk-spacing(3) govuk-spacing(3);
+  margin-bottom: govuk-spacing(3);
 }
