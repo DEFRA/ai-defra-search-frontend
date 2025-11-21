@@ -3,13 +3,13 @@
 {%- set navigation = params.navigation if params.navigation else {} -%}
 
 <header class="defra-header" role="banner">
-  <div class="defra-header__container {{ params.containerClasses if params.containerClasses }}">
+  <div class="defra-header__container">
     <div class="defra-header__logo">
-      <a href="{{ organisationLabel.href if organisationLabel.href else '#' }}" class="defra-header__link defra-header__link--organisation-name">
+      <a href="{{ organisationLabel.href if organisationLabel.href else '#' }}" class="defra-header__link defra-header__link--organisation-name govuk-!-font-size-24 govuk-!-font-weight-bold">
         {{ organisationLabel.text if organisationLabel.text else "Defra" }}
       </a>
       {% if serviceLabel.text %}
-      <a href="{{ serviceLabel.href if serviceLabel.href else '#' }}" class="defra-header__link defra-header__link--service-name">
+      <a href="{{ serviceLabel.href if serviceLabel.href else '#' }}" class="defra-header__link defra-header__link--service-name govuk-!-font-size-16">
         {{ serviceLabel.text }}
       </a>
       {% endif %}
@@ -18,10 +18,10 @@
     {% if navigation.items and navigation.items.length %}
     <div class="defra-header__content">
       <nav class="defra-header__navigation" aria-label="{{ navigation.label if navigation.label else 'Account navigation' }}">
-        <ul class="defra-header__navigation-list">
+        <ul class="defra-header__navigation-list govuk-!-margin-0 govuk-!-padding-0">
           {% for item in navigation.items %}
-          <li class="defra-header__navigation-item">
-            <a class="defra-header__navigation-link" href="{{ item.href }}"{% if item.active %} aria-current="page"{% endif %}{{ item.attributes | dump | safe if item.attributes }}>
+          <li>
+            <a class="defra-header__navigation-link govuk-!-font-size-16" href="{{ item.href }}"{% if item.active %} aria-current="page"{% endif %}{{ item.attributes | dump | safe if item.attributes }}>
               {{ item.html | safe if item.html else item.text }}
             </a>
           </li>

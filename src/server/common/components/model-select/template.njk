@@ -3,9 +3,7 @@
 {% if models.length > 0 %}
   <fieldset class="govuk-fieldset govuk-!-margin-bottom-8">
     <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-      <h2 class="govuk-fieldset__heading">
-        Select AI model
-      </h2>
+      <h2 class="govuk-fieldset__heading">Select AI model</h2>
     </legend>
 
     <div class="govuk-radios" data-module="govuk-radios">
@@ -19,9 +17,9 @@
             value="{{ model.modelName }}"
             {% if loop.first %}checked{% endif %}
           />
-          <label class="govuk-label govuk-radios__label defra-model-select__label" for="model-{{ loop.index }}">
-            <div class="defra-model-select__model-name">{{ model.modelName }}</div>
-            <div class="defra-model-select__model-description">{{ model.modelDescription }}</div>
+          <label class="govuk-label govuk-radios__label" for="model-{{ loop.index }}">
+            <div class="govuk-!-font-weight-bold">{{ model.modelName }}</div>
+            <div class="govuk-hint govuk-!-margin-top-1 govuk-!-margin-bottom-0">{{ model.modelDescription }}</div>
           </label>
         </div>
       {% endfor %}

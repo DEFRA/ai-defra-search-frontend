@@ -23,32 +23,27 @@
       {% endif %}
 
       {% if messages %}
-        <div class="app-response-section">
-          <h2 class="govuk-heading-l govuk-!-margin-bottom-6">
-            Here's what I found
-          </h2>
+        <h2 class="govuk-heading-l govuk-!-margin-bottom-6">
+          Here's what I found
+        </h2>
 
-          {% for message in messages %}
-            {% if message.role === "user" %}
-              <div class="app-user-question">
-                <p class="govuk-body">"{{ message.content }}"</p>
-              </div>
-            {% endif %}
+        {% for message in messages %}
+          {% if message.role === "user" %}
+            <p class="govuk-body app-user-message">"{{ message.content }}"</p>
+          {% endif %}
 
-            {% if message.role === "assistant" %}
-              <div class="app-assistant-response govuk-!-margin-bottom-8">
-                <p class="govuk-body" style="white-space: pre-wrap;">{{ message.content }}</p>
-              </div>
-            {% endif %}
-          {% endfor %}
-        </div>
+          {% if message.role === "assistant" %}
+            <p class="govuk-body govuk-!-margin-bottom-8" style="white-space: pre-wrap;">{{ message.content }}</p>
+          {% endif %}
+        {% endfor %}
+
       {% endif %}
 
     </div>
   </div>
 
   {% if not messages %}
-    <div class="app-question-prompt-section app-question-prompt-section--initial">
+    <div class="app-prompt-input-container">
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-two-thirds">
           <h1 class="govuk-heading-xl govuk-!-margin-bottom-6">
@@ -97,7 +92,7 @@
       </div>
     </div>
   {% else %}
-    <div class="app-question-prompt-section app-question-prompt-section--conversation">
+    <div class="app-prompt-input-container">
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
           <form action="/start" method="post" novalidate>

@@ -24,7 +24,7 @@ describe('#errors', () => {
     const window = new JSDOM(result).window
     const { document } = window
 
-    document.querySelector('p').textContent === 'Page not found'
+    expect(document.querySelector('p').textContent).toEqual('Page not found')
     expect(statusCode).toBe(statusCodes.NOT_FOUND)
   })
 })
