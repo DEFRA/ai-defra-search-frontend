@@ -11,8 +11,8 @@ function generateEntraJwt () {
     {
       aud: process.env.ENTRA_CLIENT_ID,
       iss: `https://login.microsoftonline.com/${process.env.ENTRA_TENANT_ID}/v2.0`,
-      iat: dateToUnix(new Date("2025-11-24T00:00:00Z")),
-      exp: dateToUnix(new Date("2025-11-24T00:30:00Z")),
+      iat: dateToUnix(new Date('2025-11-24T00:00:00Z')),
+      exp: dateToUnix(new Date('2025-11-24T00:30:00Z')),
       sub: 'user-id',
       name: 'Test User',
       preferred_username: 'testuser@example.com'

@@ -2,6 +2,7 @@ import statusCodes from 'http-status-codes'
 import { JSDOM } from 'jsdom'
 
 import { createServer } from '../../../../../src/server/server.js'
+import { expect } from 'vitest'
 
 describe('#errors', () => {
   let server
@@ -24,7 +25,7 @@ describe('#errors', () => {
     const window = new JSDOM(result).window
     const { document } = window
 
-    document.querySelector('p').textContent === 'Page not found'
+    expect(document.querySelector('p').textContent).toBe('Page not found')
     expect(statusCode).toBe(statusCodes.NOT_FOUND)
   })
 })

@@ -17,7 +17,7 @@ describe('Azure Entra Authentication Provider', () => {
 
   afterAll(async () => {
     await server.stop({ timeout: 0 })
-    
+
     vitest.useRealTimers()
 
     process.env = originalEnv
@@ -32,9 +32,9 @@ describe('Azure Entra Authentication Provider', () => {
     expect(res.statusCode).toBe(302)
 
     const url = new URL(res.headers.location)
-    
+
     expect(url.hostname).toBe('login.microsoftonline.com')
-    
+
     expect(url.pathname).toMatch(new RegExp(`^/${'cb2d380f-8056-494b-bfad-cfcaf767c0b3'}/oauth2/v2\\.0/authorize$`))
     expect(url.searchParams.get('client_id')).toBe('28434819-c64a-4b95-bb23-0f6202bcfc02')
     expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:3000/auth/callback')

@@ -46,7 +46,7 @@ describe('OIDC Callback', () => {
 
   afterAll(async () => {
     await server.stop({ timeout: 0 })
-    
+
     vitest.useRealTimers()
 
     Bell.simulate(false)
@@ -65,7 +65,7 @@ describe('OIDC Callback', () => {
   test('Routes should require authentication by default', async () => {
     const protectedRoutes = server.table()
       .filter(route => route.settings.auth === undefined)
-     
+
     for (const route of protectedRoutes) {
       const res = await server.inject({
         method: route.method,
@@ -88,7 +88,7 @@ describe('OIDC Callback', () => {
   })
 
   test('GET /auth/callback with code should set session cookie and redirect to /start', async () => {
-    vitest.setSystemTime(new Date("2025-11-24T00:00:00Z"))
+    vitest.setSystemTime(new Date('2025-11-24T00:00:00Z'))
 
     mockCredentialsData.token = generateEntraJwt()
 
@@ -106,7 +106,7 @@ describe('OIDC Callback', () => {
   })
 
   test('GET /test-protected with valid jwt token in session should return protected content', async () => {
-    vitest.setSystemTime(new Date("2025-11-24T00:00:00Z"))
+    vitest.setSystemTime(new Date('2025-11-24T00:00:00Z'))
 
     mockCredentialsData.token = generateEntraJwt()
 
@@ -128,7 +128,7 @@ describe('OIDC Callback', () => {
   })
 
   test('GET /test-protected after jwt expiry should redirect to OIDC flow', async () => {
-    vitest.setSystemTime(new Date("2025-11-24T00:00:00Z"))
+    vitest.setSystemTime(new Date('2025-11-24T00:00:00Z'))
 
     mockCredentialsData.token = generateEntraJwt()
 
@@ -137,7 +137,7 @@ describe('OIDC Callback', () => {
       url: '/auth/callback?code=dummy-auth-code',
     })
 
-    vitest.setSystemTime(new Date("2025-11-24T00:31:00Z"))
+    vitest.setSystemTime(new Date('2025-11-24T00:31:00Z'))
 
     const protectedRes = await server.inject({
       method: 'GET',
