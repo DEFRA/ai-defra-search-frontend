@@ -52,6 +52,11 @@ The following environment variables can be configured for the application:
 | `AWS_SECRET_ACCESS_KEY` | Yes      | `test` | AWS secret access key (use `test` for local development with Localstack) |
 | `PROTOTYPE_PASSWORD` | No       | - | Password protection for the prototype                                    |
 | `API_BASE_URL` | Yes      | - | ai-defra-search-agent chat API URL                                       |
+| `AUTH_ENABLED` | No       | `true` | Enable or disable authentication                                         |
+| `MS_ENTRA_TENANT_ID` | Yes       | - | Microsoft Entra tenant ID                                                |
+| `MS_ENTRA_CLIENT_ID` | Yes       | - | Microsoft Entra client ID                                                |
+| `MS_ENTRA_CLIENT_SECRET` | Yes       | - | Microsoft Entra client secret                                            |
+| `MS_ENTRA_REDIRECT_HOST` | Yes       | `http://localhost:3000` | Redirect host for Microsoft Entra authentication                         |
 
 ## Running the Application
 

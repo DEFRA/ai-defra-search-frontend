@@ -251,26 +251,26 @@ export const config = convict({
         doc: 'MS Entra tenant ID',
         format: String,
         default: null,
-        env: 'ENTRA_TENANT_ID'
+        env: 'MS_ENTRA_TENANT_ID'
       },
       clientId: {
         doc: 'MS Entra application ID',
         format: String,
         default: null,
-        env: 'ENTRA_CLIENT_ID'
+        env: 'MS_ENTRA_CLIENT_ID'
       },
       clientSecret: {
         doc: 'MS Entra application secret',
         format: String,
         default: null,
         sensitive: true,
-        env: 'ENTRA_CLIENT_SECRET'
+        env: 'MS_ENTRA_CLIENT_SECRET'
       },
       redirectHost: {
         doc: 'Redirect host for MS Entra authentication callbacks',
         format: 'url',
         default: null,
-        env: 'ENTRA_REDIRECT_HOST'
+        env: 'MS_ENTRA_REDIRECT_HOST'
       }
     }
   }
