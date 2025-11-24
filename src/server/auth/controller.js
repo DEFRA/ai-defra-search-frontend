@@ -1,6 +1,6 @@
 import { randomUUID as uuidv4 } from 'crypto'
 
-export const loginGetController = {
+export const authController = {
   async handler (request, h) {
     if (!request.auth.isAuthenticated) {
       throw new Error('Authentication failed')

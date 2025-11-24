@@ -1,12 +1,12 @@
-import { loginGetController } from './controller.js'
+import { authController } from './controller.js'
 
 /**
  * Sets up the routes used for authentication.
  * These routes are registered in src/server/router.js.
  */
-export const login = {
+export const authRoutes = {
   plugin: {
-    name: 'login',
+    name: 'authRoutes',
     register (server) {
       server.route([
         {
@@ -18,7 +18,7 @@ export const login = {
               strategy: 'azure'
             }
           },
-          ...loginGetController
+          ...authController
         }
       ])
     }
