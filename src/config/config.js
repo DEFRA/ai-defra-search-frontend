@@ -238,6 +238,41 @@ export const config = convict({
     format: String,
     default: null,
     env: 'API_BASE_URL'
+  },
+  auth: {
+    enabled: {
+      doc: 'Enable MS Entra authentication - Should only be disabled for local development purposes',
+      format: Boolean,
+      default: true,
+      env: 'AUTH_ENABLED'
+    },
+    entra: {
+      tenantId: {
+        doc: 'MS Entra tenant ID',
+        format: String,
+        default: null,
+        env: 'ENTRA_TENANT_ID'
+      },
+      clientId: {
+        doc: 'MS Entra application ID',
+        format: String,
+        default: null,
+        env: 'ENTRA_CLIENT_ID'
+      },
+      clientSecret: {
+        doc: 'MS Entra application secret',
+        format: String,
+        default: null,
+        sensitive: true,
+        env: 'ENTRA_CLIENT_SECRET'
+      },
+      redirectHost: {
+        doc: 'Redirect host for MS Entra authentication callbacks',
+        format: 'url',
+        default: null,
+        env: 'ENTRA_REDIRECT_HOST'
+      }
+    }
   }
 })
 

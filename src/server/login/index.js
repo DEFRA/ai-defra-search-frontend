@@ -1,4 +1,4 @@
-import { loginGetController, loginPostController } from './controller.js'
+import { loginGetController } from './controller.js'
 
 /**
  * Sets up the routes used for authentication.
@@ -11,30 +11,14 @@ export const login = {
       server.route([
         {
           method: 'GET',
-          path: '/',
-          handler: (_request, h) => {
-            return h.redirect('/login')
-          }
-        },
-        {
-          method: 'GET',
-          path: '/login',
+          path: '/auth/callback',
           options: {
             auth: {
-              mode: 'try'
-            },
+              mode: 'try',
+              strategy: 'azure'
+            }
           },
           ...loginGetController
-        },
-        {
-          method: 'POST',
-          path: '/login',
-          options: {
-            auth: {
-              mode: 'try'
-            },
-          },
-          ...loginPostController
         }
       ])
     }
