@@ -1,11 +1,9 @@
 import Bell from '@hapi/bell'
 
 import { generateEntraJwt } from '../../../utils/oidc.js'
-import { test } from 'vitest'
 
 describe('OIDC Callback', () => {
   let server
-  let originalEnv
 
   const mockCredentialsData = {
     provider: 'azure',
@@ -19,15 +17,13 @@ describe('OIDC Callback', () => {
   }
 
   beforeAll(async () => {
-    originalEnv = { ...process.env }
-
-    process.env.AUTH_ENABLED = 'true'
+    vitest.stubEnv('AUTH_ENABLED', 'true')
 
     vitest.useFakeTimers()
 
-    const { createServer } = await import('../../../../src/server/server.js')
-
     Bell.simulate((_request) => mockCredentialsData)
+
+    const { createServer } = await import('../../../../src/server/server.js')
 
     server = await createServer()
 
@@ -51,7 +47,7 @@ describe('OIDC Callback', () => {
 
     Bell.simulate(false)
 
-    process.env = originalEnv
+    vitest.unstubAllEnvs()
   })
 
   beforeEach(async () => {

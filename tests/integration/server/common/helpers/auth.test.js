@@ -1,13 +1,10 @@
+import { createServer } from '../../../../../src/server/server.js'
+
 describe('Azure Entra Authentication Provider', () => {
   let server
-  let originalEnv
 
   beforeAll(async () => {
-    originalEnv = { ...process.env }
-
-    process.env.AUTH_ENABLED = 'true'
-
-    const { createServer } = await import('../../../../../src/server/server.js')
+    vitest.stubEnv('AUTH_ENABLED', 'true')
 
     server = await createServer()
     await server.initialize()
@@ -20,7 +17,7 @@ describe('Azure Entra Authentication Provider', () => {
 
     vitest.useRealTimers()
 
-    process.env = originalEnv
+    vitest.unstubAllEnvs()
   })
 
   test('GET /auth/callback redirects to login.microsoftonline.com', async () => {
