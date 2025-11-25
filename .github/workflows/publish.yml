@@ -44,7 +44,6 @@ jobs:
         uses: snyk/actions/setup@0.4.0
 
       - name: Snyk scan
-        working-directory: ./tech-radar
         run: |
           snyk test
         env:
