@@ -1,0 +1,3 @@
+services:
+  ai-defra-search-frontend:
+    command: npm run test:watch
