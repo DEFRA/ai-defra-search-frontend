@@ -1,6 +1,7 @@
 import path from 'path'
 import hapi from '@hapi/hapi'
 import cookie from '@hapi/cookie'
+import Scooter from '@hapi/scooter'
 
 import { auth } from './common/helpers/auth.js'
 import { router } from './router.js'
@@ -63,6 +64,7 @@ export async function createServer () {
     pulse,
     sessionCache,
     nunjucksConfig,
+    Scooter,
     contentSecurityPolicy,
     auth,
     router
