@@ -2,6 +2,7 @@ import statusCodes from 'http-status-codes'
 import { JSDOM } from 'jsdom'
 
 import { createServer } from '../../../../../src/server/server.js'
+import { expect } from 'vitest'
 
 describe('#errors', () => {
   let server
