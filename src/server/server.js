@@ -3,7 +3,7 @@ import hapi from '@hapi/hapi'
 import cookie from '@hapi/cookie'
 import Scooter from '@hapi/scooter'
 
-import { auth } from './common/helpers/auth/auth.js'
+import { auth } from './common/helpers/auth.js'
 import { router } from './router.js'
 import { config } from '../config/config.js'
 import { pulse } from './common/helpers/pulse.js'
