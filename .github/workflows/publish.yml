@@ -41,7 +41,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Setup snyk
-        uses: snyk/actions/setup@0.4.0
+        uses: snyk/actions/setup@1.0.0
 
       - name: Snyk scan
         run: |
