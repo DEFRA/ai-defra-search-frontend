@@ -31,13 +31,13 @@
           {% for message in messages %}
             {% if message.role === "user" %}
               <div class="app-user-question">
-                <p class="govuk-body">"{{ message.content }}"</p>
+                <p class="govuk-body">"{{ message.content | safe }}"</p>
               </div>
             {% endif %}
 
             {% if message.role === "assistant" %}
               <div class="app-assistant-response govuk-!-margin-bottom-8">
-                <p class="govuk-body" style="white-space: pre-wrap;">{{ message.content }}</p>
+                <p class="govuk-body" style="white-space: pre-wrap;">{{ message.content | safe }}</p>
               </div>
             {% endif %}
           {% endfor %}
