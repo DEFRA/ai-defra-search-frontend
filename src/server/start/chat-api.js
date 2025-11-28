@@ -1,6 +1,7 @@
 import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
+import {marked} from "marked";
 
 /**
  * Calls the chat API with a user question and returns the response.
@@ -29,10 +30,18 @@ async function sendQuestion (question, modelName) {
 
     const data = await response.json()
 
+    const parsedMessages = data.messages.map(message => {
+      const hasMarkdown = /```|#{1,6}\s|\*\*|\*[^*]|^\s*[-*+]\s|\[.+\]\(.+\)|^\s*\d+\.\s|^\||^\s*>/m.test(message.content);
+      return {
+        ...message,
+        content: hasMarkdown ? marked.parse(message.content) : marked.parseInline(message.content)
+      }
+    })
+
     // Transform snake_case to camelCase for conversation_id
     return {
       conversationId: data.conversation_id,
-      messages: data.messages
+      messages: parsedMessages
     }
   } catch (error) {
     throw new Error(`Failed to connect to chat API at ${url}: ${error.message}`)
