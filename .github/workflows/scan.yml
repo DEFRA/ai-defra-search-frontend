@@ -6,7 +6,7 @@ on:
 
 jobs:
   trivy-scan:
-    name: Run Security Scan
+    name: Trivy Vulnerability Scan
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -16,21 +16,14 @@ jobs:
         id: trivy-scan
         uses: aquasecurity/trivy-action@0.33.1
         with:
-          image-ref: ${{steps.setImageDetails.outputs.fullImageName}}
-          format: sarif
+          scan-ref: .
+          scan-type: fs
+          format: table
           exit-code: 1
-          trivyignores: '.trivyignore'
-          severity: CRITICAL,HIGH,MEDIUM
+          trivyignores: .trivyignore
+          severity: CRITICAL,HIGH,MEDIUM,LOW
           limit-severities-for-sarif: true
-          output: trivy-reports-${{ github.run_id }}.sarif
         continue-on-error: true
-
-      - name: Upload Trivy SARIF report
-        if: ${{ steps.trivy-scan.outcome == 'failure' }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: trivy-reports-${{ github.run_id }}
-          path: trivy-reports-${{ github.run_id }}.sarif
 
       - name: Fail if vulnerabilities found
         if: ${{ steps.trivy-scan.outcome == 'failure' }}
