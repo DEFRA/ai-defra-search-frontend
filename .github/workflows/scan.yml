@@ -1,0 +1,49 @@
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  trivy-scan:
+    name: Run Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Run Aqua Trivy scan
+        id: trivy-scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          image-ref: ${{steps.setImageDetails.outputs.fullImageName}}
+          format: sarif
+          exit-code: 1
+          trivyignores: '.trivyignore'
+          severity: CRITICAL,HIGH,MEDIUM
+          limit-severities-for-sarif: true
+          output: trivy-reports-${{ github.run_id }}.sarif
+        continue-on-error: true
+
+      - name: Upload Trivy SARIF report
+        if: ${{ steps.trivy-scan.outcome == 'failure' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: trivy-reports-${{ github.run_id }}
+          path: trivy-reports-${{ github.run_id }}.sarif
+
+      - name: Fail if vulnerabilities found
+        if: ${{ steps.trivy-scan.outcome == 'failure' }}
+        run: exit 1
+
+  shai-hulud-scan:
+    name: Run Shai Hulud Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Run scan script
+        run: |
+          chmod +x ./scripts/shai-hulud-detect.sh
+          ./scripts/shai-hulud-detect.sh

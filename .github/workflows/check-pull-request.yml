@@ -13,8 +13,13 @@ on:
       - ready_for_review
 
 jobs:
+  security-scan:
+    name: Security Scanning
+    uses: ./.github/workflows/scan.yml
+
   pr-validator:
     name: Run Pull Request Checks
+    needs: security-scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -38,12 +43,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Setup snyk
-        uses: snyk/actions/setup@v1.0.0
-
-      - name: Snyk scan
-        run: |
-          snyk test
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

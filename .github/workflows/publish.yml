@@ -15,13 +15,18 @@ env:
   AWS_ACCOUNT_ID: "094954420758"
 
 jobs:
+  security-scan:
+    name: Security Scanning
+    uses: ./.github/workflows/scan.yml
+
   build:
     if: github.run_number != 1
     name: CDP-build-workflow
+    needs: security-scan
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build and Publish
         uses: DEFRA/cdp-build-action/build@main
@@ -39,12 +44,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Setup snyk
-        uses: snyk/actions/setup@v1.0.0
-
-      - name: Snyk scan
-        run: |
-          snyk test
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
