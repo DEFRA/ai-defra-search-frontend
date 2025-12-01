@@ -18,6 +18,7 @@ jobs:
   security-scan:
     name: Security Scanning
     uses: ./.github/workflows/scan.yml
+    secrets: inherit
 
   build:
     if: github.run_number != 1

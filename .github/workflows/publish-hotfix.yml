@@ -16,6 +16,7 @@ jobs:
   security-scan:
     name: Security Scanning
     uses: ./.github/workflows/scan.yml
+    secrets: inherit
 
   build:
     name: CDP-build-hotfix-workflow
