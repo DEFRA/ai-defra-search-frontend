@@ -5,8 +5,8 @@ on:
   workflow_call:
 
 jobs:
-  sonarcloud: 
-    name: SonarCloud Scan
+  sonarcloud:
+    name: Run Tests and SonarCloud Scan
     if: ${{ github.event_name != 'schedule' && github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
