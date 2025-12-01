@@ -1,4 +1,4 @@
-GDS Frontend - Rules
+# GDS Frontend Development Rules
 
 ## AI Assistant Behavior
 As an AI assistant creating a GDS compliant frontend you should:
@@ -70,6 +70,57 @@ When designing for internal users (civil servants):
   {% from "govuk/components/button/macro.njk" import govukButton %}
   ```
 
+### SCSS/Styling Standards
+
+**Core Principle:** Maximize style reuse. Minimize new styles.
+
+**Class Naming:**
+- Custom classes: prefix with `app-`
+
+**Styling Priority (Follow in Order):**
+1. **Reuse existing app styles** - Always check first. Prefer consistency over perfect design match.
+2. **Use GOV.UK Design System** - Search `node_modules/govuk-frontend` for applicable styles.
+3. **Never create new styles** - ONLY as last resort. Requires user approval. Must use `app-` prefix.
+
+**Rules:**
+- Never rewrite or duplicate existing styles
+- Add new styles only when absolutely necessary
+- Seek explicit approval before creating any new `app-` classes
+- Always extract and reuse hardcoded variables (e.g. colours & dimensions)
+
+### JavaScript/TypeScript Standards
+
+**Reference:** Follow the [AICE Team JavaScript Style Guide](https://github.com/DEFRA/aice-team/blob/main/documentation/style-guides/javascript.md)
+
+**Key Points:**
+- Use ES modules (`import`/`export`), not CommonJS (`require`/`module.exports`)
+- No semicolons at end of statements
+- 2 spaces indentation, no tabs
+- 80 character line length limit
+- Use `const` by default, `let` when reassignment needed (no `var`)
+- Single quotes for strings, template literals for interpolation
+- Named exports only (no default exports)
+- Function declarations over arrow functions (except for callbacks)
+- Parentheses required around arrow function parameters
+- Use neostandard for linting
+- JSDoc comments for functions and classes (pragmatic approach)
+
+**Testing:**
+- Use Vitest for all JavaScript tests
+- Test files in dedicated `tests` directory at project root
+- File naming: `[module-name].test.js`
+
+**Dependency Management:**
+- Pin dependencies to exact versions in `package.json`
+- No range specifiers (`^`, `~`)
+
+### Formatting Standards
+- Nunjucks templates: 2 spaces indentation, no tabs
+- SCSS: 2 spaces indentation, no tabs
+
+### Code Organization
+- Define and reuse Nunjucks filters (e.g., `toMonth`, `toMoney`)
+- Separate data from presentation
 
 ### Validation & Accessibility
 - Return validation errors with `govukErrorSummary`
@@ -95,16 +146,6 @@ When designing for internal users (civil servants):
   - Use technical terms and acronyms familiar to Defra staff
   - Be more concise where appropriate
   - Focus on task completion rather than extensive explanation
-
-### Code Organization
-- Define and reuse Nunjucks filters (e.g., `toMonth`, `toMoney`)
-- Separate data from presentation
-
-### Formatting Standards
-- JavaScript/TypeScript: 2 spaces indentation, no tabs
-- Nunjucks templates: 2 spaces indentation, no tabs
-- Use ES2020 features with CommonJS modules
-- Enable TypeScript strict mode when applicable
 
 ### UI Components
 Use GOV.UK Design System components for:
@@ -141,4 +182,5 @@ Before suggesting any code changes, ensure:
 - [ ] GOV.UK Design System components are used correctly
 - [ ] Content follows government style guide
 - [ ] Error handling and validation is implemented
-- [ ] Code follows established patterns in the project 
+- [ ] Code follows established patterns in the project
+- [ ] Existing styles have been checked for reuse before creating new ones
