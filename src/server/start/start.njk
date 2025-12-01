@@ -58,10 +58,6 @@
 
           <form action="/start" method="post" novalidate>
 
-            {{ defraModelSelect({
-                    models: models
-            }) }}
-
             <div class="govuk-form-group">
               <label for="question" class="govuk-visually-hidden">
                 What can I help you with?
@@ -87,6 +83,10 @@
                 </button>
               </div>
             </div>
+
+            {{ defraModelSelect({
+                    models: models
+            }) }}
           </form>
         </div>
       </div>
@@ -96,10 +96,6 @@
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
           <form action="/start" method="post" novalidate>
-            {{ defraModelSelect({
-                    models: models
-            }) }}
-
             <div class="govuk-form-group">
               <label for="question" class="govuk-label govuk-label--m">
                 What can I help you with?
@@ -125,6 +121,10 @@
                 </button>
               </div>
             </div>
+
+            {{ defraModelSelect({
+                    models: models
+            }) }}
           </form>
         </div>
       </div>
