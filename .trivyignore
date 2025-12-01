@@ -1,0 +1,11 @@
+# tmp: tmp Symbolic Link Write Vulnerability
+# Reason: Solution needs to be discussed
+# Created: 2025-11-26T15:00:00.000Z
+# Expires: 2025-12-26T15:00:00.000Z
+CVE-2025-54798
+
+# Useragent: Regular Expression Denial of Service (ReDoS)
+# Reason: Solution needs to be discussed
+# Created: 2025-11-26T15:00:00.000Z
+# Expires: 2025-12-26T15:00:00.000Z
+CVE-2020-26311
