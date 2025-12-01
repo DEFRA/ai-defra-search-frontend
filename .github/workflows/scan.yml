@@ -15,11 +15,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22.x'
-
       - name: Test code and Create Test Coverage Reports
         run: |
           mkdir -p coverage
@@ -40,6 +35,14 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Check lockfile is up to date
+        run: npm ci
+
       - name: Check for expired Trivy ignores
         run: |
           chmod +x ./scripts/check-trivy-ignores.sh
@@ -50,13 +53,15 @@ jobs:
         uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-ref: .
-          scan-type: fs
+          scan-type: repository
           format: table
           exit-code: 1
           trivyignores: .trivyignore
           severity: CRITICAL,HIGH,MEDIUM,LOW
           limit-severities-for-sarif: true
         continue-on-error: true
+        env:
+          TRIVY_INCLUDE_DEV_DEPS: 'true'
 
       - name: Fail if vulnerabilities found
         if: ${{ steps.trivy-scan.outcome == 'failure' }}

@@ -13,6 +13,8 @@ Frontend service for the AI DEFRA Search application. This service provides the 
   - [Building the Docker Image](#building-the-docker-image)
   - [Starting the Docker Container](#starting-the-docker-container)
 - [Tests](#tests)
+- [Security Scanning](#security-scanning)
+  - [Trivy Vulnerability Scan](#trivy-vulnerability-scan)
 - [Server-side Caching](#server-side-caching)
 - [Licence](#licence)
   - [About the licence](#about-the-licence)
@@ -105,6 +107,27 @@ This command will:
 2. Build the service
 3. Run the test suite
 4. Generate coverage reports in the `./coverage` directory
+
+## Security Scanning
+
+### Trivy Vulnerability Scan
+
+[Trivy](https://github.com/aquasecurity/trivy) is used to scan for security vulnerabilities in dependencies and the filesystem. The scan runs automatically via GitHub Actions and checks for CRITICAL, HIGH, MEDIUM, and LOW severity issues.
+
+#### Running Trivy Locally
+
+To run the Trivy scan locally, first install Trivy by following the [installation instructions](https://aquasecurity.github.io/trivy/latest/getting-started/installation/).
+
+Once installed, run the scan from the project root:
+
+```bash
+trivy repository --format table --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW --ignorefile .trivyignore .
+```
+
+The scan will:
+- Check the entire repository for vulnerabilities
+- Respect ignore rules defined in `.trivyignore`
+- Exit with code 1 if any vulnerabilities are found
 
 ## Server-side Caching
 
