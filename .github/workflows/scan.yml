@@ -15,6 +15,17 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Test code and Create Test Coverage Reports
+        run: |
+          mkdir -p coverage
+          chmod -R a+rw ./coverage
+          docker compose -f compose.yaml -f compose.test.yaml run --rm "ai-defra-search-frontend"
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
