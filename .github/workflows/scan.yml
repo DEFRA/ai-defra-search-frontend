@@ -1,0 +1,76 @@
+on:
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  sonarcloud: 
+    name: SonarCloud Scan
+    if: ${{ github.event_name != 'schedule' && github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  trivy-scan:
+    name: Trivy Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Check for expired Trivy ignores
+        run: |
+          chmod +x ./scripts/check-trivy-ignores.sh
+          ./scripts/check-trivy-ignores.sh
+
+      - name: Run Aqua Trivy scan
+        id: trivy-scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-ref: .
+          scan-type: fs
+          format: table
+          exit-code: 1
+          trivyignores: .trivyignore
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          limit-severities-for-sarif: true
+        continue-on-error: true
+
+      - name: Fail if vulnerabilities found
+        if: ${{ steps.trivy-scan.outcome == 'failure' }}
+        run: exit 1
+
+  shai-hulud-scan:
+    name: Run Shai Hulud Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
+      - name: Run scan script
+        run: |
+          chmod +x ./scripts/shai-hulud-detect.sh
+          ./scripts/shai-hulud-detect.sh
+
+      - name: Check for unpinned NPM dependencies
+        run: |
+          chmod +x ./scripts/check-unpinned-dependencies.sh
+          ./scripts/check-unpinned-dependencies.sh

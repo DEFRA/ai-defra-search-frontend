@@ -13,14 +13,28 @@ env:
   AWS_ACCOUNT_ID: "094954420758"
 
 jobs:
+  security-scan:
+    name: Security Scanning
+    uses: ./.github/workflows/scan.yml
+    secrets: inherit
+
   build:
     name: CDP-build-hotfix-workflow
+    needs: security-scan
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Depth 0 is required for branch-based versioning
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.x'
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
 
       - name: Test code and Create Test Coverage Reports
         run: |
@@ -32,18 +46,3 @@ jobs:
         uses: DEFRA/cdp-build-action/build-hotfix@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v6.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Setup snyk
-        uses: snyk/actions/setup@v1.0.0
-
-      - name: Snyk scan
-        run: |
-          snyk test
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
