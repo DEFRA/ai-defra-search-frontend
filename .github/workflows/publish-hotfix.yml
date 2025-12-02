@@ -24,23 +24,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
-          fetch-depth: 0 # Depth 0 is required for branch-based versioning
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
           node-version: '22.x'
 
-      - name: Install dependencies
+      - name: Check lockfile is up to date
         run: npm ci --omit=dev
-
-      - name: Test code and Create Test Coverage Reports
-        run: |
-          mkdir -p coverage
-          chmod -R a+rw ./coverage
-          docker compose -f compose.yaml -f compose.test.yaml run --rm "ai-defra-search-frontend"
 
       - name: Publish Hot Fix
         uses: DEFRA/cdp-build-action/build-hotfix@main

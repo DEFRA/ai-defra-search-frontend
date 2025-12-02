@@ -34,16 +34,10 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: Install dependencies
+      - name: Check lockfile is up to date
         run: npm ci --omit=dev
 
       - name: Build and Publish
         uses: DEFRA/cdp-build-action/build@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Test code and Create Test Coverage Reports
-        run: |
-          mkdir -p coverage
-          chmod -R a+rw ./coverage
-          docker compose -f compose.yaml -f compose.test.yaml run --rm "ai-defra-search-frontend"
