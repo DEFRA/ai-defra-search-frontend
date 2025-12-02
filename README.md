@@ -121,7 +121,7 @@ To run the Trivy scan locally, first install Trivy by following the [installatio
 Once installed, run the scan from the project root:
 
 ```bash
-trivy repository --format table --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW --ignorefile .trivyignore .
+trivy repository --include-dev-deps --format table --exit-code 1 --severity CRITICAL,HIGH,MEDIUM,LOW --ignorefile .trivyignore .
 ```
 
 The scan will:
