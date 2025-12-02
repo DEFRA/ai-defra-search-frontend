@@ -7,6 +7,9 @@
 {% from "model-select/macro.njk" import defraModelSelect %}
 
 {% block content %}
+  {% if showLoading %}
+    <meta http-equiv="refresh" content="1;url=/start">
+  {% endif %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
 
@@ -63,10 +66,6 @@
 
           <form action="/start" method="post" novalidate>
 
-            {{ defraModelSelect({
-                    models: models
-            }) }}
-
             <div class="govuk-form-group">
               <label for="question" class="govuk-visually-hidden">
                 What can I help you with?
@@ -91,7 +90,19 @@
                   <span class="govuk-visually-hidden">Submit question</span>
                 </button>
               </div>
+
+              {% if showLoading %}
+                <div class="hods-loading-spinner" id="loadingSpinner">
+                  <div class="hods-loading-spinner__spinner" aria-live="polite" role="status"></div>
+                  <div class="hods-loading-spinner__content">Loading...</div>
+                </div>
+              {% endif %}
             </div>
+
+            {{ defraModelSelect({
+                    models: models
+            }) }}
+
           </form>
         </div>
       </div>
@@ -129,6 +140,13 @@
                   <span class="govuk-visually-hidden">Submit question</span>
                 </button>
               </div>
+
+              {% if showLoading %}
+                <div class="hods-loading-spinner" id="loadingSpinner">
+                  <div class="hods-loading-spinner__spinner" aria-live="polite" role="status"></div>
+                  <div class="hods-loading-spinner__content">Loading...</div>
+                </div>
+              {% endif %}
             </div>
           </form>
         </div>

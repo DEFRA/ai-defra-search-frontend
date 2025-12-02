@@ -1,0 +1,33 @@
+@use "sass:color";
+
+.hods-loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 0;
+
+  &__spinner {
+    border: 8px solid #dee0e2;
+    border-radius: 50%;
+    border-top-color: #00703c;
+    width: 40px;
+    height: 40px;
+    animation: hods-loading-spinner-animation 1s linear infinite;
+  }
+
+  &__content {
+    font-size: 19px;
+    font-weight: 700;
+  }
+}
+
+@keyframes hods-loading-spinner-animation {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

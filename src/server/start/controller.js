@@ -8,8 +8,51 @@ import { createLogger } from '../common/helpers/logging/logger.js'
 const END_POINT_PATH = 'start/start'
 
 export const startGetController = {
-  async handler (_request, h) {
+  async handler (request, h) {
     const logger = createLogger()
+
+    // Check if we need to process form data from session
+    const formData = request.yar.get('formData')
+    const shouldShowLoading = request.yar.get('showLoading')
+
+    if (formData && shouldShowLoading) {
+      // Clear the loading flag
+      request.yar.clear('showLoading')
+
+      const { modelName, question } = formData
+      let models = []
+
+      try {
+        models = await getModels()
+        // Call the chat API with the user's question and selected model
+        const response = await sendQuestion(question, modelName)
+
+        // Clear session data
+        request.yar.clear('formData')
+
+        // Re-render the page with the response
+        return h.view(END_POINT_PATH, {
+          messages: response.messages,
+          conversationId: response.conversationId,
+          modelName,
+          models
+        })
+      } catch (error) {
+        logger.error({ error, question }, 'Error calling chat API')
+
+        // Clear session data
+        request.yar.clear('formData')
+
+        return h.view(END_POINT_PATH, {
+          question,
+          modelName,
+          models,
+          errorMessage: 'Sorry, there was a problem getting a response. Please try again.'
+        })
+      }
+    }
+
+    // Normal GET request - just show the form
     try {
       const models = await getModels()
       return h.view(END_POINT_PATH, { models })
@@ -44,32 +87,19 @@ export const startPostController = {
     }
   },
   async handler (request, h) {
-    const logger = createLogger()
     const { modelName, question } = request.payload
 
-    let models = []
+    // Store form data in session to process on next GET
+    request.yar.set('formData', { modelName, question })
+    request.yar.set('showLoading', true)
 
-    try {
-      models = await getModels()
-      // Call the chat API with the user's question and selected model
-      const response = await sendQuestion(question, modelName)
-
-      // Re-render the page with the response
-      return h.view(END_POINT_PATH, {
-        messages: response.messages,
-        conversationId: response.conversationId,
-        modelName,
-        models
-      })
-    } catch (error) {
-      logger.error({ error, question }, 'Error calling chat API')
-
-      return h.view(END_POINT_PATH, {
-        question,
-        modelName,
-        models,
-        errorMessage: 'Sorry, there was a problem getting a response. Please try again.'
-      })
-    }
+    // Get models and show loading spinner
+    const models = await getModels()
+    return h.view(END_POINT_PATH, {
+      showLoading: true,
+      models,
+      question,
+      modelName
+    })
   }
 }
