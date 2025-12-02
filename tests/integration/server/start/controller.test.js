@@ -115,7 +115,7 @@ describe('Start routes', () => {
     // Check the page contains the question and response from mock API
     const bodyText = page.body.textContent
 
-    expect(bodyText).toContain('Here\'s what I found')
+    expect(bodyText).toContain('AI assistant')
     expect(bodyText).toContain('What is UCD?')
     expect(bodyText).toContain('User-Centred Design (UCD)')
   })
@@ -145,7 +145,7 @@ describe('Start routes', () => {
 
     // Verify the selected model is preserved in the form
     const bodyText = page.body.textContent
-    expect(bodyText).toContain('Here\'s what I found')
+    expect(bodyText).toContain('AI assistant')
     expect(bodyText).toContain('What is UCD?')
     expect(bodyText).toContain('User-Centred Design (UCD)')
   })
