@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
-import {marked} from "marked";
+import { marked } from 'marked'
 
 /**
  * Calls the chat API with a user question and returns the response.
@@ -36,8 +36,6 @@ async function sendQuestion (question, modelName) {
         content: marked.parse(message.content)
       }
     })
-
-    console.log(parsedMessages);
 
     // Transform snake_case to camelCase for conversation_id
     return {

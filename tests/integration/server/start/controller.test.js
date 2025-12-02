@@ -76,7 +76,7 @@ describe('Start routes', () => {
 
     // Check the page contains the question and response from mock API
     const headings = page.querySelectorAll('h1')
-    const hasMarkdownHeading = Array.from(headings).some(heading => heading.textContent.includes('Crop Rotation Guide'));
+    const hasMarkdownHeading = Array.from(headings).some(heading => heading.textContent.includes('Crop Rotation Guide'))
     expect(hasMarkdownHeading).toBe(true)
 
     const table = page.querySelector('table')
