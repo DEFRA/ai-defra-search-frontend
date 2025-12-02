@@ -31,10 +31,9 @@ async function sendQuestion (question, modelName) {
     const data = await response.json()
 
     const parsedMessages = data.messages.map(message => {
-      const hasMarkdown = /```|#{1,6}\s|\*\*|\*[^*]|^\s*[-*+]\s|\[.+\]\(.+\)|^\s*\d+\.\s|^\||^\s*>/m.test(message.content);
       return {
         ...message,
-        content: hasMarkdown ? marked.parse(message.content) : marked.parseInline(message.content)
+        content: marked.parse(message.content)
       }
     })
 
