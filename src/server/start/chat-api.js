@@ -37,6 +37,8 @@ async function sendQuestion (question, modelName) {
       }
     })
 
+    console.log(parsedMessages);
+
     // Transform snake_case to camelCase for conversation_id
     return {
       conversationId: data.conversation_id,

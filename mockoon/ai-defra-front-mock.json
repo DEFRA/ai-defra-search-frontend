@@ -3,7 +3,7 @@
   "lastMigration": 33,
   "name": "Chat Service API",
   "endpointPrefix": "",
-  "latency": 5000,
+  "latency": 0,
   "port": 3018,
   "hostname": "",
   "folders": [],
