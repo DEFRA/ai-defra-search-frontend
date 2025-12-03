@@ -31,13 +31,15 @@
           {% for message in messages %}
             {% if message.role === "user" %}
               <div class="app-user-question">
-                <p class="govuk-body">"{{ message.content }}"</p>
+                {{ message.content | safe }}
               </div>
             {% endif %}
 
             {% if message.role === "assistant" %}
               <div class="app-assistant-response govuk-!-margin-bottom-8">
-                <p class="govuk-body" style="white-space: pre-wrap;">{{ message.content }}</p>
+                <div class="govuk-body">
+                  {{ message.content | safe }}
+                </div>
               </div>
             {% endif %}
           {% endfor %}
@@ -62,11 +64,6 @@
           </ul>
 
           <form action="/start" method="post" novalidate>
-
-            {{ defraModelSelect({
-                    models: models
-            }) }}
-
             <div class="govuk-form-group">
               <label for="question" class="govuk-visually-hidden">
                 What can I help you with?
@@ -92,6 +89,11 @@
                 </button>
               </div>
             </div>
+
+            {{ defraModelSelect({
+                    models: models
+            }) }}
+
           </form>
         </div>
       </div>

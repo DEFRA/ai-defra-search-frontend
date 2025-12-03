@@ -17,6 +17,11 @@ describe('Start routes', () => {
     await server.initialize()
   })
 
+  beforeEach(() => {
+    cleanupChatApiMocks()
+    cleanupModelsApiMocks()
+  })
+
   afterAll(async () => {
     await server.stop({ timeout: 0 })
 
@@ -51,15 +56,16 @@ describe('Start routes', () => {
     expect(bodyText).toContain('Haiku')
   })
 
-  test('POST /start with question should return page with response', async () => {
-    setupChatApiMocks()
+  test('POST /start with markdown response should render HTML elements correctly', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks('markdown')
 
     const questionResponse = await server.inject({
       method: 'POST',
       url: '/start',
       payload: {
         modelName: 'Sonnet 3.7',
-        question: 'What is user centred design?'
+        question: 'What is **UCD**?'
       }
     })
 
@@ -69,16 +75,44 @@ describe('Start routes', () => {
     const page = window.document
 
     // Check the page contains the question and response from mock API
-    const bodyText = page.body.textContent
+    const headings = page.querySelectorAll('h1')
+    const hasMarkdownHeading = Array.from(headings).some(heading => heading.textContent.includes('Crop Rotation Guide'))
+    expect(hasMarkdownHeading).toBe(true)
 
-    expect(bodyText).toContain('Here\'s what I found')
+    const table = page.querySelector('table')
+    const tableText = table.textContent
+    expect(tableText).toContain('Year')
+    expect(tableText).toContain('Crop')
+    expect(tableText).toContain('Benefit')
+  })
+
+  test('POST /start with plaintext response should display text correctly', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks('plaintext')
+
+    const questionResponse = await server.inject({
+      method: 'POST',
+      url: '/start',
+      payload: {
+        modelName: 'Sonnet 3.7',
+        question: 'What is UCD?'
+      }
+    })
+
+    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(questionResponse.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
     expect(bodyText).toContain('What is UCD?')
-    expect(bodyText).toContain('User-Centred Design (UCD)')
+    expect(bodyText).toContain('Here\'s what I found')
+    expect(bodyText).toContain('User-Centred Design (UCD) is a framework')
   })
 
   test('POST /start with different models should send the selected model in the request', async () => {
-    setupChatApiMocks()
     setupModelsApiMocks()
+    setupChatApiMocks()
 
     const haikuResponse = await server.inject({
       method: 'POST',
@@ -102,6 +136,8 @@ describe('Start routes', () => {
   })
 
   test('POST /start - when question not in request then should display validation error', async () => {
+    setupModelsApiMocks()
+
     const response = await server.inject({
       method: 'POST',
       url: '/start',
@@ -118,6 +154,8 @@ describe('Start routes', () => {
   })
 
   test('POST /start - when question length too short then should display validation error', async () => {
+    setupModelsApiMocks()
+
     const response = await server.inject({
       method: 'POST',
       url: '/start',
@@ -137,6 +175,8 @@ describe('Start routes', () => {
   })
 
   test('POST /start - when question length too long then should display validation error', async () => {
+    setupModelsApiMocks()
+
     const response = await server.inject({
       method: 'POST',
       url: '/start',
