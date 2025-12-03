@@ -29,22 +29,21 @@
           AI assistant
         </h2>
 
-          {% for message in messages %}
-            {% if message.role === "user" %}
-              <div class="app-user-question">
+        {% for message in messages %}
+          {% if message.role === "user" %}
+            <div class="app-user-question">
+              {{ message.content | safe }}
+            </div>
+          {% endif %}
+
+          {% if message.role === "assistant" %}
+            <div class="app-assistant-response govuk-!-margin-bottom-8">
+              <div class="govuk-body">
                 {{ message.content | safe }}
               </div>
-            {% endif %}
-
-            {% if message.role === "assistant" %}
-              <div class="app-assistant-response govuk-!-margin-bottom-8">
-                <div class="govuk-body">
-                  {{ message.content | safe }}
-                </div>
-              </div>
-            {% endif %}
-          {% endfor %}
-        </div>
+            </div>
+          {% endif %}
+        {% endfor %}
       {% endif %}
 
     </div>
