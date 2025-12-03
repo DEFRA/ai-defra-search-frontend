@@ -106,7 +106,7 @@ describe('Start routes', () => {
 
     const bodyText = page.body.textContent
     expect(bodyText).toContain('What is UCD?')
-    expect(bodyText).toContain('Here\'s what I found')
+    expect(bodyText).toContain('AI assistant')
     expect(bodyText).toContain('User-Centred Design (UCD) is a framework')
   })
 
@@ -130,7 +130,7 @@ describe('Start routes', () => {
 
     // Verify the selected model is preserved in the form
     const bodyText = page.body.textContent
-    expect(bodyText).toContain('Here\'s what I found')
+    expect(bodyText).toContain('AI assistant')
     expect(bodyText).toContain('What is UCD?')
     expect(bodyText).toContain('User-Centred Design (UCD)')
   })
