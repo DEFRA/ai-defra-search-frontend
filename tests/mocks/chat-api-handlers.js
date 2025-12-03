@@ -5,15 +5,23 @@ const chatApiBaseUrl = 'http://host.docker.internal:3018'
 /**
  * Setup mock handlers for the chat API using nock
  */
-function setupChatApiMocks () {
-  // POST /chat - successful response
-  nock(chatApiBaseUrl)
-    .persist() // Keep this mock active for all tests
-    .post('/chat', (body) => {
-      // Verify the request body contains both question and modelName
-      return typeof body.question === 'string' && typeof body.modelName === 'string'
-    })
-    .reply(200, {
+function setupChatApiMocks (responseType = 'plaintext') {
+  const responses = {
+    markdown: {
+      conversation_id: 'mock-conversation-123',
+      messages: [
+        {
+          role: 'user',
+          content: 'What is **UCD**?'
+        },
+        {
+          role: 'assistant',
+          content: '# Crop Rotation Guide\n\n## Recommended 4-Year Cycle\n\n| Year | Crop | Benefit |\n|------|------|------|\n| 1 | Legumes | Fixes nitrogen |\n| 2 | Brassicas | Heavy feeder |\n| 3 | Root vegetables | Deep soil break |\n| 4 | Alliums | Pest control |\n\n## Soil pH Testing\n\n```bash\n# Check soil pH\nph_level=$(test_soil sample.txt)\nif [ $ph_level -lt 6 ]; then\n  echo "Add lime"\nfi\n```\n\n## Essential Spring Tasks\n\n- Prepare seedbeds\n- Test soil\n- Start seedlings',
+          name: 'UCD Bot'
+        }
+      ]
+    },
+    plaintext: {
       conversation_id: 'mock-conversation-123',
       messages: [
         {
@@ -26,7 +34,15 @@ function setupChatApiMocks () {
           name: 'UCD Bot'
         }
       ]
+    }
+  }
+
+  nock(chatApiBaseUrl)
+    .persist()
+    .post('/chat', (body) => {
+      return typeof body.question === 'string' && typeof body.modelName === 'string'
     })
+    .reply(200, responses[responseType] || responses.plaintext)
 
   return nock
 }
