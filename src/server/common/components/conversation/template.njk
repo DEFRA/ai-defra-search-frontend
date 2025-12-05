@@ -1,0 +1,28 @@
+{%- set currentQuestion = params.currentQuestion if params.currentQuestion else '' -%}
+{%- set messages = params.messages if params.messages else [] -%}
+{% from "govuk/components/panel/macro.njk" import govukPanel %}
+
+<div class="govuk-!-margin-bottom-6">
+  <h3 class="govuk-heading-s">Conversation</h3>
+  <div class="govuk-!-padding-4 conversation-container">
+    {% for message in messages %}
+      {% if message.role === "user" %}
+        <div class="app-user-question govuk-!-width-one-half">
+            {{ message.content | safe }}
+        </div>
+        <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-text-align-right govuk-!-margin-top-0">
+          You
+        </p>
+      {% endif %}
+
+      {% if message.role === "assistant" %}
+        <div class="app-assistant-response govuk-!-width-two-thirds">
+            {{ message.content | safe }}
+        </div>
+        <p class="govuk-body-s govuk-!-text-align-left govuk-!-margin-top-0">
+          <strong>AI Assistant</strong> ({{ message.model }})
+        </p>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>

@@ -7,20 +7,25 @@
 
 // User question with blue left border
 .app-user-question {
-  border-left: 4px solid govuk-colour("blue");
+  padding: govuk-spacing(3);
+  background-color: govuk-colour("blue");
+  margin-bottom: govuk-spacing(1);
+  margin-left: auto;
+  max-width: 75%;
+
+  p {
+    margin-bottom: 0;
+    color: govuk-colour("white");
+  }
+}
+
+.app-assistant-response {
   padding: govuk-spacing(3);
   background-color: govuk-colour("light-grey");
-  margin-bottom: govuk-spacing(6);
+  margin-bottom: govuk-spacing(1);
 
   p {
     margin-bottom: 0;
     color: #505a5f;
-  }
-}
-
-// Assistant response
-.app-assistant-response {
-  p {
-    margin-bottom: 0;
   }
 }
