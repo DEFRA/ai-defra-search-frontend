@@ -26,19 +26,18 @@
       {% endif %}
 
       {% if messages %}
-        <div class="app-response-section">
-          <h2 class="govuk-heading-l govuk-!-margin-bottom-6">
-            AI assistant
-          </h2>
+        <h2 class="govuk-heading-l govuk-!-margin-bottom-6">
+          AI assistant
+        </h2>
 
-          {{ defraConversation({
-            messages: messages
-           }) }}
-
-        </div>
+        {{ defraConversation({
+          messages: messages
+         }) }}
       {% endif %}
 
     </div>
+  </div>
+
   {% if not messages %}
     <div class="app-prompt-input-container">
       <div class="govuk-grid-row">
