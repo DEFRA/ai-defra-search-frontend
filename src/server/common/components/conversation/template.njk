@@ -17,8 +17,8 @@
               {{ message.content | safe }}
           </div>
         </div>
-        <p class="govuk-body-s govuk-!-font-weight-bold govuk-!-text-align-right govuk-!-margin-top-0">
-          You
+        <p class="govuk-body-s govuk-!-text-align-right govuk-!-margin-top-0">
+          {% if message.timestamp %}{{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}{% endif %} <strong>You</strong>
         </p>
       {% endif %}
 
@@ -26,9 +26,11 @@
         <div class="app-assistant-response">
             {{ message.content | safe }}
         </div>
-        <p class="govuk-body-s govuk-!-text-align-left govuk-!-margin-top-0">
-          <strong>AI Assistant</strong> ({{ message.model }})
-        </p>
+        <div class="govuk-!-display-flex govuk-!-justify-content-space-between govuk-!-margin-top-0">
+          <p class="govuk-body-s govuk-!-margin-top-0 govuk-!-margin-bottom-0">
+            {% if message.timestamp %}{{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}{% endif %} <strong>AI Assistant</strong> ({{ message.model }})
+          </p>
+        </div>
       {% endif %}
     {% endfor %}
   </div>

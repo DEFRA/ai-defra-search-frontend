@@ -25,7 +25,6 @@
   justify-content: flex-end;
   max-width: 75%;
   margin-left: auto;
-  @include govuk-responsive-margin(1, "bottom");
 
   &[autofocus]:focus {
     outline: none;

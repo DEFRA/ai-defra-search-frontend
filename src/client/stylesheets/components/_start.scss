@@ -1,2 +1,26 @@
 @use "govuk-frontend" as *;
 
+// Response section styles
+.app-response-section {
+  margin-bottom: govuk-spacing(6);
+}
+
+// User question with blue left border
+.app-user-question {
+  border-left: 4px solid govuk-colour("blue");
+  padding: govuk-spacing(3);
+  background-color: govuk-colour("light-grey");
+  margin-bottom: govuk-spacing(6);
+
+  p {
+    margin-bottom: 0;
+    color: #505a5f;
+  }
+}
+
+// Assistant response
+.app-assistant-response {
+  p {
+    margin-bottom: 0;
+  }
+}
