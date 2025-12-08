@@ -4,7 +4,7 @@
 <div class="govuk-!-margin-bottom-6">
   <p>Chat with AI Assistant to get help with user-centred design questions.</p>
   <h3 class="govuk-heading-s">Conversation</h3>
-  <div class="govuk-!-padding-4 conversation-container">
+  <div class="govuk-!-padding-4 app-conversation-container">
     {% for message in messages %}
       {% if message.role === "user" %}
         <div class="app-user-question govuk-!-width-one-half">
