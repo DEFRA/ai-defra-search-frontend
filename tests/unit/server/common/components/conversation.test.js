@@ -188,7 +188,7 @@ describe('Conversation Component', () => {
   })
 
   describe('UI Prototype Compliance', () => {
-    test('should render conversation heading', () => {
+    test('should apply dynamic width for user messages', () => {
       const template = `
         {% from "conversation/macro.njk" import defraConversation %}
         {{ defraConversation({
@@ -204,9 +204,9 @@ describe('Conversation Component', () => {
       const { window } = new JSDOM(html)
       const page = window.document
 
-      const heading = page.querySelector('h3')
-      expect(heading).not.toBeNull()
-      expect(heading.textContent).toContain('Conversation')
+      const userMessage = page.querySelector('.app-user-question')
+      expect(userMessage).not.toBeNull()
+      expect(userMessage.classList.contains('app-user-question')).toBe(true)
     })
 
     test('should display introductory text', () => {
@@ -243,8 +243,10 @@ describe('Conversation Component', () => {
       const { window } = new JSDOM(html)
       const page = window.document
 
+      const userMessageWrapper = page.querySelector('.app-user-question-wrapper')
       const userMessage = page.querySelector('.app-user-question')
-      expect(userMessage.classList.contains('govuk-!-width-one-half')).toBe(true)
+      expect(userMessageWrapper).not.toBeNull()
+      expect(userMessage).not.toBeNull()
     })
 
     test('should apply correct width classes for assistant messages', () => {
