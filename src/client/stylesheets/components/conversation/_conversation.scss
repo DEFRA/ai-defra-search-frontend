@@ -25,6 +25,7 @@
   justify-content: flex-end;
   max-width: 75%;
   margin-left: auto;
+  @include govuk-responsive-margin(1, "bottom");
 
   &[autofocus]:focus {
     outline: none;
@@ -50,8 +51,10 @@
 }
 
 .app-assistant-response {
+  width: 66.66%;
   padding: govuk-spacing(3);
   background-color: govuk-colour("light-grey");
+  @include govuk-responsive-margin(1, "bottom");
 
   p {
     margin-bottom: 0;
