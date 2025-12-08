@@ -31,8 +31,8 @@
             AI assistant
           </h2>
 
-          {{ defraConversation({ messages: messages,
-                                 currentQuestion: question
+          {{ defraConversation({
+            messages: messages
            }) }}
 
         </div>
@@ -47,9 +47,9 @@
             AI assistant
           </h1>
 
-          {{ defraConversation({ messages: messages,
-                                 currentQuestion: question
-                              }) }}
+          {{ defraConversation({
+            messages: messages
+          }) }}
 
           <form action="/start" method="post" novalidate>
 
@@ -67,10 +67,13 @@
               }
             }) }}
 
-            {{ govukButton({
-              text: "Send",
-              classes: "govuk-button--secondary"
-            }) }}
+            <div class="govuk-button-group">
+              {{ govukButton({
+                text: "Send",
+                classes: "govuk-button--secondary"
+              }) }}
+              <a href="#" class="govuk-link">Clear conversation</a>
+            </div>
 
             {{ defraModelSelect({
                     models: models
@@ -99,10 +102,13 @@
               }
             }) }}
 
-            {{ govukButton({
-              text: "Send",
-              classes: "govuk-button--secondary"
-            }) }}
+            <div class="govuk-button-group">
+              {{ govukButton({
+                text: "Send",
+                classes: "govuk-button--secondary"
+              }) }}
+              <a href="#" class="govuk-link">Clear conversation</a>
+            </div>
 
             {{ defraModelSelect({
                     models: models
