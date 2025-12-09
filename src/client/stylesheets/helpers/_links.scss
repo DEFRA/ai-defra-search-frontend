@@ -19,5 +19,19 @@
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
+  color: #1d70b8; // GOV.UK link blue
+  text-decoration: underline;
+
+  &:hover {
+    color: #003078; // GOV.UK link hover blue
+  }
+
+  &:focus {
+    color: #0b0c0c; // GOV.UK focus color
+    background-color: #ffdd00; // GOV.UK focus background
+    outline: 3px solid transparent;
+    box-shadow: 0 -2px #ffdd00, 0 4px #0b0c0c;
+    text-decoration: none;
+  }
 }
 
