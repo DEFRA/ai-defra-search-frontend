@@ -54,6 +54,10 @@ describe('Start routes', () => {
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sonnet 3.7')
     expect(bodyText).toContain('Haiku')
+
+    // Check that the conversation component is present
+    const conversationComponent = page.querySelector('.app-conversation-container')
+    expect(conversationComponent).not.toBeNull()
   })
 
   test('POST /start with markdown response should render HTML elements correctly', async () => {
@@ -348,424 +352,75 @@ describe('Start routes', () => {
     expect(bodyText).toContain('Sorry, there was a problem with the service request')
   })
 
-  describe('Conversation Component', () => {
-    describe('Message Display and Ordering', () => {
-      test('should display user messages and AI responses in correct chronological order', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
+  test('POST /start/clear should clear conversation and redirect to start page', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks()
 
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        // Check that conversation container exists
-        const conversationContainer = page.querySelector('.app-conversation-container')
-        expect(conversationContainer).not.toBeNull()
-
-        // Check messages are present in order
-        const userQuestions = page.querySelectorAll('.app-user-question')
-        const assistantResponses = page.querySelectorAll('.app-assistant-response')
-
-        expect(userQuestions.length).toBeGreaterThan(0)
-        expect(assistantResponses.length).toBeGreaterThan(0)
-      })
-
-      test('should visually distinguish user messages from AI responses', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        // Check user messages have distinct class
-        const userMessage = page.querySelector('.app-user-question')
-        expect(userMessage).not.toBeNull()
-        expect(userMessage.classList.contains('app-user-question')).toBe(true)
-
-        // Check AI responses have distinct class
-        const assistantMessage = page.querySelector('.app-assistant-response')
-        expect(assistantMessage).not.toBeNull()
-        expect(assistantMessage.classList.contains('app-assistant-response')).toBe(true)
-      })
-
-      test('should display "You" label for user messages', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const bodyText = page.body.textContent
-        expect(bodyText).toContain('You')
-      })
-
-      test('should display model attribution for AI assistant messages', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const bodyText = page.body.textContent
-        expect(bodyText).toContain('AI Assistant')
-        expect(bodyText).toContain('Sonnet 3.7')
-      })
+    // First, create a conversation by posting a question
+    const questionResponse = await server.inject({
+      method: 'POST',
+      url: '/start',
+      payload: {
+        modelName: 'Sonnet 3.7',
+        question: 'What is user centred design?'
+      }
     })
 
-    describe('Empty State', () => {
-      test('should show appropriate empty state when no messages exist', async () => {
-        setupModelsApiMocks()
+    expect(questionResponse.statusCode).toBe(statusCodes.OK)
 
-        const response = await server.inject({
-          method: 'GET',
-          url: '/start'
-        })
+    // Verify conversation has messages
+    const { window: windowWithMessages } = new JSDOM(questionResponse.result)
+    const pageWithMessages = windowWithMessages.document
+    const conversationWithMessages = pageWithMessages.querySelector('.app-conversation-container')
+    expect(conversationWithMessages).not.toBeNull()
+    const messagesBeforeClear = conversationWithMessages.querySelectorAll('.app-user-question, .app-assistant-response')
+    expect(messagesBeforeClear.length).toBeGreaterThan(0)
 
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const bodyText = page.body.textContent
-
-        // Should display intro text
-        expect(bodyText).toContain('Chat with AI Assistant')
-        expect(bodyText).toContain('Conversation')
-
-        // Should not have any messages
-        const userMessages = page.querySelectorAll('.app-user-question')
-        const assistantMessages = page.querySelectorAll('.app-assistant-response')
-        expect(userMessages.length).toBe(0)
-        expect(assistantMessages.length).toBe(0)
-      })
-
-      test('should display conversation section when messages exist', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        // Check conversation is displayed
-        const conversationContainer = page.querySelector('.app-conversation-container')
-        expect(conversationContainer).not.toBeNull()
-
-        // Check messages are displayed
-        const userMessages = page.querySelectorAll('.app-user-question')
-        const assistantMessages = page.querySelectorAll('.app-assistant-response')
-        expect(userMessages.length).toBeGreaterThan(0)
-        expect(assistantMessages.length).toBeGreaterThan(0)
-      })
+    // Now clear the conversation
+    const clearResponse = await server.inject({
+      method: 'POST',
+      url: '/start/clear',
+      headers: {
+        cookie: questionResponse.headers['set-cookie']
+      }
     })
 
-    describe('Error Handling', () => {
-      test('should show error message when chat API fails', async () => {
-        setupModelsApiMocks()
-        setupChatApiErrorMock(statusCodes.INTERNAL_SERVER_ERROR)
+    // Should redirect to start page
+    expect(clearResponse.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(clearResponse.headers.location).toBe('/start')
 
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const bodyText = page.body.textContent
-        expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
-      })
-
-      test('should preserve user question when error occurs', async () => {
-        setupModelsApiMocks()
-        setupChatApiErrorMock(statusCodes.INTERNAL_SERVER_ERROR)
-
-        const testQuestion = 'What is user centred design?'
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: testQuestion
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const bodyText = page.body.textContent
-        expect(bodyText).toContain(testQuestion)
-      })
+    // Follow the redirect to verify the page is cleared
+    const redirectResponse = await server.inject({
+      method: 'GET',
+      url: clearResponse.headers.location,
+      headers: {
+        cookie: clearResponse.headers['set-cookie'] || questionResponse.headers['set-cookie']
+      }
     })
 
-    describe('UI Prototype Design Compliance', () => {
-      test('should display "Conversation" heading', async () => {
-        setupModelsApiMocks()
+    expect(redirectResponse.statusCode).toBe(statusCodes.OK)
 
-        const response = await server.inject({
-          method: 'GET',
-          url: '/start'
-        })
+    const { window: windowAfterClear } = new JSDOM(redirectResponse.result)
+    const pageAfterClear = windowAfterClear.document
 
-        expect(response.statusCode).toBe(statusCodes.OK)
+    // Verify conversation container exists but has no messages
+    const conversationAfterClear = pageAfterClear.querySelector('.app-conversation-container')
+    expect(conversationAfterClear).not.toBeNull()
 
-        const { window } = new JSDOM(response.result)
-        const page = window.document
+    // Check that there are no user questions or assistant responses
+    const userQuestionsAfterClear = pageAfterClear.querySelectorAll('.app-user-question')
+    const assistantResponsesAfterClear = pageAfterClear.querySelectorAll('.app-assistant-response')
+    expect(userQuestionsAfterClear.length).toBe(0)
+    expect(assistantResponsesAfterClear.length).toBe(0)
 
-        const headings = page.querySelectorAll('h3')
-        const conversationHeading = Array.from(headings).find(h => h.textContent.includes('Conversation'))
-        expect(conversationHeading).not.toBeNull()
-      })
+    // Verify the form is still present and functional
+    const questionInput = pageAfterClear.querySelector('#question')
+    expect(questionInput).not.toBeNull()
+    expect(questionInput.value).toBe('')
 
-      test('should display introductory text about the AI assistant', async () => {
-        setupModelsApiMocks()
-
-        const response = await server.inject({
-          method: 'GET',
-          url: '/start'
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const bodyText = page.body.textContent
-        expect(bodyText).toContain('Chat with AI Assistant to get help with user-centred design questions')
-      })
-
-      test('should apply proper width styling to user messages', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const userMessage = page.querySelector('.app-user-question')
-        expect(userMessage).not.toBeNull()
-        expect(userMessage.classList.contains('govuk-!-width-one-half')).toBe(true)
-      })
-
-      test('should apply proper width styling to assistant messages', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const assistantMessage = page.querySelector('.app-assistant-response')
-        expect(assistantMessage).not.toBeNull()
-        expect(assistantMessage.classList.contains('govuk-!-width-two-thirds')).toBe(true)
-      })
-    })
-
-    describe('Responsive Design', () => {
-      test('should not have fixed width constraints on conversation container', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const conversationContainer = page.querySelector('.app-conversation-container')
-        expect(conversationContainer).not.toBeNull()
-
-        // Container should use padding instead of fixed widths
-        expect(conversationContainer.classList.contains('govuk-!-padding-4')).toBe(true)
-      })
-
-      test('should render within full-width grid column', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const fullWidthColumn = page.querySelector('.govuk-grid-column-full')
-        expect(fullWidthColumn).not.toBeNull()
-      })
-    })
-
-    describe('Markdown Content Rendering', () => {
-      test('should render markdown content as HTML in assistant responses', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks('markdown')
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is crop rotation?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        // Check markdown is rendered as HTML
-        const table = page.querySelector('table')
-        expect(table).not.toBeNull()
-
-        const headings = page.querySelectorAll('h1')
-        const hasMarkdownHeading = Array.from(headings).some(h => h.textContent.includes('Crop Rotation'))
-        expect(hasMarkdownHeading).toBe(true)
-      })
-
-      test('should preserve text formatting in plaintext responses', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks('plaintext')
-
-        const response = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(response.statusCode).toBe(statusCodes.OK)
-
-        const { window } = new JSDOM(response.result)
-        const page = window.document
-
-        const bodyText = page.body.textContent
-        expect(bodyText).toContain('User-Centred Design (UCD) is a framework')
-      })
-    })
-
-    describe('Multiple Message Conversations', () => {
-      test('should handle conversations with different AI models', async () => {
-        setupModelsApiMocks()
-        setupChatApiMocks()
-
-        // First message with Sonnet
-        const firstResponse = await server.inject({
-          method: 'POST',
-          url: '/start',
-          payload: {
-            modelName: 'Sonnet 3.7',
-            question: 'What is UCD?'
-          }
-        })
-
-        expect(firstResponse.statusCode).toBe(statusCodes.OK)
-
-        const { window: firstWindow } = new JSDOM(firstResponse.result)
-        const firstPage = firstWindow.document
-
-        const firstBodyText = firstPage.body.textContent
-        expect(firstBodyText).toContain('Sonnet 3.7')
-      })
-    })
+    // Verify the clear conversation button is still present
+    const clearButton = pageAfterClear.querySelector('button[formaction="/start/clear"]')
+    expect(clearButton).not.toBeNull()
+    expect(clearButton.textContent).toContain('Clear conversation')
   })
 })

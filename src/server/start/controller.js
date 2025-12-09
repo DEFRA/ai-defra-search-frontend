@@ -87,4 +87,3 @@ export const clearConversationController = {
     return h.redirect('/start')
   }
 }
-
