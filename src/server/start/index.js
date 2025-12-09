@@ -21,7 +21,7 @@ export const start = {
           ...startPostController
         },
         {
-          method: 'POST',
+          method: ['GET'],
           path: '/start/clear',
           ...clearConversationController
         }

@@ -1,5 +1,3 @@
-@use "govuk-frontend" as *;
-
 // Example SASS helpers
 
 @mixin app-link-style {
@@ -13,27 +11,3 @@
     text-decoration: none;
   }
 }
-
-.app-button-as-link {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: inherit;
-  color: govuk-colour("blue");
-  text-decoration: underline;
-
-  &:hover {
-    color: govuk-colour("dark-blue");
-  }
-
-  &:focus {
-    color: govuk-colour("black");
-    background-color: govuk-colour("yellow");
-    outline: 3px solid transparent;
-    box-shadow: 0 -2px govuk-colour("yellow"), 0 4px govuk-colour("black");
-    text-decoration: none;
-  }
-}
-

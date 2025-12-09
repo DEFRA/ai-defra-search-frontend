@@ -352,7 +352,7 @@ describe('Start routes', () => {
     expect(bodyText).toContain('Sorry, there was a problem with the service request')
   })
 
-  test('POST /start/clear should clear conversation and redirect to start page', async () => {
+  test('GET /start/clear should clear conversation and redirect to start page', async () => {
     setupModelsApiMocks()
     setupChatApiMocks()
 
@@ -378,7 +378,7 @@ describe('Start routes', () => {
 
     // Now clear the conversation
     const clearResponse = await server.inject({
-      method: 'POST',
+      method: 'GET',
       url: '/start/clear',
       headers: {
         cookie: questionResponse.headers['set-cookie']
@@ -418,9 +418,9 @@ describe('Start routes', () => {
     expect(questionInput).not.toBeNull()
     expect(questionInput.value).toBe('')
 
-    // Verify the clear conversation button is still present
-    const clearButton = pageAfterClear.querySelector('button[formaction="/start/clear"]')
-    expect(clearButton).not.toBeNull()
-    expect(clearButton.textContent).toContain('Clear conversation')
+    // Verify the clear conversation link is still present
+    const clearLink = pageAfterClear.querySelector('a[href="/start/clear"]')
+    expect(clearLink).not.toBeNull()
+    expect(clearLink.textContent).toContain('Clear conversation')
   })
 })
