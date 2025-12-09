@@ -10,17 +10,10 @@
   border-left: 4px solid govuk-colour("blue");
   padding: govuk-spacing(3);
   background-color: govuk-colour("light-grey");
-  margin-bottom: govuk-spacing(6);
+  margin-bottom: govuk-spacing(1);
 
   p {
     margin-bottom: 0;
     color: govuk-colour("dark-grey");
-  }
-}
-
-// Assistant response
-.app-assistant-response {
-  p {
-    margin-bottom: 0;
   }
 }

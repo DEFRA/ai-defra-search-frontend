@@ -18,7 +18,7 @@
           </div>
         </div>
         <p class="govuk-body-s govuk-!-text-align-right govuk-!-margin-top-0">
-          <strong>You</strong> ({% if message.timestamp %}{{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}{% endif %})
+          <strong>You</strong> {% if message.timestamp %}({{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}){% endif %}
         </p>
       {% endif %}
 
@@ -28,7 +28,7 @@
         </div>
         <div class="govuk-!-display-flex govuk-!-justify-content-space-between govuk-!-margin-top-0">
           <p class="govuk-body-s govuk-!-margin-top-0 govuk-!-margin-bottom-0">
-            <strong>AI Assistant</strong> ({{ message.model }}) ({% if message.timestamp %}{{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}{% endif %})
+            <strong>AI Assistant</strong> ({{ message.model }}) {% if message.timestamp %}({{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}){% endif %}
           </p>
         </div>
       {% endif %}
