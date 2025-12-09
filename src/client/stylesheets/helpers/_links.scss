@@ -1,3 +1,5 @@
+@use "govuk-frontend" as *;
+
 // Example SASS helpers
 
 @mixin app-link-style {
@@ -19,18 +21,18 @@
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
-  color: #1d70b8; // GOV.UK link blue
+  color: govuk-colour("blue");
   text-decoration: underline;
 
   &:hover {
-    color: #003078; // GOV.UK link hover blue
+    color: govuk-colour("dark-blue");
   }
 
   &:focus {
-    color: #0b0c0c; // GOV.UK focus color
-    background-color: #ffdd00; // GOV.UK focus background
+    color: govuk-colour("black");
+    background-color: govuk-colour("yellow");
     outline: 3px solid transparent;
-    box-shadow: 0 -2px #ffdd00, 0 4px #0b0c0c;
+    box-shadow: 0 -2px govuk-colour("yellow"), 0 4px govuk-colour("black");
     text-decoration: none;
   }
 }
