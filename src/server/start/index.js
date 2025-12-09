@@ -1,4 +1,4 @@
-import { startGetController, startPostController } from './controller.js'
+import { startGetController, startPostController, clearConversationController } from './controller.js'
 
 /**
  * Sets up the routes used for authentication.
@@ -19,6 +19,11 @@ export const start = {
           method: 'POST',
           path: '/start',
           ...startPostController
+        },
+        {
+          method: 'POST',
+          path: '/start/clear',
+          ...clearConversationController
         }
       ])
     }

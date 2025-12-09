@@ -71,11 +71,12 @@
                 text: "Send",
                 classes: "govuk-button--secondary"
               }) }}
-              <a href="#" class="govuk-link">Clear conversation</a>
+              <button type="submit" formaction="/start/clear" class="govuk-link app-button-as-link">Clear conversation</button>
             </div>
 
             {{ defraModelSelect({
-                    models: models
+                    models: models,
+                    modelName: modelName
             }) }}
 
           </form>
@@ -106,12 +107,14 @@
                 text: "Send",
                 classes: "govuk-button--secondary"
               }) }}
-              <a href="#" class="govuk-link">Clear conversation</a>
+              <button type="submit" formaction="/start/clear" class="govuk-link app-button-as-link">Clear conversation</button>
             </div>
 
             {{ defraModelSelect({
-                    models: models
+                    models: models,
+                    modelName: modelName
             }) }}
+
           </form>
         </div>
       </div>
