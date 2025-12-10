@@ -34,6 +34,11 @@
         {{ defraConversation({
           messages: messages
          }) }}
+
+        {{ defraFeedback({
+            conversationId: conversationId,
+            showSuccessMessage: feedbackSuccess
+          }) }}
       {% endif %}
 
     </div>
