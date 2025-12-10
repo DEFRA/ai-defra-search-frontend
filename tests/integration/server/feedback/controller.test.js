@@ -17,6 +17,10 @@ describe('Feedback routes', () => {
     await server.initialize()
   })
 
+  beforeEach(() => {
+    cleanupFeedbackApiMocks()
+  })
+
   afterAll(async () => {
     await server.stop({ timeout: 0 })
     cleanupFeedbackApiMocks()
@@ -24,8 +28,6 @@ describe('Feedback routes', () => {
 
   describe('GET /feedback', () => {
     test('should return the feedback page with conversation ID', async () => {
-      cleanupFeedbackApiMocks()
-
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
 
       const response = await server.inject({
@@ -57,8 +59,6 @@ describe('Feedback routes', () => {
     })
 
     test('should return the feedback page without conversation ID', async () => {
-      cleanupFeedbackApiMocks()
-
       const response = await server.inject({
         method: 'GET',
         url: '/feedback'
@@ -76,7 +76,6 @@ describe('Feedback routes', () => {
 
   describe('POST /feedback', () => {
     test('should submit feedback successfully with "yes" response', async () => {
-      cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -95,7 +94,6 @@ describe('Feedback routes', () => {
     })
 
     test('should submit feedback successfully with "no" response', async () => {
-      cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -114,8 +112,6 @@ describe('Feedback routes', () => {
     })
 
     test('should submit feedback successfully with optional comment', async () => {
-      cleanupFeedbackApiMocks()
-
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
       const comment = 'This was very helpful, thank you!'
 
@@ -140,8 +136,6 @@ describe('Feedback routes', () => {
     })
 
     test('should return validation error when wasHelpful is empty', async () => {
-      cleanupFeedbackApiMocks()
-
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
 
       const response = await server.inject({
@@ -165,8 +159,6 @@ describe('Feedback routes', () => {
     })
 
     test('should return validation error when wasHelpful is invalid', async () => {
-      cleanupFeedbackApiMocks()
-
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
 
       const response = await server.inject({
@@ -189,7 +181,6 @@ describe('Feedback routes', () => {
     })
 
     test('should allow missing conversationId as it is optional', async () => {
-      cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
       const response = await server.inject({
@@ -207,7 +198,6 @@ describe('Feedback routes', () => {
     })
 
     test('should handle API error gracefully', async () => {
-      cleanupFeedbackApiMocks()
       setupFeedbackApiErrorMock(500)
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -240,7 +230,6 @@ describe('Feedback routes', () => {
     })
 
     test('should handle API timeout gracefully', async () => {
-      cleanupFeedbackApiMocks()
       setupFeedbackApiErrorMock(500, 'timeout')
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -269,7 +258,6 @@ describe('Feedback routes', () => {
     })
 
     test('should handle long comments within character limit', async () => {
-      cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -290,8 +278,6 @@ describe('Feedback routes', () => {
     })
 
     test('should reject comments exceeding character limit', async () => {
-      cleanupFeedbackApiMocks()
-
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
       const tooLongComment = 'x'.repeat(1001) // Exceeds 1000 character limit
 
@@ -318,8 +304,6 @@ describe('Feedback routes', () => {
 
   describe('GET /feedback/success', () => {
     test('should return the success page', async () => {
-      cleanupFeedbackApiMocks()
-
       const response = await server.inject({
         method: 'GET',
         url: '/feedback/success'
@@ -341,7 +325,6 @@ describe('Feedback routes', () => {
 
   describe('Feedback flow integration', () => {
     test('should complete full feedback journey from start to success', async () => {
-      cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -384,7 +367,6 @@ describe('Feedback routes', () => {
     })
 
     test('should handle negative feedback with comment', async () => {
-      cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
