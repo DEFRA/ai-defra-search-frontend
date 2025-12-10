@@ -11,9 +11,8 @@ function setupFeedbackApiMocks () {
     .persist()
     .post('/feedback', (body) => {
       return (
-        typeof body.conversationId === 'string' &&
-        typeof body.wasHelpful === 'string' &&
-        (body.wasHelpful === 'yes' || body.wasHelpful === 'no')
+        (typeof body.conversation_id === 'string' || body.conversation_id === null) &&
+        typeof body.was_helpful === 'boolean'
       )
     })
     .reply(200, {
@@ -51,8 +50,8 @@ function setupFeedbackApiMockWithValidation (expectedPayload) {
   nock(feedbackApiBaseUrl)
     .post('/feedback', (body) => {
       return (
-        body.conversationId === expectedPayload.conversationId &&
-        body.wasHelpful === expectedPayload.wasHelpful &&
+        body.conversation_id === expectedPayload.conversationId &&
+        body.was_helpful === (expectedPayload.wasHelpful === 'yes') &&
         (expectedPayload.comment ? body.comment === expectedPayload.comment : true)
       )
     })

@@ -75,9 +75,7 @@ describe('Feedback routes', () => {
   })
 
   describe('POST /feedback', () => {
-    // TODO: Uncomment these tests when frontend and backend are connected (JIRA ticket needed)
-    // These tests require the /feedback endpoint to be available on the backend API
-    test.skip('should submit feedback successfully with "yes" response', async () => {
+    test('should submit feedback successfully with "yes" response', async () => {
       cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
@@ -92,11 +90,11 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(statusCodes.FOUND) // 302 redirect
+      expect(response.statusCode).toBe(302) // 302 redirect
       expect(response.headers.location).toBe('/feedback/success')
     })
 
-    test.skip('should submit feedback successfully with "no" response', async () => {
+    test('should submit feedback successfully with "no" response', async () => {
       cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
@@ -111,11 +109,11 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(statusCodes.FOUND)
+      expect(response.statusCode).toBe(302)
       expect(response.headers.location).toBe('/feedback/success')
     })
 
-    test.skip('should submit feedback successfully with optional comment', async () => {
+    test('should submit feedback successfully with optional comment', async () => {
       cleanupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -137,11 +135,11 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(statusCodes.FOUND)
+      expect(response.statusCode).toBe(302)
       expect(response.headers.location).toBe('/feedback/success')
     })
 
-    test.skip('should return validation error when wasHelpful is empty', async () => {
+    test('should return validation error when wasHelpful is empty', async () => {
       cleanupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -190,7 +188,7 @@ describe('Feedback routes', () => {
       expect(errorSummary?.textContent).toContain('Please select yes or no')
     })
 
-    test.skip('should allow missing conversationId as it is optional', async () => {
+    test('should allow missing conversationId as it is optional', async () => {
       cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
@@ -204,7 +202,7 @@ describe('Feedback routes', () => {
       })
 
       // Should succeed since conversationId is optional
-      expect(response.statusCode).toBe(statusCodes.FOUND)
+      expect(response.statusCode).toBe(302)
       expect(response.headers.location).toBe('/feedback/success')
     })
 
@@ -270,7 +268,7 @@ describe('Feedback routes', () => {
       expect(commentTextarea?.textContent).toBe('Not helpful at all')
     })
 
-    test.skip('should handle long comments within character limit', async () => {
+    test('should handle long comments within character limit', async () => {
       cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
@@ -287,7 +285,7 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(statusCodes.FOUND)
+      expect(response.statusCode).toBe(302)
       expect(response.headers.location).toBe('/feedback/success')
     })
 
@@ -342,8 +340,7 @@ describe('Feedback routes', () => {
   })
 
   describe('Feedback flow integration', () => {
-    // TODO: Uncomment these tests when frontend and backend are connected (JIRA ticket needed)
-    test.skip('should complete full feedback journey from start to success', async () => {
+    test('should complete full feedback journey from start to success', async () => {
       cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
@@ -368,7 +365,7 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(submitResponse.statusCode).toBe(statusCodes.FOUND)
+      expect(submitResponse.statusCode).toBe(302)
       expect(submitResponse.headers.location).toBe('/feedback/success')
 
       // Step 3: View success page
@@ -386,7 +383,7 @@ describe('Feedback routes', () => {
       expect(heading?.textContent).toContain('Thank you')
     })
 
-    test.skip('should handle negative feedback with comment', async () => {
+    test('should handle negative feedback with comment', async () => {
       cleanupFeedbackApiMocks()
       setupFeedbackApiMocks()
 
@@ -402,7 +399,7 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(statusCodes.FOUND)
+      expect(response.statusCode).toBe(302)
       expect(response.headers.location).toBe('/feedback/success')
     })
   })
