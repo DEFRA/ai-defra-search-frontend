@@ -118,7 +118,7 @@ describe('Conversation Component', () => {
     })
   })
 
-  describe('UI Prototype Compliance', () => {
+  describe('UI Compliance', () => {
     test('should apply dynamic width for user messages', () => {
       const template = `
         {% from "conversation/macro.njk" import defraConversation %}
