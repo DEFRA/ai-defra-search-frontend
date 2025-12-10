@@ -17,7 +17,7 @@
       "responses": [
         {
           "uuid": "58fc13fb-a892-445a-b066-fa8d254100fd",
-          "body": "{\n  \"conversation_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"model\": \"user-input\",\n      \"content\": \"What is UCD?\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"model\": \"gpt-4\",\n      \"content\": \"# Crop Rotation Guide\\n\\n## Recommended 4-Year Cycle\\n\\n| Year | Crop | Benefit |\\n|------|------|------|\\n| 1 | Legumes | Fixes nitrogen |\\n| 2 | Brassicas | Heavy feeder |\\n| 3 | Root vegetables | Deep soil break |\\n| 4 | Alliums | Pest control |\\n\\n## Soil pH Testing\\n\\n```bash\\n# Check soil pH with a simple test\\nph_level=$(test_soil sample.txt)\\nif [ $ph_level -lt 6 ]; then\\n  echo \\\"Add lime to raise pH\\\"\\nfi\\n```\\n\\n## Essential Spring Tasks\\n\\n- Prepare seedbeds and remove weeds\\n- Test and amend soil as needed\\n- Start seedlings indoors 6-8 weeks early\"\n    }\n  ]\n}",
+          "body": "{\n  \"conversation_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"model\": \"user-input\",\n      \"content\": \"What is UCD?\",\n      \"timestamp\": \"2025-12-07T12:00:00Z\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"model\": \"Haiku\",\n      \"content\": \"User-Centred Design (UCD) is an iterative design process that focuses on understanding users and their needs throughout the entire design and development process. It involves:\\n\\n1. **Understanding users**: Researching and understanding the needs, wants, and limitations of end users at each stage of the design process.\\n\\n2. **Involving users**: Actively engaging users through interviews, testing, and feedback sessions to ensure the design meets their needs.\\n\\n3. **Iterative design**: Continuously refining and improving designs based on user feedback and testing results.\\n\\n4. **Multidisciplinary approach**: Bringing together different perspectives including designers, developers, researchers, and users.\\n\\nIn the context of Defra services, UCD helps ensure that government services are accessible, easy to use, and meet the needs of citizens, farmers, and other stakeholders who interact with Defra's digital services.\",\n      \"timestamp\": \"2025-12-07T12:00:20Z\"\n    },\n    {\n      \"role\": \"user\",\n      \"model\": \"user-input\",\n      \"content\": \"What is UCD? I've heard this term mentioned in design discussions but I'm not entirely clear on what it means.\",\n      \"timestamp\": \"2025-12-07T12:02:00Z\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"model\": \"Sonnet 3.7\",\n      \"content\": \"Ask Anne and Nick.\",\n      \"timestamp\": \"2025-12-07T12:02:30Z\"\n    },\n    {\n      \"role\": \"user\",\n      \"model\": \"user-input\",\n      \"content\": \"What is UCD? I've heard this term mentioned in design discussions.\",\n      \"timestamp\": \"2025-12-07T12:03:00Z\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"model\": \"Sonnet 3.7\",\n      \"content\": \"User-Centred Design (UCD) is an iterative design process that focuses on understanding users and their needs throughout the entire design and development process. It involves:\\n\\n1. **Understanding users**: Researching and understanding the needs, wants, and limitations of end users at each stage of the design process.\\n\\n2. **Involving users**: Actively engaging users through interviews, testing, and feedback sessions to ensure the design meets their needs.\\n\\n3. **Iterative design**: Continuously refining and improving designs based on user feedback and testing results.\\n\\n4. **Multidisciplinary approach**: Bringing together different perspectives including designers, developers, researchers, and users.\\n\\nIn the context of Defra services, UCD helps ensure that government services are accessible, easy to use, and meet the needs of citizens, farmers, and other stakeholders who interact with Defra's digital services.\",\n      \"timestamp\": \"2025-12-07T12:03:30Z\"\n    }\n  ]\n}",
           "latency": 0,
           "statusCode": 200,
           "label": "Successful response with conversation messages",
@@ -35,13 +35,13 @@
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
-          "default": false,
+          "default": true,
           "crudKey": "id",
           "callbacks": []
         },
         {
           "uuid": "50b2ed53-f551-4ff8-a457-428ac24b2112",
-          "body": "{\n  \"conversation_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"model\": \"user-input\",\n      \"content\": \"What is UCD?\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"model\": \"gpt-4\",\n      \"content\": \"# Crop Rotation Guide\\n\\n## Recommended 4-Year Cycle\\n\\n| Year | Crop | Benefit |\\n|------|------|------|\\n| 1 | Legumes | Fixes nitrogen |\\n| 2 | Brassicas | Heavy feeder |\\n| 3 | Root vegetables | Deep soil break |\\n| 4 | Alliums | Pest control |\\n\\n## Soil pH Testing\\n\\n```bash\\n# Check soil pH with a simple test\\nph_level=$(test_soil sample.txt)\\nif [ $ph_level -lt 6 ]; then\\n  echo \\\"Add lime to raise pH\\\"\\nfi\\n```\\n\\n## Essential Spring Tasks\\n\\n- Prepare seedbeds and remove weeds\\n- Test and amend soil as needed\\n- Start seedlings indoors 6-8 weeks early\"\n    }\n  ]\n}",
+          "body": "{\n  \"conversation_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"model\": \"user-input\",\n      \"content\": \"What is UCD?\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"model\": \"gpt-4\",\n      \"content\": \"User-Centred Design (UCD) is an iterative design process that focuses on understanding users and their needs throughout the entire design and development process. It involves:\\n\\n1. **Understanding users**: Researching and understanding the needs, wants, and limitations of end users at each stage of the design process.\\n\\n2. **Involving users**: Actively engaging users through interviews, testing, and feedback sessions to ensure the design meets their needs.\\n\\n3. **Iterative design**: Continuously refining and improving designs based on user feedback and testing results.\\n\\n4. **Multidisciplinary approach**: Bringing together different perspectives including designers, developers, researchers, and users.\\n\\nIn the context of Defra services, UCD helps ensure that government services are accessible, easy to use, and meet the needs of citizens, farmers, and other stakeholders who interact with Defra's digital services.\"\n    }\n  ]\n}",
           "latency": 0,
           "statusCode": 200,
           "label": "singleExchange",
@@ -59,7 +59,7 @@
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
-          "default": true,
+          "default": false,
           "crudKey": "id",
           "callbacks": []
         },
@@ -188,6 +188,18 @@
     {
       "key": "Access-Control-Allow-Headers",
       "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+    },
+    {
+      "key": "Cache-Control",
+      "value": "no-cache, no-store, must-revalidate"
+    },
+    {
+      "key": "Pragma",
+      "value": "no-cache"
+    },
+    {
+      "key": "Expires",
+      "value": "0"
     }
   ],
   "proxyReqHeaders": [

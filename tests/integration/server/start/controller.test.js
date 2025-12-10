@@ -54,6 +54,10 @@ describe('Start routes', () => {
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sonnet 3.7')
     expect(bodyText).toContain('Haiku')
+
+    // Check that the conversation component is present
+    const conversationComponent = page.querySelector('.app-conversation-container')
+    expect(conversationComponent).not.toBeNull()
   })
 
   test('POST /start with markdown response should render HTML elements correctly', async () => {
@@ -346,5 +350,77 @@ describe('Start routes', () => {
     // Check that error message is displayed
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sorry, there was a problem with the service request')
+  })
+
+  test('GET /start/clear should clear conversation and redirect to start page', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks()
+
+    // First, create a conversation by posting a question
+    const questionResponse = await server.inject({
+      method: 'POST',
+      url: '/start',
+      payload: {
+        modelName: 'Sonnet 3.7',
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+
+    // Verify conversation has messages
+    const { window: windowWithMessages } = new JSDOM(questionResponse.result)
+    const pageWithMessages = windowWithMessages.document
+    const conversationWithMessages = pageWithMessages.querySelector('.app-conversation-container')
+    expect(conversationWithMessages).not.toBeNull()
+    const messagesBeforeClear = conversationWithMessages.querySelectorAll('.app-user-question, .app-assistant-response')
+    expect(messagesBeforeClear.length).toBeGreaterThan(0)
+
+    // Now clear the conversation
+    const clearResponse = await server.inject({
+      method: 'GET',
+      url: '/start/clear',
+      headers: {
+        cookie: questionResponse.headers['set-cookie']
+      }
+    })
+
+    // Should redirect to start page
+    expect(clearResponse.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(clearResponse.headers.location).toBe('/start')
+
+    // Follow the redirect to verify the page is cleared
+    const redirectResponse = await server.inject({
+      method: 'GET',
+      url: clearResponse.headers.location,
+      headers: {
+        cookie: clearResponse.headers['set-cookie'] || questionResponse.headers['set-cookie']
+      }
+    })
+
+    expect(redirectResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window: windowAfterClear } = new JSDOM(redirectResponse.result)
+    const pageAfterClear = windowAfterClear.document
+
+    // Verify conversation container exists but has no messages
+    const conversationAfterClear = pageAfterClear.querySelector('.app-conversation-container')
+    expect(conversationAfterClear).not.toBeNull()
+
+    // Check that there are no user questions or assistant responses
+    const userQuestionsAfterClear = pageAfterClear.querySelectorAll('.app-user-question')
+    const assistantResponsesAfterClear = pageAfterClear.querySelectorAll('.app-assistant-response')
+    expect(userQuestionsAfterClear.length).toBe(0)
+    expect(assistantResponsesAfterClear.length).toBe(0)
+
+    // Verify the form is still present and functional
+    const questionInput = pageAfterClear.querySelector('#question')
+    expect(questionInput).not.toBeNull()
+    expect(questionInput.value).toBe('')
+
+    // Verify the clear conversation link is still present
+    const clearLink = pageAfterClear.querySelector('a[href="/start/clear"]')
+    expect(clearLink).not.toBeNull()
+    expect(clearLink.textContent).toContain('Clear conversation')
   })
 })

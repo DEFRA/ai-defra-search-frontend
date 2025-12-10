@@ -1,0 +1,61 @@
+@use "govuk-frontend" as *;
+
+.app-conversation-container {
+  border: $govuk-border-width-form-element solid $govuk-border-colour;
+  border-radius: 0;
+  box-sizing: border-box;
+  height: 250px;
+  max-height: 250px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+
+  @media (prefers-reduced-motion: no-preference) {
+    scroll-behavior: smooth;
+  }
+
+  @include govuk-media-query($from: tablet) {
+    height: 350px;
+    max-height: 350px;
+  }
+}
+
+.app-user-question-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  max-width: 75%;
+  margin-left: auto;
+
+  &[autofocus]:focus {
+    outline: none;
+  }
+
+  &[autofocus] {
+    scroll-margin-top: govuk-spacing(3);
+  }
+}
+
+.app-user-question {
+  flex: 0 1 auto;
+  max-width: 66.66%;
+  min-width: min-content;
+  padding: govuk-spacing(3);
+  background-color: govuk-colour("blue");
+  overflow-wrap: break-word;
+
+  p {
+    margin-bottom: 0;
+    color: govuk-colour("white");
+  }
+}
+
+.app-assistant-response {
+  padding: govuk-spacing(3);
+  background-color: govuk-colour("light-grey");
+  @include govuk-responsive-margin(1, "bottom");
+
+  p {
+    margin-bottom: 0;
+    color: govuk-colour("dark-grey");
+  }
+}

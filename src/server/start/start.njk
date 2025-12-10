@@ -7,10 +7,11 @@
 {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "model-select/macro.njk" import defraModelSelect %}
+{% from "conversation/macro.njk" import defraConversation %}
 
 {% block content %}
   <div class="govuk-grid-row">
-    <div class="govuk-grid-column-two-thirds">
+    <div class="govuk-grid-column-full">
 
       {% if errorMessage %}
         {{ govukErrorSummary({
@@ -25,37 +26,29 @@
       {% endif %}
 
       {% if messages %}
-        <div class="app-response-section">
-          <h2 class="govuk-heading-l govuk-!-margin-bottom-6">
-            AI assistant
-          </h2>
+        <h2 class="govuk-heading-l govuk-!-margin-bottom-6">
+          AI assistant
+        </h2>
 
-          {% for message in messages %}
-            {% if message.role === "user" %}
-              <div class="app-user-question">
-                {{ message.content | safe }}
-              </div>
-            {% endif %}
-
-            {% if message.role === "assistant" %}
-              <div class="app-assistant-response govuk-!-margin-bottom-8">
-                <div class="govuk-body">
-                  {{ message.content | safe }}
-                </div>
-              </div>
-            {% endif %}
-          {% endfor %}
-        </div>
+        {{ defraConversation({
+          messages: messages
+         }) }}
       {% endif %}
 
     </div>
+  </div>
+
   {% if not messages %}
     <div class="app-prompt-input-container">
       <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
+        <div class="govuk-grid-column-full">
           <h1 class="govuk-heading-xl govuk-!-margin-bottom-6">
             AI assistant
           </h1>
+
+          {{ defraConversation({
+            messages: messages
+          }) }}
 
           <form action="/start" method="post" novalidate>
 
@@ -73,13 +66,17 @@
               }
             }) }}
 
-            {{ govukButton({
-              text: "Send",
-              classes: "govuk-button--secondary"
-            }) }}
+            <div class="govuk-button-group">
+              {{ govukButton({
+                text: "Send",
+                classes: "govuk-button--secondary"
+              }) }}
+              <p class="govuk-body"><a href="/start/clear" class="govuk-link">Clear conversation</a>.</p>
+            </div>
 
             {{ defraModelSelect({
-                    models: models
+                    models: models,
+                    modelName: modelName
             }) }}
 
           </form>
@@ -89,7 +86,7 @@
   {% else %}
     <div class="app-prompt-input-container">
       <div class="govuk-grid-row">
-        <div class="govuk-grid-column-two-thirds">
+        <div class="govuk-grid-column-full">
           <form action="/start" method="post" novalidate>
              {{ govukTextarea({
               name: "question",
@@ -105,14 +102,19 @@
               }
             }) }}
 
-            {{ govukButton({
-              text: "Send",
-              classes: "govuk-button--secondary"
-            }) }}
+            <div class="govuk-button-group">
+              {{ govukButton({
+                text: "Send",
+                classes: "govuk-button--secondary"
+              }) }}
+              <p class="govuk-body"><a href="/start/clear" class="govuk-link">Clear conversation</a>.</p>
+            </div>
 
             {{ defraModelSelect({
-                    models: models
+                    models: models,
+                    modelName: modelName
             }) }}
+
           </form>
         </div>
       </div>

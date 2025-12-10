@@ -1,2 +1,5 @@
+@use "govuk-frontend" as *;
+
 // Example custom CSS variables
-$app-light-grey: #f8f8f8;
+// Use GovUK colours directly where possible: govuk-colour("light-grey")
+$app-light-grey: govuk-colour("light-grey");

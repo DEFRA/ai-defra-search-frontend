@@ -73,3 +73,15 @@ export const startPostController = {
     }
   }
 }
+
+export const clearConversationController = {
+  handler (_request, h) {
+    const logger = createLogger()
+    logger.info('Clear conversation requested')
+
+    // TODO: Call downstream service to clear conversation when available
+    // For now, just redirect to start page which will show a fresh form
+    logger.info('Conversation cleared, redirecting to start page')
+    return h.redirect('/start')
+  }
+}
