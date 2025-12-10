@@ -75,7 +75,7 @@ export const startPostController = {
 }
 
 export const clearConversationController = {
-  handler (request, h) {
+  handler (_request, h) {
     const logger = createLogger()
     logger.info('Clear conversation requested')
 
