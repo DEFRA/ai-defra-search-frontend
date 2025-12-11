@@ -269,7 +269,7 @@ describe('Feedback routes', () => {
         payload: {
           conversationId,
           wasHelpful: 'yes',
-          comment: longComment.substring(0, 1000) // Within limit
+          comment: longComment
         }
       })
 
