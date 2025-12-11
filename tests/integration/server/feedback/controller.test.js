@@ -89,7 +89,7 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(302) // 302 redirect
+      expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY) // 302 redirect (Hapi's default)
       expect(response.headers.location).toBe('/feedback/success')
     })
 
@@ -107,7 +107,7 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(302)
+      expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY) // 302 redirect (Hapi's default)
       expect(response.headers.location).toBe('/feedback/success')
     })
 
@@ -131,7 +131,7 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(302)
+      expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY) // 302 redirect (Hapi's default)
       expect(response.headers.location).toBe('/feedback/success')
     })
 
@@ -193,7 +193,7 @@ describe('Feedback routes', () => {
       })
 
       // Should succeed since conversationId is optional
-      expect(response.statusCode).toBe(302)
+      expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY) // 302 redirect (Hapi's default)
       expect(response.headers.location).toBe('/feedback/success')
     })
 
@@ -273,7 +273,7 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(302)
+      expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY) // 302 redirect (Hapi's default)
       expect(response.headers.location).toBe('/feedback/success')
     })
 
@@ -348,7 +348,7 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(submitResponse.statusCode).toBe(302)
+      expect(submitResponse.statusCode).toBe(statusCodes.MOVED_TEMPORARILY) // 302 redirect (Hapi's default)
       expect(submitResponse.headers.location).toBe('/feedback/success')
 
       // Step 3: View success page
@@ -381,7 +381,7 @@ describe('Feedback routes', () => {
         }
       })
 
-      expect(response.statusCode).toBe(302)
+      expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY) // 302 redirect (Hapi's default)
       expect(response.headers.location).toBe('/feedback/success')
     })
   })
