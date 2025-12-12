@@ -1,0 +1,84 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/character-count/macro.njk" import govukCharacterCount %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {% if errors %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: errors
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-l">Give feedback on the AI Assistant</h1>
+
+      <p class="govuk-body">Help us improve the AI Assistant by sharing your feedback.</p>
+
+      <form action="/feedback" method="post" novalidate>
+        <input type="hidden" name="conversationId" value="{{ conversationId }}" />
+
+        {{ govukRadios({
+          name: "wasHelpful",
+          fieldset: {
+            legend: {
+              text: "Was your AI response useful?",
+              classes: "govuk-fieldset__legend--m"
+            }
+          },
+          items: [
+            {
+              value: "yes",
+              text: "Yes",
+              checked: wasHelpful == "yes"
+            },
+            {
+              value: "no",
+              text: "No",
+              checked: wasHelpful == "no"
+            }
+          ]
+        }) }}
+
+        {{ govukCharacterCount({
+          name: "comment",
+          id: "comment",
+          maxlength: 1000,
+          label: {
+            text: "Please provide some context for your answer to help us improve the service? (optional)",
+            classes: "govuk-label--m"
+          },
+          value: comment
+        }) }}
+
+        <details class="govuk-details" data-module="govuk-details">
+          <summary class="govuk-details__summary">
+            <span class="govuk-details__summary-text">
+              How we use your feedback
+            </span>
+          </summary>
+          <div class="govuk-details__text">
+            <p class="govuk-body">Your feedback helps us improve the AI Assistant service. We collect:</p>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>Your response about whether the AI was useful</li>
+              <li>Any additional comments you provide</li>
+              <li>Technical information about your conversation</li>
+            </ul>
+            <p class="govuk-body">We do not automatically collect your conversations or prompts. We only collect what you choose to share in your feedback comments.</p>
+            <p class="govuk-body">Read our <a href="/privacy" class="govuk-link">privacy notice</a> for more information about how we handle your data.</p>
+          </div>
+        </details>
+
+        {{ govukButton({
+          text: "Send feedback"
+        }) }}
+      </form>
+
+    </div>
+  </div>
+{% endblock %}

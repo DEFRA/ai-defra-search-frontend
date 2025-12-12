@@ -14,7 +14,7 @@ export const startGetController = {
       const models = await getModels()
       return h.view(END_POINT_PATH, { models })
     } catch (error) {
-      logger.error({ error }, 'Error calling chat API')
+      logger.error(error, 'Error calling chat API')
       return h.view('error/index', {
         pageTitle: 'Something went wrong',
         heading: statusCodes.INTERNAL_SERVER_ERROR,

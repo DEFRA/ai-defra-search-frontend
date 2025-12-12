@@ -2,6 +2,7 @@ import {
   initAll,
   createAll,
   Button,
+  CharacterCount,
   Checkboxes,
   ErrorSummary,
   Header,
@@ -10,6 +11,7 @@ import {
 } from 'govuk-frontend'
 
 createAll(Button)
+createAll(CharacterCount)
 createAll(Checkboxes)
 createAll(ErrorSummary)
 createAll(Header)

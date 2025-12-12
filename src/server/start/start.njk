@@ -8,6 +8,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "model-select/macro.njk" import defraModelSelect %}
 {% from "conversation/macro.njk" import defraConversation %}
+{% from "feedback/macro.njk" import defraFeedback %}
 
 {% block content %}
   <div class="govuk-grid-row">
@@ -33,6 +34,11 @@
         {{ defraConversation({
           messages: messages
          }) }}
+
+        {{ defraFeedback({
+            conversationId: conversationId,
+            showSuccessMessage: feedbackSuccess
+          }) }}
       {% endif %}
 
     </div>
