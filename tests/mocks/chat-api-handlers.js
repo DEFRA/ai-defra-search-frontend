@@ -58,15 +58,15 @@ function setupChatApiErrorMock (statusCode, errorType) {
   if (errorType === 'timeout') {
     nock(chatApiBaseUrl)
       .post('/chat', (body) => {
-        // Verify the request body contains both question and modelName
-        return typeof body.question === 'string' && typeof body.modelName === 'string'
+        // Verify the request body contains both question and modelId
+        return typeof body.question === 'string' && typeof body.modelId === 'string'
       })
       .replyWithError('ETIMEDOUT')
   } else {
     nock(chatApiBaseUrl)
       .post('/chat', (body) => {
-        // Verify the request body contains both question and modelName
-        return typeof body.question === 'string' && typeof body.modelName === 'string'
+        // Verify the request body contains both question and modelId
+        return typeof body.question === 'string' && typeof body.modelId === 'string'
       })
       .reply(statusCode, { error: 'Error from chat API' })
   }

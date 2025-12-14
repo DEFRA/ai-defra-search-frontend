@@ -299,7 +299,7 @@ describe('Start routes', () => {
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
       }
     })
@@ -361,7 +361,7 @@ describe('Start routes', () => {
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
       }
     })
