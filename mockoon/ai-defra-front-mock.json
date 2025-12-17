@@ -125,7 +125,7 @@
       "responses": [
         {
           "uuid": "3c18c77e-688b-4c9d-9623-d57651f29009",
-          "body": "[\n  {\n    \"modelName\": \"Sonnet 3.7\",\n    \"modelDescription\": \"Best for detailed guidance and complex questions\"\n  },\n  {\n    \"modelName\": \"Haiku\",\n    \"modelDescription\": \"Best for quick answers and simple questions\"\n  }\n]",
+          "body": "[\n  {\n    \"modelId\": \"sonnet-3-7\",\n    \"modelName\": \"Sonnet 3.7\",\n    \"modelDescription\": \"Best for detailed guidance and complex questions\"\n  },\n  {\n    \"modelId\": \"haiku\",\n    \"modelName\": \"Haiku\",\n    \"modelDescription\": \"Best for quick answers and simple questions\"\n  }\n]",
           "latency": 0,
           "statusCode": 200,
           "label": "",

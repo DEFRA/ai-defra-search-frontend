@@ -24,8 +24,8 @@
     "test:run": "vitest run --coverage --no-file-parallelism",
     "test:watch": "TZ=UTC vitest --no-file-parallelism --watch",
     "test:debug": "TZ=UTC vitest --inspect-brk=0.0.0.0 --no-file-parallelism",
-    "server:watch": "nodemon --inspect=0.0.0.0 --ext js,njk,json --legacy-watch ./src",
-    "server:debug": "nodemon --inspect-brk=0.0.0.0 --ext js,njk,json --legacy-watch ./src",
+    "server:watch": "nodemon --env-file-if-exists=.env --inspect=0.0.0.0 --ext js,njk,json --legacy-watch ./src",
+    "server:debug": "nodemon --env-file-if-exists=.env --inspect-brk=0.0.0.0 --ext js,njk,json --legacy-watch ./src",
     "start": "NODE_ENV=production && npm run build:frontend && node --use-strict .",
     "start:debug": "nodemon --watch src --exec 'node --experimental-vm-modules --inspect-brk=0.0.0.0 src/index.js'"
   },

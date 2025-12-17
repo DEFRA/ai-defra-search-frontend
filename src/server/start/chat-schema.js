@@ -5,7 +5,8 @@ const maxChatMessageLength = 500
 
 const startPostSchema = Joi.object({
   modelId: Joi.string().required().messages({
-    'any.required': 'Model ID is required'
+    'any.required': 'Model ID is required',
+    'string.empty': 'Please select a model'
   }),
   question: Joi.string()
     .min(minChatMessageLength)
