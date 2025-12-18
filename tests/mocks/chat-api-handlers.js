@@ -40,7 +40,7 @@ function setupChatApiMocks (responseType = 'plaintext') {
   nock(chatApiBaseUrl)
     .persist()
     .post('/chat', (body) => {
-      return typeof body.question === 'string' && typeof body.modelName === 'string'
+      return typeof body.question === 'string' && typeof body.modelId === 'string'
     })
     .reply(200, responses[responseType] || responses.plaintext)
 
