@@ -37,9 +37,8 @@ async function sendQuestion (question, modelName) {
       }
     })
 
-    // Transform snake_case to camelCase for conversation_id
     return {
-      conversationId: data.conversation_id,
+      conversationId: data.conversationId,
       messages: parsedMessages
     }
   } catch (error) {
