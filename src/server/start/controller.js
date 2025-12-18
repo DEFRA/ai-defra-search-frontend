@@ -46,7 +46,7 @@ export const startPostController = {
   async handler (request, h) {
     const logger = createLogger()
 
-    logger.info('Processing user question submission modelId: %s', request.payload.modelId)
+    logger.info({ modelId: request.payload.modelId }, 'Processing user question submission')
 
     const { modelId, question } = request.payload
 
@@ -54,10 +54,8 @@ export const startPostController = {
 
     try {
       models = await getModels()
-      // Call the chat API with the user's question and selected model
       const response = await sendQuestion(question, modelId)
 
-      // Re-render the page with the response
       return h.view(END_POINT_PATH, {
         messages: response.messages,
         conversationId: response.conversationId,

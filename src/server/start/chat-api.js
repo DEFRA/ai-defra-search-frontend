@@ -2,7 +2,6 @@ import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
 import { marked } from 'marked'
-import { createLogger } from '../common/helpers/logging/logger.js'
 
 /**
  * Calls the chat API with a user question and returns the response.
@@ -13,8 +12,6 @@ import { createLogger } from '../common/helpers/logging/logger.js'
  * @throws {Error} If the API request fails
  */
 async function sendQuestion (question, modelId) {
-  const logger = createLogger()
-  logger.info('chat api modelId: %s', modelId)
   const chatApiUrl = config.get('chatApiUrl')
   const url = `${chatApiUrl}/chat`
 
