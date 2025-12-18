@@ -33,7 +33,7 @@ describe('Conversation Component', () => {
 
       const messages = [
         { role: 'user', content: 'User question', timestamp: '2024-01-01T10:00:00Z' },
-        { role: 'assistant', content: 'AI response', timestamp: '2024-01-01T10:01:00Z', model: 'Sonnet 3.7' }
+        { role: 'assistant', content: 'AI response', timestamp: '2024-01-01T10:01:00Z', modelName: 'Sonnet 3.7' }
       ]
 
       const html = env.renderString(template, { messages })
@@ -57,7 +57,7 @@ describe('Conversation Component', () => {
         }) }}
       `
       const messages = [
-        { role: 'assistant', content: 'Response from AI', timestamp: '2024-01-01T10:00:00Z', model: 'Sonnet 3.7' }
+        { role: 'assistant', content: 'Response from AI', timestamp: '2024-01-01T10:00:00Z', modelName: 'Sonnet 3.7' }
       ]
 
       const html = env.renderString(template, { messages })
@@ -170,11 +170,11 @@ describe('Conversation Component', () => {
 
       const messages = [
         { role: 'user', content: 'First question', timestamp: '2024-01-01T10:00:00Z' },
-        { role: 'assistant', content: 'First response', timestamp: '2024-01-01T10:01:00Z', model: 'Sonnet 3.7' },
+        { role: 'assistant', content: 'First response', timestamp: '2024-01-01T10:01:00Z', modelName: 'Sonnet 3.7' },
         { role: 'user', content: 'Second question', timestamp: '2024-01-01T10:02:00Z' },
-        { role: 'assistant', content: 'Second response', timestamp: '2024-01-01T10:03:00Z', model: 'Haiku' },
+        { role: 'assistant', content: 'Second response', timestamp: '2024-01-01T10:03:00Z', modelName: 'Haiku' },
         { role: 'user', content: 'Third question', timestamp: '2024-01-01T10:04:00Z' },
-        { role: 'assistant', content: 'Third response', timestamp: '2024-01-01T10:05:00Z', model: 'Sonnet 3.7' }
+        { role: 'assistant', content: 'Third response', timestamp: '2024-01-01T10:05:00Z', modelName: 'Sonnet 3.7' }
       ]
 
       const html = env.renderString(template, { messages })
@@ -197,8 +197,8 @@ describe('Conversation Component', () => {
       `
 
       const messages = [
-        { role: 'assistant', content: 'Response from Sonnet', timestamp: '2024-01-01T10:01:00Z', model: 'Sonnet 3.7' },
-        { role: 'assistant', content: 'Response from Haiku', timestamp: '2024-01-01T10:03:00Z', model: 'Haiku' }
+        { role: 'assistant', content: 'Response from Sonnet', timestamp: '2024-01-01T10:01:00Z', modelName: 'Sonnet 3.7' },
+        { role: 'assistant', content: 'Response from Haiku', timestamp: '2024-01-01T10:03:00Z', modelName: 'Haiku' }
       ]
 
       const html = env.renderString(template, { messages })
