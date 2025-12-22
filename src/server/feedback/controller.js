@@ -30,8 +30,8 @@ export const feedbackPostController = {
 
         logger.warn({ errors: validationErrors.map((error) => error.message) }, 'Feedback validation failed')
 
-        const errorSummary =[]
-        const fieldErrors ={}
+        const errorSummary = []
+        const fieldErrors = {}
 
         for (const details of validationErrors) {
           const field = details.path[0]

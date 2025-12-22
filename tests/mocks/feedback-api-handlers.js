@@ -12,7 +12,7 @@ function setupFeedbackApiMocks () {
     .post('/feedback', (body) => {
       return (
         (typeof body.conversation_id === 'string' || body.conversation_id === null) &&
-        typeof body.was_helpful === 'boolean'
+        typeof body.was_helpful === 'string'
       )
     })
     .reply(200, {
@@ -51,7 +51,7 @@ function setupFeedbackApiMockWithValidation (expectedPayload) {
     .post('/feedback', (body) => {
       return (
         body.conversation_id === expectedPayload.conversationId &&
-        body.was_helpful === (expectedPayload.wasHelpful === 'yes') &&
+        body.was_helpful === expectedPayload.wasHelpful &&
         (expectedPayload.comment ? body.comment === expectedPayload.comment : true)
       )
     })
