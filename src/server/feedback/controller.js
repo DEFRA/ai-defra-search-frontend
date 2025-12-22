@@ -37,12 +37,17 @@ export const feedbackPostController = {
           const field = details.path[0]
           const message = details.message
 
-          if (field === 'wasHelpful') {
-            errorSummary.push({ text: message, href: '#wasHelpful' })
-            fieldErrors.wasHelpful = { text: message }
-          } else if (field === 'comment') {
-            errorSummary.push({ text: message, href: '#comment' })
-            fieldErrors.comment = { text: message }
+          switch (field) {
+            case 'wasHelpful':
+              errorSummary.push({ text: message, href: '#wasHelpful' })
+              fieldErrors.wasHelpful = { text: message }
+              break
+            case 'comment':
+              errorSummary.push({ text: message, href: '#comment' })
+              fieldErrors.comment = { text: message }
+              break
+            default:
+              // No action needed for other fields (e.g., conversationId is a hidden input with no UI field error)
           }
         }
 
