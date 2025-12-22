@@ -300,6 +300,73 @@ describe('Feedback routes', () => {
       expect(errorSummary).not.toBeNull()
       expect(errorSummary?.textContent).toContain('1200 characters')
     })
+
+    test('should handle validation failure with logger warning for wasHelpful', async () => {
+      const conversationId = '550e8400-e29b-41d4-a716-446655440000'
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/feedback',
+        payload: {
+          conversationId,
+          wasHelpful: '' // Empty value triggers validation
+        }
+      })
+
+      expect(response.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+
+      // Verify error summary is displayed
+      const errorSummary = page.querySelector('.govuk-error-summary')
+      expect(errorSummary).not.toBeNull()
+      expect(errorSummary?.textContent).toContain('Select how useful the AI Assistant was')
+
+      // Verify field error is displayed
+      const fieldError = page.querySelector('.govuk-error-message')
+      expect(fieldError).not.toBeNull()
+
+      // Verify the form retains the conversationId
+      const hiddenInput = page.querySelector('input[name="conversationId"]')
+      expect(hiddenInput?.value).toBe(conversationId)
+    })
+
+    test('should handle validation failure for comment field', async () => {
+      const conversationId = '550e8400-e29b-41d4-a716-446655440000'
+      const tooLongComment = 'x'.repeat(1201) // Exceeds 1200 character limit
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/feedback',
+        payload: {
+          conversationId,
+          wasHelpful: 'useful',
+          comment: tooLongComment
+        }
+      })
+
+      expect(response.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+
+      // Verify error summary with comment error
+      const errorSummary = page.querySelector('.govuk-error-summary')
+      expect(errorSummary).not.toBeNull()
+      expect(errorSummary?.textContent).toContain('1200 characters')
+
+      // Verify error link points to comment field
+      const errorLink = page.querySelector('.govuk-error-summary__list a')
+      expect(errorLink?.getAttribute('href')).toBe('#comment')
+
+      // Verify the form retains both values
+      const hiddenInput = page.querySelector('input[name="conversationId"]')
+      expect(hiddenInput?.value).toBe(conversationId)
+
+      const usefulRadio = page.querySelector('input[value="useful"]')
+      expect(usefulRadio?.checked).toBe(true)
+    })
   })
 
   describe('GET /feedback/success', () => {
