@@ -16,9 +16,7 @@
         }) }}
       {% endif %}
 
-      <h1 class="govuk-heading-l">Give feedback on the AI Assistant</h1>
-
-      <p class="govuk-body">Help us improve the AI Assistant by sharing your feedback.</p>
+      <h1 class="govuk-heading-xl">Give feedback on the AI Assistant</h1>
 
       <form action="/feedback" method="post" novalidate>
         <input type="hidden" name="conversationId" value="{{ conversationId }}" />
@@ -27,20 +25,36 @@
           name: "wasHelpful",
           fieldset: {
             legend: {
-              text: "Was your AI response useful?",
+              text: "Overall, how useful was the AI Assistant for your task?",
               classes: "govuk-fieldset__legend--m"
             }
           },
-          items: [
+          errorMessage: fieldErrors.wasHelpful if fieldErrors and fieldErrors.wasHelpful else undefined,
+       items: [
             {
-              value: "yes",
-              text: "Yes",
-              checked: wasHelpful == "yes"
+              value: "very-useful",
+              text: "Very useful",
+              checked: wasHelpful == "very-useful"
             },
             {
-              value: "no",
-              text: "No",
-              checked: wasHelpful == "no"
+              value: "useful",
+              text: "Useful",
+              checked: wasHelpful == "useful"
+            },
+            {
+              value: "neither",
+              text: "Neither useful or not useful",
+              checked: wasHelpful == "neither"
+            },
+            {
+              value: "not-useful",
+              text: "Not useful",
+              checked: wasHelpful == "not-useful"
+            },
+            {
+              value: "not-at-all-useful",
+              text: "Not at all useful",
+              checked: wasHelpful == "not-at-all-useful"
             }
           ]
         }) }}
@@ -48,11 +62,15 @@
         {{ govukCharacterCount({
           name: "comment",
           id: "comment",
-          maxlength: 1000,
+          maxlength: 1200,
           label: {
-            text: "Please provide some context for your answer to help us improve the service? (optional)",
+            text: "How could we improve the AI Assistant?",
             classes: "govuk-label--m"
           },
+           hint: {
+            text: "Tell us what you were trying to do and how well it worked. Do not include personal or sensitive information."
+          },
+          errorMessage: fieldErrors.comment if fieldErrors and fieldErrors.comment else undefined,
           value: comment
         }) }}
 
@@ -63,14 +81,14 @@
             </span>
           </summary>
           <div class="govuk-details__text">
-            <p class="govuk-body">Your feedback helps us improve the AI Assistant service. We collect:</p>
+            <p class="govuk-body">We use your feedback to improve the AI Assistant. We collect:</p>
             <ul class="govuk-list govuk-list--bullet">
-              <li>Your response about whether the AI was useful</li>
-              <li>Any additional comments you provide</li>
-              <li>Technical information about your conversation</li>
+              <li>your rating of how useful the AI was</li>
+              <li>any comments you provide</li>
+              <li>technical information about your session</li>
             </ul>
-            <p class="govuk-body">We do not automatically collect your conversations or prompts. We only collect what you choose to share in your feedback comments.</p>
-            <p class="govuk-body">Read our <a href="/privacy" class="govuk-link">privacy notice</a> for more information about how we handle your data.</p>
+            <p class="govuk-body">We do not collect your conversations or prompts unless you include them in your comments.</p>
+            <p class="govuk-body">Read our <a href="https://www.gov.uk/help/privacy-notice" class="govuk-link">privacy notice</a> for more information.</p>
           </div>
         </details>
 
