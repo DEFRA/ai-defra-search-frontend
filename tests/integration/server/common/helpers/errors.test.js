@@ -25,7 +25,10 @@ describe('#errors', () => {
     const window = new JSDOM(result).window
     const { document } = window
 
-    expect(document.querySelector('p').textContent).toBe('Page not found')
+    // Select the main content paragraph, not the phase banner
+    const mainContent = document.querySelector('.govuk-main-wrapper')
+    const paragraph = mainContent?.querySelector('p')
+    expect(paragraph?.textContent).toBe('Page not found')
     expect(statusCode).toBe(statusCodes.NOT_FOUND)
   })
 })

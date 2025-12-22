@@ -7,7 +7,7 @@ import { config } from '../../config/config.js'
  *
  * @param {Object} feedback - The feedback data
  * @param {string} feedback.conversationId - The conversation ID
- * @param {string} feedback.wasHelpful - Whether the response was helpful (yes/no)
+ * @param {string} feedback.wasHelpful - Rating of usefulness (very-useful, useful, neither, not-useful, not-at-all-useful)
  * @param {string} feedback.comment - Optional user comment
  * @returns {Promise<void>}
  * @throws {Error} If the API request fails
@@ -24,7 +24,7 @@ async function submitFeedback ({ conversationId, wasHelpful, comment }) {
       },
       body: JSON.stringify({
         conversation_id: conversationId || null,
-        was_helpful: wasHelpful ? wasHelpful === 'yes' : null,
+        was_helpful: wasHelpful || null,
         comment: comment || null
       })
     })

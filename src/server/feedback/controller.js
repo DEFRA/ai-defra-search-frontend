@@ -26,20 +26,37 @@ export const feedbackPostController = {
       payload: feedbackPostSchema,
       failAction: async (request, h, error) => {
         const logger = createLogger()
-        const errorMessage = error.details[0]?.message
+        const validationErrors = error.details || []
 
-        logger.warn({ error: errorMessage }, 'Feedback validation failed')
+        logger.warn({ errors: validationErrors.map((err) => err.message) }, 'Feedback validation failed')
+
+        const errorSummary = []
+        const fieldErrors = {}
+
+        for (const details of validationErrors) {
+          const field = details.path[0]
+          const message = details.message
+
+          switch (field) {
+            case 'wasHelpful':
+              errorSummary.push({ text: message, href: '#wasHelpful' })
+              fieldErrors.wasHelpful = { text: message }
+              break
+            case 'comment':
+              errorSummary.push({ text: message, href: '#comment' })
+              fieldErrors.comment = { text: message }
+              break
+            default:
+              // No action needed for other fields (e.g., conversationId is a hidden input with no UI field error)
+          }
+        }
 
         return h.view(FEEDBACK_PATH, {
           conversationId: request.payload?.conversationId || '',
           wasHelpful: request.payload?.wasHelpful,
           comment: request.payload?.comment,
-          errors: [
-            {
-              text: errorMessage,
-              href: '#wasHelpful'
-            }
-          ]
+          errors: errorSummary,
+          fieldErrors
         }).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
@@ -63,7 +80,7 @@ export const feedbackPostController = {
         wasHelpful,
         comment,
         errors: [{
-          text: 'Sorry, there was a problem submitting your feedback. Please try again.',
+          text: 'There was a problem submitting your feedback. Please try again.',
           href: '#wasHelpful'
         }]
       }).code(statusCodes.INTERNAL_SERVER_ERROR)
