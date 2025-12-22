@@ -36,7 +36,7 @@ export const startPostController = {
 
         return h.view(END_POINT_PATH, {
           question: request.payload?.question,
-          modelName: request.payload?.modelName,
+          modelId: request.payload?.modelId,
           models,
           errorMessage
         }).code(statusCodes.BAD_REQUEST).takeover()
@@ -45,20 +45,21 @@ export const startPostController = {
   },
   async handler (request, h) {
     const logger = createLogger()
-    const { modelName, question } = request.payload
+
+    logger.info({ modelId: request.payload.modelId }, 'Processing user question submission')
+
+    const { modelId, question } = request.payload
 
     let models = []
 
     try {
       models = await getModels()
-      // Call the chat API with the user's question and selected model
-      const response = await sendQuestion(question, modelName)
+      const response = await sendQuestion(question, modelId)
 
-      // Re-render the page with the response
       return h.view(END_POINT_PATH, {
         messages: response.messages,
         conversationId: response.conversationId,
-        modelName,
+        modelId,
         models
       })
     } catch (error) {
@@ -66,7 +67,7 @@ export const startPostController = {
 
       return h.view(END_POINT_PATH, {
         question,
-        modelName,
+        modelId,
         models,
         errorMessage: 'Sorry, there was a problem getting a response. Please try again.'
       })

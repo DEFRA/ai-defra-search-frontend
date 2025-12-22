@@ -68,7 +68,7 @@ describe('Start routes', () => {
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is **UCD**?'
       }
     })
@@ -98,7 +98,7 @@ describe('Start routes', () => {
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is UCD?'
       }
     })
@@ -122,7 +122,7 @@ describe('Start routes', () => {
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Haiku',
+        modelId: 'haiku',
         question: 'What is user centred design?'
       }
     })
@@ -164,7 +164,7 @@ describe('Start routes', () => {
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: ''
       }
     })
@@ -185,7 +185,7 @@ describe('Start routes', () => {
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'f'.repeat(501)
       }
     })
@@ -202,12 +202,13 @@ describe('Start routes', () => {
   test('POST /start - when chat API returns 500 INTERNAL_SERVER_ERROR error then should display error message', async () => {
     // Setup 500 error mock
     setupChatApiErrorMock(statusCodes.INTERNAL_SERVER_ERROR)
+    setupModelsApiMocks()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
       }
     })
@@ -225,12 +226,13 @@ describe('Start routes', () => {
   test('POST /start - when chat API returns 502 Bad Gateway then should display error message', async () => {
     // Setup 502 error mock
     setupChatApiErrorMock(statusCodes.BAD_GATEWAY)
+    setupModelsApiMocks()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
       }
     })
@@ -248,12 +250,13 @@ describe('Start routes', () => {
   test('POST /start - when chat API returns 503 Service Unavailable then should display error message', async () => {
     // Setup 503 error mock
     setupChatApiErrorMock(statusCodes.SERVICE_UNAVAILABLE)
+    setupModelsApiMocks()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
       }
     })
@@ -271,12 +274,13 @@ describe('Start routes', () => {
   test('POST /start - when chat API returns 504 Gateway Timeout then should display error message', async () => {
     // Setup 504 error mock
     setupChatApiErrorMock(statusCodes.GATEWAY_TIMEOUT)
+    setupModelsApiMocks()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
       }
     })
@@ -294,12 +298,13 @@ describe('Start routes', () => {
   test('POST /start - when chat API connection times out then should display error message', async () => {
     // Setup network timeout mock
     setupChatApiErrorMock(null, 'timeout')
+    setupModelsApiMocks()
 
     const response = await server.inject({
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
       }
     })
@@ -361,7 +366,7 @@ describe('Start routes', () => {
       method: 'POST',
       url: '/start',
       payload: {
-        modelName: 'Sonnet 3.7',
+        modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
       }
     })

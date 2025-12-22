@@ -1,5 +1,5 @@
 {%- set models = params.models if params.models else [] -%}
-{%- set selectedModelName = params.modelName if params.modelName else '' -%}
+{%- set selectedModelId = params.modelId if params.modelId else '' -%}
 
 {% if models.length > 0 %}
   <fieldset class="govuk-fieldset govuk-!-margin-bottom-8">
@@ -15,10 +15,10 @@
           <input
             class="govuk-radios__input"
             id="model-{{ loop.index }}"
-            name="modelName"
+            name="modelId"
             type="radio"
-            value="{{ model.modelName }}"
-            {% if selectedModelName and model.modelName == selectedModelName %}checked{% elif not selectedModelName and loop.first %}checked{% endif %}
+            value="{{ model.modelId }}"
+            {% if selectedModelId and model.modelId == selectedModelId %}checked{% elif not selectedModelId and loop.first %}checked{% endif %}
           />
           <label class="govuk-label govuk-radios__label defra-model-select__label" for="model-{{ loop.index }}">
             <div class="defra-model-select__model-name">{{ model.modelName }}</div>

@@ -12,10 +12,12 @@ function setupModelsApiMocks () {
     .get('/models')
     .reply(200, [
       {
+        modelId: 'sonnet-3.7',
         modelName: 'Sonnet 3.7',
         modelDescription: 'Best for detailed guidance and complex questions'
       },
       {
+        modelId: 'haiku',
         modelName: 'Haiku',
         modelDescription: 'Best for quick answers and simple questions'
       }
