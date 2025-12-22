@@ -28,7 +28,7 @@
         </div>
         <div class="govuk-!-display-flex govuk-!-justify-content-space-between govuk-!-margin-top-0">
           <p class="govuk-body-s govuk-!-margin-top-0 govuk-!-margin-bottom-0">
-            <strong>AI Assistant</strong> {% if message.model %}({{ message.model }}){% endif %} {% if message.timestamp %}({{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}){% endif %}
+            <strong>AI Assistant</strong> {% if message.modelName %}({{ message.modelName }}){% endif %} {% if message.timestamp %}({{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}){% endif %}
           </p>
         </div>
       {% endif %}
