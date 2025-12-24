@@ -2,7 +2,7 @@ import statusCodes from 'http-status-codes'
 
 import { sendQuestion } from './chat-api.js'
 import { getModels } from './models-api.js'
-import { startPostSchema } from './chat-schema.js'
+import { startPostSchema, startQuerySchema } from './chat-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
 const END_POINT_PATH = 'start/start'
@@ -28,14 +28,17 @@ export const startPostController = {
   options: {
     validate: {
       payload: startPostSchema,
+      query: startQuerySchema,
       failAction: async (request, h, error) => {
         const errorMessage = error.details[0]?.message
+        const conversationId = request.query.conversationId
 
         let models = []
         models = await getModels()
 
         return h.view(END_POINT_PATH, {
           question: request.payload?.question,
+          conversationId,
           modelId: request.payload?.modelId,
           models,
           errorMessage
@@ -49,12 +52,13 @@ export const startPostController = {
     logger.info({ modelId: request.payload.modelId }, 'Processing user question submission')
 
     const { modelId, question } = request.payload
+    const conversationId = request.query.conversationId
 
     let models = []
 
     try {
       models = await getModels()
-      const response = await sendQuestion(question, modelId)
+      const response = await sendQuestion(question, modelId, conversationId)
 
       return h.view(END_POINT_PATH, {
         messages: response.messages,
@@ -67,6 +71,7 @@ export const startPostController = {
 
       return h.view(END_POINT_PATH, {
         question,
+        conversationId,
         modelId,
         models,
         errorMessage: 'Sorry, there was a problem getting a response. Please try again.'

@@ -114,6 +114,58 @@ describe('Start routes', () => {
     expect(bodyText).toContain('User-Centred Design (UCD) is a framework')
   })
 
+  test('POST /start with conversationId should continue existing conversation', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks('plaintext')
+
+    const questionResponse = await server.inject({
+      method: 'POST',
+      url: '/start?conversationId=existing-conversation-123',
+      payload: {
+        modelId: 'sonnet-3.7',
+        question: 'Tell me more about that'
+      }
+    })
+
+    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(questionResponse.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Tell me more about that')
+    expect(bodyText).toContain('User-Centred Design (UCD)')
+
+    // Check that the form action includes the conversationId
+    const form = page.querySelector('form[action*="conversationId"]')
+    expect(form).not.toBeNull()
+    expect(form.getAttribute('action')).toContain('conversationId=mock-conversation-123')
+  })
+
+  test('POST /start without conversationId should start new conversation', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks('plaintext')
+
+    const questionResponse = await server.inject({
+      method: 'POST',
+      url: '/start',
+      payload: {
+        modelId: 'sonnet-3.7',
+        question: 'What is UCD?'
+      }
+    })
+
+    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(questionResponse.result)
+    const page = window.document
+
+    // Check that the form action includes the conversationId from response
+    const form = page.querySelector('form[action*="conversationId"]')
+    expect(form).not.toBeNull()
+    expect(form.getAttribute('action')).toContain('conversationId=mock-conversation-123')
+  })
+
   test('POST /start with different models should send the selected model in the request', async () => {
     setupModelsApiMocks()
     setupChatApiMocks()
@@ -135,7 +187,7 @@ describe('Start routes', () => {
     // Verify the selected model is preserved in the form
     const bodyText = page.body.textContent
     expect(bodyText).toContain('AI assistant')
-    expect(bodyText).toContain('What is UCD?')
+    expect(bodyText).toContain('What is user centred design?')
     expect(bodyText).toContain('User-Centred Design (UCD)')
   })
 
@@ -183,7 +235,7 @@ describe('Start routes', () => {
 
     const response = await server.inject({
       method: 'POST',
-      url: '/start',
+      url: '/start?conversationId=existing-conv-456',
       payload: {
         modelId: 'sonnet-3.7',
         question: 'f'.repeat(501)
@@ -197,6 +249,10 @@ describe('Start routes', () => {
 
     const errorSummary = page.querySelector('.govuk-error-summary')
     expect(errorSummary).not.toBeNull()
+
+    // Check that conversationId is preserved in the form action
+    const form = page.querySelector('form')
+    expect(form.getAttribute('action')).toContain('conversationId=existing-conv-456')
   })
 
   test('POST /start - when chat API returns 500 INTERNAL_SERVER_ERROR error then should display error message', async () => {
@@ -206,7 +262,7 @@ describe('Start routes', () => {
 
     const response = await server.inject({
       method: 'POST',
-      url: '/start',
+      url: '/start?conversationId=error-conversation-789',
       payload: {
         modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
@@ -221,6 +277,10 @@ describe('Start routes', () => {
     const bodyText = page.body.textContent
     expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
     expect(bodyText).toContain('What is user centred design?') // Question should be preserved
+
+    // Check that conversationId is preserved in the form action
+    const form = page.querySelector('form')
+    expect(form.getAttribute('action')).toContain('conversationId=error-conversation-789')
   })
 
   test('POST /start - when chat API returns 502 Bad Gateway then should display error message', async () => {
