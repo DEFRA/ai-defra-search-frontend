@@ -2,7 +2,7 @@ import statusCodes from 'http-status-codes'
 
 import { sendQuestion } from './chat-api.js'
 import { getModels } from './models-api.js'
-import { startPostSchema, startQuerySchema } from './chat-schema.js'
+import { startPostSchema, startParamsSchema } from './chat-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
 const END_POINT_PATH = 'start/start'
@@ -28,10 +28,10 @@ export const startPostController = {
   options: {
     validate: {
       payload: startPostSchema,
-      query: startQuerySchema,
+      params: startParamsSchema,
       failAction: async (request, h, error) => {
         const errorMessage = error.details[0]?.message
-        const conversationId = request.query.conversationId
+        const conversationId = request.params.conversationId
 
         let models = []
         models = await getModels()
@@ -52,7 +52,7 @@ export const startPostController = {
     logger.info({ modelId: request.payload.modelId }, 'Processing user question submission')
 
     const { modelId, question } = request.payload
-    const conversationId = request.query.conversationId
+    const conversationId = request.params.conversationId
 
     let models = []
 

@@ -18,8 +18,8 @@ const startPostSchema = Joi.object({
     })
 })
 
-const startQuerySchema = Joi.object({
-  conversationId: Joi.string().allow('').optional()
+const startParamsSchema = Joi.object({
+  conversationId: Joi.string().optional()
 })
 
-export { startPostSchema, startQuerySchema }
+export { startPostSchema, startParamsSchema }

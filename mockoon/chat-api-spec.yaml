@@ -23,7 +23,7 @@ paths:
                 - question
                 - modelId
               properties:
-                conversationId:
+                conversation_id:
                   type: string
                   format: uuid
                   description: Optional conversation ID. If not provided, a new conversation will be created

@@ -56,7 +56,7 @@
             messages: messages
           }) }}
 
-          <form action="/start{% if conversationId %}?conversationId={{ conversationId }}{% endif %}" method="post" novalidate>
+          <form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate>
 
             {{ govukTextarea({
               name: "question",
@@ -93,7 +93,7 @@
     <div class="app-prompt-input-container">
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
-          <form action="/start{% if conversationId %}?conversationId={{ conversationId }}{% endif %}" method="post" novalidate>
+          <form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate>
              {{ govukTextarea({
               name: "question",
               id: "question",

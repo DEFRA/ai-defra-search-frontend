@@ -120,7 +120,7 @@ describe('Start routes', () => {
 
     const questionResponse = await server.inject({
       method: 'POST',
-      url: '/start?conversationId=existing-conversation-123',
+      url: '/start/existing-conversation-123',
       payload: {
         modelId: 'sonnet-3.7',
         question: 'Tell me more about that'
@@ -137,9 +137,9 @@ describe('Start routes', () => {
     expect(bodyText).toContain('User-Centred Design (UCD)')
 
     // Check that the form action includes the conversationId
-    const form = page.querySelector('form[action*="conversationId"]')
+    const form = page.querySelector('form[action*="mock-conversation-123"]')
     expect(form).not.toBeNull()
-    expect(form.getAttribute('action')).toContain('conversationId=mock-conversation-123')
+    expect(form.getAttribute('action')).toContain('/start/mock-conversation-123')
   })
 
   test('POST /start without conversationId should start new conversation', async () => {
@@ -161,9 +161,9 @@ describe('Start routes', () => {
     const page = window.document
 
     // Check that the form action includes the conversationId from response
-    const form = page.querySelector('form[action*="conversationId"]')
+    const form = page.querySelector('form[action*="mock-conversation-123"]')
     expect(form).not.toBeNull()
-    expect(form.getAttribute('action')).toContain('conversationId=mock-conversation-123')
+    expect(form.getAttribute('action')).toContain('/start/mock-conversation-123')
   })
 
   test('POST /start with different models should send the selected model in the request', async () => {
@@ -235,7 +235,7 @@ describe('Start routes', () => {
 
     const response = await server.inject({
       method: 'POST',
-      url: '/start?conversationId=existing-conv-456',
+      url: '/start/existing-conv-456',
       payload: {
         modelId: 'sonnet-3.7',
         question: 'f'.repeat(501)
@@ -252,7 +252,7 @@ describe('Start routes', () => {
 
     // Check that conversationId is preserved in the form action
     const form = page.querySelector('form')
-    expect(form.getAttribute('action')).toContain('conversationId=existing-conv-456')
+    expect(form.getAttribute('action')).toContain('/start/existing-conv-456')
   })
 
   test('POST /start - when chat API returns 500 INTERNAL_SERVER_ERROR error then should display error message', async () => {
@@ -262,7 +262,7 @@ describe('Start routes', () => {
 
     const response = await server.inject({
       method: 'POST',
-      url: '/start?conversationId=error-conversation-789',
+      url: '/start/error-conversation-789',
       payload: {
         modelId: 'sonnet-3.7',
         question: 'What is user centred design?'
@@ -280,7 +280,7 @@ describe('Start routes', () => {
 
     // Check that conversationId is preserved in the form action
     const form = page.querySelector('form')
-    expect(form.getAttribute('action')).toContain('conversationId=error-conversation-789')
+    expect(form.getAttribute('action')).toContain('/start/error-conversation-789')
   })
 
   test('POST /start - when chat API returns 502 Bad Gateway then should display error message', async () => {
