@@ -21,6 +21,7 @@ paths:
               type: object
               required:
                 - question
+                - modelId
               properties:
                 conversation_id:
                   type: string
@@ -31,6 +32,10 @@ paths:
                   type: string
                   description: The user's question or message
                   example: "What is the weather like today?"
+                modelId:
+                  type: string
+                  description: The ID of the AI model to use
+                  example: "sonnet-3.7"
             examples:
               newConversation:
                 summary: New conversation
@@ -121,27 +126,30 @@ components:
       type: object
       required:
         - question
+        - modelId
       properties:
-        conversation_id:
+        conversationId:
           type: string
           format: uuid
         question:
           type: string
-    
+        modelId:
+          type: string
+
     ChatResponse:
       type: object
       required:
-        - conversation_id
+        - conversationId
         - messages
       properties:
-        conversation_id:
+        conversationId:
           type: string
           format: uuid
         messages:
           type: array
           items:
             $ref: '#/components/schemas/Message'
-    
+
     Message:
       type: object
       required:
