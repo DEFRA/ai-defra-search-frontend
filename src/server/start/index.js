@@ -17,7 +17,7 @@ export const start = {
         },
         {
           method: 'POST',
-          path: '/start',
+          path: '/start/{conversationId?}',
           ...startPostController
         },
         {

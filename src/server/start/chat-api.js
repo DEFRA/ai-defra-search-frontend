@@ -8,10 +8,11 @@ import { marked } from 'marked'
  *
  * @param {string} question - The user's question
  * @param {string} modelId - The ID of the AI model to use
+ * @param {string} conversationId - Optional conversation ID to continue an existing conversation
  * @returns {Promise<Object>} The API response containing conversationId and messages
  * @throws {Error} If the API request fails
  */
-async function sendQuestion (question, modelId) {
+async function sendQuestion (question, modelId, conversationId) {
   const chatApiUrl = config.get('chatApiUrl')
   const url = `${chatApiUrl}/chat`
 
@@ -21,7 +22,11 @@ async function sendQuestion (question, modelId) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ question, modelId })
+      body: JSON.stringify({
+        question,
+        conversation_id: conversationId || null,
+        modelId
+      })
     })
 
     if (!response.ok) {
