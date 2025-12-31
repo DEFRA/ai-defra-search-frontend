@@ -1,7 +1,6 @@
 import path from 'path'
 import hapi from '@hapi/hapi'
 import cookie from '@hapi/cookie'
-import Scooter from '@hapi/scooter'
 
 import { auth } from './common/helpers/auth.js'
 import { router } from './router.js'
@@ -15,7 +14,8 @@ import { requestLogger } from './common/helpers/logging/request-logger.js'
 import { sessionCache } from './common/helpers/session-cache/session-cache.js'
 import { getCacheEngine } from './common/helpers/session-cache/cache-engine.js'
 import { secureContext } from '@defra/hapi-secure-context'
-import { contentSecurityPolicy } from './common/helpers/content-security-policy.js'
+import { contentSecurityPolicy } from './common/helpers/content-security-policy/policy.js'
+import { userAgentParser } from './common/helpers/user-agent.js'
 
 export async function createServer () {
   setupProxy()
@@ -64,10 +64,10 @@ export async function createServer () {
     pulse,
     sessionCache,
     nunjucksConfig,
-    Scooter,
-    contentSecurityPolicy,
     auth,
-    router
+    router,
+    userAgentParser,
+    contentSecurityPolicy
   ])
 
   server.app.cache = server.cache({

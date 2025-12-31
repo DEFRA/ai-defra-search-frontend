@@ -1,4 +1,4 @@
-import { createServer } from '../../../../../src/server/server.js'
+import { createServer } from '../../../../../../src/server/server.js'
 
 describe('#contentSecurityPolicy', () => {
   let server
@@ -7,7 +7,6 @@ describe('#contentSecurityPolicy', () => {
   beforeAll(async () => {
     originalEnv = { ...process.env }
 
-    // Disable authentication for CSP test
     process.env.AUTH_ENABLED = 'false'
 
     server = await createServer()

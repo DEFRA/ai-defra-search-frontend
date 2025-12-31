@@ -43,10 +43,8 @@ jobs:
       - name: Check lockfile is up to date
         run: npm ci
 
-      - name: Check for expired Trivy ignores
-        run: |
-          chmod +x ./scripts/check-trivy-ignores.sh
-          ./scripts/check-trivy-ignores.sh
+      - name: Run NPM audit
+        run: npm audit
 
       - name: Run Aqua Trivy scan
         id: trivy-scan
