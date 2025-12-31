@@ -1,6 +1,6 @@
 import Hapi from '@hapi/hapi'
 
-import { plugin as cspPlugin } from '../../../../../../../src/server/common/helpers/content-security-policy/plugin.js'
+import { plugin as cspPlugin } from '../../../../../../../src/server/common/helpers/content-security-policy/plugin/plugin.js'
 import { userAgentParser } from '../../../../../../../src/server/common/helpers/user-agent.js'
 
 describe('Generic CSP Headers', () => {

@@ -1,6 +1,11 @@
 import Joi from 'joi'
 
-const schema = Joi.object({
+import {
+  arrayValues,
+  needQuotes
+} from './constants.js'
+
+const optionsSchema = Joi.object({
   baseUri: Joi.array().items(Joi.string()).single().default(['self']),
   childSrc: Joi.array().items(Joi.string()).single(),
   connectSrc: Joi.array().items(Joi.string()).single().default(['self']),
@@ -31,6 +36,38 @@ const schema = Joi.object({
   generateNonces: Joi.alternatives().try(Joi.boolean(), Joi.string().valid('script', 'style')).default(true)
 }).with('reportOnly', 'reportUri')
 
+/**
+ * Validates and processes the provided options for the CSP plugin against joi schema.
+ *
+ * @param {object} options - The options to validate.
+ * @returns {object|Error} The validated and processed options, or an Error if validation fails.
+ */
+function validateOptions (options) {
+  const { error, value } = optionsSchema.validate(options)
+
+  if (error) {
+    return error
+  }
+
+  arrayValues.forEach((key) => {
+    if (value[key] !== undefined) {
+      if (key === 'sandbox' && value[key] === true) {
+        return
+      }
+
+      value[key] = value[key].map((val) => {
+        if (needQuotes.indexOf(val) !== -1) {
+          return `'${val}'`
+        }
+
+        return val
+      })
+    }
+  })
+
+  return value
+}
+
 export {
-  schema
+  validateOptions
 }
