@@ -1,4 +1,4 @@
-import { plugin as cspPlugin } from './plugin/plugin.js'
+import { cspPlugin } from './plugin/csp-plugin.js'
 
 const contentSecurityPolicy = {
   plugin: cspPlugin,

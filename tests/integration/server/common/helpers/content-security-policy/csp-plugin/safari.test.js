@@ -1,6 +1,6 @@
 import Hapi from '@hapi/hapi'
 
-import { plugin as cspPlugin } from '../../../../../../../src/server/common/helpers/content-security-policy/plugin/plugin.js'
+import { cspPlugin } from '../../../../../../../src/server/common/helpers/content-security-policy/plugin/csp-plugin.js'
 import { userAgentParser } from '../../../../../../../src/server/common/helpers/user-agent.js'
 
 describe('Safari Content Security Policies', () => {

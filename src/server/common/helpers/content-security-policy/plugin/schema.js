@@ -56,7 +56,7 @@ function validateOptions (options) {
       }
 
       value[key] = value[key].map((val) => {
-        if (needQuotes.indexOf(val) !== -1) {
+        if (needQuotes.includes(val)) {
           return `'${val}'`
         }
 

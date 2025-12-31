@@ -1,91 +1,52 @@
 /**
- * Content Security Policy (CSP) plugin for Hapi.js
+ * Content Security Policy (CSP) plugin for Hapi.js based on
+ * https://github.com/nlf/blankie.
  *
- * This plugin is based on the blankie library: https://github.com/nlf/blankie
  * It provides Content Security Policy header generation with browser-specific
  * implementations for Firefox, Chrome, Safari, and Internet Explorer.
  *
- * @module contentSecurityPolicy/plugin
+ * @module cspPlugin
  */
-
-import crypto from 'node:crypto'
 
 import * as Hoek from '@hapi/hoek'
 
 import {
-  directiveMap,
-  directiveNames,
   keyToConfigMap,
-  stringValues
 } from './constants.js'
 
 import { validateOptions } from './schema.js'
 import { getDefaultPolicyOptions } from './browsers/generic.js'
-import { getFirefox4PolicyOptions, getFirefoxPolicyOptions } from './browsers/firefox.js'
+import { getFirefoxPolicyOptions } from './browsers/firefox.js'
 import { getChromePolicyOptions } from './browsers/chrome.js'
 import { getSafariPolicyOptions } from './browsers/safari.js'
 import { getInternetExplorerPolicyOptions } from './browsers/ie.js'
+import { generatePolicy } from './policy-generator.js'
+import { nonceShouldBeGenerated, generateNonce } from './nonce-utils.js'
 
-function _nonceShouldBeGenerated (options, key) {
-  return options.generateNonces === true || options.generateNonces === keyToConfigMap[key]
-}
-
-function _generateNonce () {
-  const bytes = crypto.randomBytes(16)
-
-  return bytes.toString('hex')
-}
-
-/**
- * @private
- * Generates the Content Security Policy header string based on the provided options.
- *
- * @param {object} options - The policy options.
- * @param {import('@hapi/hapi').Request} request - The Hapi request object.
- * @returns {string} The generated Content Security Policy header string.
- */
-function _generatePolicy (options, request) {
-  const policy = []
-
-  // map the camel case names to proper directive names
-  // and join their values into strings
-  for (const key of directiveNames) {
-    if (!options[key]) {
-      continue
+const cspPlugin = {
+  name: 'contentSecurityPolicy',
+  register: function (server, options) {
+    const pluginState = {
+      cspCallback: null,
+      options: null
     }
 
-    const directive = directiveMap[key] || key
-
-    if (stringValues.indexOf(key) >= 0) {
-      policy.push(`${directive} ${options[key]}`)
-      continue
-    }
-
-    if (key === 'sandbox' && options[key] === true) {
-      // it's allowed to have a sandbox directive with no value
-      policy.push('sandbox')
-      continue
-    }
-
-    if ((key === 'scriptSrc' || key === 'styleSrc') && _nonceShouldBeGenerated(options, key)) {
-      const nonce = request.plugins.contentSecurityPolicy ? request.plugins.contentSecurityPolicy.nonces[keyToConfigMap[key]] : _generateNonce()
-      const sources = Hoek.clone(options[key])
-
-      sources.push(`'nonce-${nonce}'`)
-      policy.push(`${directive} ${sources.join(' ')}`)
-
-      if (request.response.variety === 'view') {
-        request.response.source.context = Hoek.applyToDefaults({ nonce }, request.response.source.context || {})
-        request.response.source.context[`${key.slice(0, -3)}-nonce`] = nonce
+    if (typeof options === 'function') {
+      pluginState.cspCallback = options
+    } else {
+      pluginState.options = validateOptions(options)
+      if (pluginState.options instanceof Error) {
+        throw pluginState.options
       }
-
-      continue
     }
 
-    policy.push(`${directive} ${options[key].join(' ')}`)
-  }
+    server.expose(pluginState)
 
-  return policy.join(';')
+    server.ext('onPreHandler', _attachNonces)
+    server.ext('onPreResponse', _addCspHeaders)
+  },
+  dependencies: ['userAgentParser'],
+  once: true
 }
 
 /**
@@ -104,15 +65,7 @@ function _getOptionsByUserAgent (userAgent, options) {
     case 'chrome':
       return getChromePolicyOptions(options, version)
     case 'firefox':
-      if (version === 4) {
-        return getFirefox4PolicyOptions(options, version)
-      }
-
-      if (version >= 5 && version <= 23) {
-        return getFirefoxPolicyOptions(options, version)
-      }
-
-      return getDefaultPolicyOptions(options)
+      return getFirefoxPolicyOptions(options, version)
     case 'safari':
       return getSafariPolicyOptions(options, version)
     case 'ie':
@@ -135,10 +88,17 @@ function _attachNonces (request, h) {
   }
 
   for (const key of ['scriptSrc', 'styleSrc']) {
-    if (_nonceShouldBeGenerated(options, key)) {
-      const nonce = _generateNonce()
-      request.plugins.contentSecurityPolicy = Object.assign({}, request.plugins.contentSecurityPolicy)
-      request.plugins.contentSecurityPolicy.nonces = Object.assign({}, request.plugins.contentSecurityPolicy.nonces)
+    if (nonceShouldBeGenerated(options, key)) {
+      const nonce = generateNonce()
+
+      request.plugins.contentSecurityPolicy = {
+        ...request.plugins.contentSecurityPolicy
+      }
+
+      request.plugins.contentSecurityPolicy.nonces = {
+        ...request.plugins.contentSecurityPolicy.nonces
+      }
+
       request.plugins.contentSecurityPolicy.nonces[keyToConfigMap[key]] = nonce
     }
   }
@@ -239,7 +199,7 @@ function _addCspHeaders (request, h) {
   const { headerName, policyOptions } = _getOptionsByUserAgent(userAgent, options)
   const finalHeaderName = options.reportOnly ? `${headerName}-Report-Only` : headerName
 
-  const policy = _generatePolicy(policyOptions, request)
+  const policy = generatePolicy(policyOptions, request)
 
   if (request.response.isBoom) {
     request.response.output.headers[finalHeaderName] = policy
@@ -250,32 +210,6 @@ function _addCspHeaders (request, h) {
   return h.continue
 }
 
-const plugin = {
-  name: 'contentSecurityPolicy',
-  register: function (server, options) {
-    const pluginState = {
-      cspCallback: null,
-      options: null
-    }
-
-    if (typeof options === 'function') {
-      pluginState.cspCallback = options
-    } else {
-      pluginState.options = validateOptions(options)
-      if (pluginState.options instanceof Error) {
-        throw pluginState.options
-      }
-    }
-
-    server.expose(pluginState)
-
-    server.ext('onPreHandler', _attachNonces)
-    server.ext('onPreResponse', _addCspHeaders)
-  },
-  dependencies: ['userAgentParser'],
-  once: true
-}
-
 export {
-  plugin
+  cspPlugin
 }
