@@ -79,6 +79,11 @@ const keyToConfigMap = {
   styleSrc: 'style'
 }
 
+const nonceContextKeys = {
+  scriptSrc: 'script-nonce',
+  styleSrc: 'style-nonce'
+}
+
 export {
   arrayValues,
   directiveMap,
@@ -87,5 +92,6 @@ export {
   allHeaders,
   needQuotes,
   stringValues,
-  keyToConfigMap
+  keyToConfigMap,
+  nonceContextKeys
 }

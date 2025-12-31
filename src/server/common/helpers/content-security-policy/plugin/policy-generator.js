@@ -4,6 +4,7 @@ import {
   directiveMap,
   directiveNames,
   keyToConfigMap,
+  nonceContextKeys,
   stringValues
 } from './constants.js'
 
@@ -19,16 +20,6 @@ import { nonceShouldBeGenerated, generateNonce } from './nonce-utils.js'
  */
 function _generateStringDirective (directive, value) {
   return `${directive} ${value}`
-}
-
-/**
- * @private
- * Generates a directive string for the sandbox directive.
- *
- * @returns {string} The sandbox directive string.
- */
-function _generateSandboxDirective () {
-  return 'sandbox'
 }
 
 /**
@@ -49,7 +40,7 @@ function _generateNonceDirective (key, directive, options, request) {
 
   if (request.response.variety === 'view') {
     request.response.source.context = Hoek.applyToDefaults({ nonce }, request.response.source.context || {})
-    request.response.source.context[`${key.slice(0, -3)}-nonce`] = nonce
+    request.response.source.context[nonceContextKeys[key]] = nonce
   }
 
   return `${directive} ${sources.join(' ')}`
@@ -83,12 +74,12 @@ function _generateDirective (key, options, request) {
 
   const directive = directiveMap[key] || key
 
-  if (stringValues.indexOf(key) >= 0) {
+  if (stringValues.includes(key)) {
     return _generateStringDirective(directive, options[key])
   }
 
   if (key === 'sandbox' && options[key] === true) {
-    return _generateSandboxDirective()
+    return 'sandbox'
   }
 
   if ((key === 'scriptSrc' || key === 'styleSrc') && nonceShouldBeGenerated(options, key)) {
