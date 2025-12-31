@@ -1,9 +1,7 @@
 import Hapi from '@hapi/hapi'
-import crypto from 'crypto'
 
 import { plugin as cspPlugin } from '../../../../../../../src/server/common/helpers/content-security-policy/plugin.js'
 import { userAgentParser } from '../../../../../../../src/server/common/helpers/user-agent.js'
-import { contentSecurityPolicy } from '../../../../../../../src/server/common/helpers/content-security-policy/policy.js'
 
 describe('Generic CSP Headers', () => {
   let server
