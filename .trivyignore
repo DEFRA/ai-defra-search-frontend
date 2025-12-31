@@ -7,7 +7,3 @@
 # CVE-2021-12345 exp:2023-12-31T23:59:59.000Z
 #
 # See https://trivy.dev/docs/latest/configuration/filtering/#trivyignore
-
-# Useragent: Regular Expression Denial of Service (ReDoS)
-# Reason: Solution needs to be discussed
-CVE-2020-26311 exp:2026-01-13T15:00:00.000Z
