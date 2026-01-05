@@ -3,6 +3,7 @@ import statusCodes from 'http-status-codes'
 import { submitFeedback } from './feedback-api.js'
 import { feedbackPostSchema } from './feedback-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
+import { formatGdsErrorSummary, formatFieldErrors } from '../common/helpers/validation/format-validation-errors.js'
 
 const FEEDBACK_PATH = 'feedback/feedback'
 const SUCCESS_PATH = 'feedback/success'
@@ -31,33 +32,12 @@ export const feedbackPostController = {
 
         logger.warn({ errors: validationErrors.map((err) => err.message) }, 'Feedback validation failed')
 
-        const errorSummary = []
-        const fieldErrors = {}
-
-        for (const details of validationErrors) {
-          const field = details.path[0]
-          const message = details.message
-
-          switch (field) {
-            case 'wasHelpful':
-              errorSummary.push({ text: message, href: '#wasHelpful' })
-              fieldErrors.wasHelpful = { text: message }
-              break
-            case 'comment':
-              errorSummary.push({ text: message, href: '#comment' })
-              fieldErrors.comment = { text: message }
-              break
-            default:
-              // No action needed for other fields (e.g., conversationId is a hidden input with no UI field error)
-          }
-        }
-
         return h.view(FEEDBACK_PATH, {
           conversationId: request.payload?.conversationId || '',
           wasHelpful: request.payload?.wasHelpful,
           comment: request.payload?.comment,
-          errors: errorSummary,
-          fieldErrors
+          errors: formatGdsErrorSummary(validationErrors),
+          fieldErrors: formatFieldErrors(validationErrors)
         }).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
