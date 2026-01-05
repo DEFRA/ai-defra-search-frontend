@@ -15,7 +15,8 @@ export const feedbackGetController = {
     logger.info({ conversationId }, 'Feedback page accessed')
 
     return h.view(FEEDBACK_PATH, {
-      conversationId
+      conversationId,
+      fieldErrors: {}
     })
   }
 }
@@ -79,6 +80,7 @@ export const feedbackPostController = {
         conversationId,
         wasHelpful,
         comment,
+        fieldErrors: {},
         errors: [{
           text: 'There was a problem submitting your feedback. Please try again.',
           href: '#wasHelpful'

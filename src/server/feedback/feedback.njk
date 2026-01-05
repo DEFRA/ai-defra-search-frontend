@@ -29,7 +29,7 @@
               classes: "govuk-fieldset__legend--m"
             }
           },
-          errorMessage: fieldErrors.wasHelpful if fieldErrors and fieldErrors.wasHelpful else undefined,
+          errorMessage: fieldErrors.wasHelpful,
        items: [
             {
               value: "very-useful",
@@ -70,7 +70,7 @@
            hint: {
             text: "Tell us what you were trying to do and how well it worked. Do not include personal or sensitive information."
           },
-          errorMessage: fieldErrors.comment if fieldErrors and fieldErrors.comment else undefined,
+          errorMessage: fieldErrors.comment,
           value: comment
         }) }}
 
