@@ -27,10 +27,7 @@ export const feedbackPostController = {
     validate: {
       payload: FEEDBACK_POST_SCHEMA,
       failAction: async (request, h, error) => {
-        const logger = createLogger()
         const validationErrors = error.details || []
-
-        logger.warn({ errors: validationErrors.map((err) => err.message) }, 'Feedback validation failed')
 
         return h.view(FEEDBACK_PATH, {
           conversationId: request.payload?.conversationId || '',
