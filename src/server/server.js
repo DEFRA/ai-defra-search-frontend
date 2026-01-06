@@ -3,19 +3,19 @@ import hapi from '@hapi/hapi'
 import cookie from '@hapi/cookie'
 import Scooter from '@hapi/scooter'
 
-import { auth } from './common/helpers/auth.js'
+import { AUTH } from './common/helpers/auth.js'
 import { router } from './router.js'
 import { config } from '../config/config.js'
-import { pulse } from './common/helpers/pulse.js'
+import { PULSE } from './common/helpers/pulse.js'
 import { catchAll } from './common/helpers/errors.js'
 import { nunjucksConfig } from '../config/nunjucks/nunjucks.js'
 import { setupProxy } from './common/helpers/proxy/setup-proxy.js'
 import { requestTracing } from './common/helpers/request-tracing.js'
 import { requestLogger } from './common/helpers/logging/request-logger.js'
-import { sessionCache } from './common/helpers/session-cache/session-cache.js'
+import { SESSION_CACHE } from './common/helpers/session-cache/session-cache.js'
 import { getCacheEngine } from './common/helpers/session-cache/cache-engine.js'
 import { secureContext } from '@defra/hapi-secure-context'
-import { contentSecurityPolicy } from './common/helpers/content-security-policy.js'
+import { CONTENT_SECURITY_POLICY } from './common/helpers/content-security-policy.js'
 import { userAgentProtection } from './common/helpers/user-agent-protection.js'
 
 export async function createServer () {
@@ -63,12 +63,12 @@ export async function createServer () {
     requestLogger,
     requestTracing,
     secureContext,
-    pulse,
-    sessionCache,
+    PULSE,
+    SESSION_CACHE,
     nunjucksConfig,
     Scooter,
-    contentSecurityPolicy,
-    auth,
+    CONTENT_SECURITY_POLICY,
+    AUTH,
     router
   ])
 

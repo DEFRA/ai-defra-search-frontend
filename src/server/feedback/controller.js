@@ -1,7 +1,7 @@
 import statusCodes from 'http-status-codes'
 
 import { submitFeedback } from './feedback-api.js'
-import { feedbackPostSchema } from './feedback-schema.js'
+import { FEEDBACK_POST_SCHEMA } from './feedback-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 import { formatGdsErrorSummary, formatFieldErrors } from '../common/helpers/validation/format-validation-errors.js'
 
@@ -25,7 +25,7 @@ export const feedbackGetController = {
 export const feedbackPostController = {
   options: {
     validate: {
-      payload: feedbackPostSchema,
+      payload: FEEDBACK_POST_SCHEMA,
       failAction: async (request, h, error) => {
         const logger = createLogger()
         const validationErrors = error.details || []

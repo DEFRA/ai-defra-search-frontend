@@ -1,8 +1,8 @@
 import Joi from 'joi'
 
-const maxCommentLength = 1200
+const MAX_COMMENT_LENGTH = 1200
 
-const validRatings = [
+const VALID_RATINGS = [
   'very-useful',
   'useful',
   'neither',
@@ -10,18 +10,18 @@ const validRatings = [
   'not-at-all-useful'
 ]
 
-const wasHelpfulRequiredMessage = 'Select how useful the AI Assistant was'
+const WAS_HELPFUL_REQUIRED_MESSAGE = 'Select how useful the AI Assistant was'
 
-const feedbackPostSchema = Joi.object({
+const FEEDBACK_POST_SCHEMA = Joi.object({
   conversationId: Joi.string().allow('').optional(),
-  wasHelpful: Joi.string().valid(...validRatings).required().messages({
-    'any.only': wasHelpfulRequiredMessage,
-    'any.required': wasHelpfulRequiredMessage,
-    'string.empty': wasHelpfulRequiredMessage
+  wasHelpful: Joi.string().valid(...VALID_RATINGS).required().messages({
+    'any.only': WAS_HELPFUL_REQUIRED_MESSAGE,
+    'any.required': WAS_HELPFUL_REQUIRED_MESSAGE,
+    'string.empty': WAS_HELPFUL_REQUIRED_MESSAGE
   }),
-  comment: Joi.string().max(maxCommentLength).allow('').optional().messages({
-    'string.max': `Comment must be ${maxCommentLength} characters or less`
+  comment: Joi.string().max(MAX_COMMENT_LENGTH).allow('').optional().messages({
+    'string.max': `Comment must be ${MAX_COMMENT_LENGTH} characters or less`
   })
 })
 
-export { feedbackPostSchema }
+export { FEEDBACK_POST_SCHEMA }

@@ -2,24 +2,24 @@ import yar from '@hapi/yar'
 
 import { config } from '../../../../config/config.js'
 
-const sessionConfig = config.get('session')
+const SESSION_CONFIG = config.get('session')
 
 /**
  * Set options.maxCookieSize to 0 to always use server-side storage
  */
-export const sessionCache = {
+export const SESSION_CACHE = {
   plugin: yar,
   options: {
-    name: sessionConfig.cache.name,
+    name: SESSION_CONFIG.cache.name,
     cache: {
-      cache: sessionConfig.cache.name,
-      expiresIn: sessionConfig.cache.ttl
+      cache: SESSION_CONFIG.cache.name,
+      expiresIn: SESSION_CONFIG.cache.ttl
     },
     storeBlank: false,
     errorOnCacheNotReady: true,
     cookieOptions: {
-      password: sessionConfig.cookie.password,
-      ttl: sessionConfig.cookie.ttl,
+      password: SESSION_CONFIG.cookie.password,
+      ttl: SESSION_CONFIG.cookie.ttl,
       isSecure: config.get('session.cookie.secure'),
       clearInvalid: true
     }
