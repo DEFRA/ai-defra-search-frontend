@@ -3,6 +3,7 @@ import statusCodes from 'http-status-codes'
 import { submitFeedback } from './feedback-api.js'
 import { feedbackPostSchema } from './feedback-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
+import { formatGdsErrorSummary, formatFieldErrors } from '../common/helpers/validation/format-validation-errors.js'
 
 const FEEDBACK_PATH = 'feedback/feedback'
 const SUCCESS_PATH = 'feedback/success'
@@ -15,7 +16,8 @@ export const feedbackGetController = {
     logger.info({ conversationId }, 'Feedback page accessed')
 
     return h.view(FEEDBACK_PATH, {
-      conversationId
+      conversationId,
+      fieldErrors: {}
     })
   }
 }
@@ -25,21 +27,14 @@ export const feedbackPostController = {
     validate: {
       payload: feedbackPostSchema,
       failAction: async (request, h, error) => {
-        const logger = createLogger()
-        const errorMessage = error.details[0]?.message
-
-        logger.warn({ error: errorMessage }, 'Feedback validation failed')
+        const validationErrors = error.details || []
 
         return h.view(FEEDBACK_PATH, {
           conversationId: request.payload?.conversationId || '',
           wasHelpful: request.payload?.wasHelpful,
           comment: request.payload?.comment,
-          errors: [
-            {
-              text: errorMessage,
-              href: '#wasHelpful'
-            }
-          ]
+          errors: formatGdsErrorSummary(validationErrors),
+          fieldErrors: formatFieldErrors(validationErrors)
         }).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
@@ -62,8 +57,9 @@ export const feedbackPostController = {
         conversationId,
         wasHelpful,
         comment,
+        fieldErrors: {},
         errors: [{
-          text: 'Sorry, there was a problem submitting your feedback. Please try again.',
+          text: 'There was a problem submitting your feedback. Please try again.',
           href: '#wasHelpful'
         }]
       }).code(statusCodes.INTERNAL_SERVER_ERROR)

@@ -46,12 +46,12 @@ describe('Feedback routes', () => {
 
       // Check for radio buttons
       const radioButtons = page.querySelectorAll('input[type="radio"]')
-      expect(radioButtons.length).toBe(2)
+      expect(radioButtons.length).toBe(5)
 
-      // Check for Yes/No options
+      // Check for 5-point scale options
       const bodyText = page.body.textContent
-      expect(bodyText).toContain('Yes')
-      expect(bodyText).toContain('No')
+      expect(bodyText).toContain('Very useful')
+      expect(bodyText).toContain('Not at all useful')
 
       // Check conversation ID is in the form
       const hiddenInput = page.querySelector('input[name="conversationId"]')
@@ -75,7 +75,7 @@ describe('Feedback routes', () => {
   })
 
   describe('POST /feedback', () => {
-    test('should submit feedback successfully with "yes" response', async () => {
+    test('should submit feedback successfully with "very-useful" response', async () => {
       setupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -85,7 +85,7 @@ describe('Feedback routes', () => {
         url: '/feedback',
         payload: {
           conversationId,
-          wasHelpful: 'yes'
+          wasHelpful: 'very-useful'
         }
       })
 
@@ -93,7 +93,7 @@ describe('Feedback routes', () => {
       expect(response.headers.location).toBe('/feedback/success')
     })
 
-    test('should submit feedback successfully with "no" response', async () => {
+    test('should submit feedback successfully with "not-useful" response', async () => {
       setupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
@@ -103,7 +103,7 @@ describe('Feedback routes', () => {
         url: '/feedback',
         payload: {
           conversationId,
-          wasHelpful: 'no'
+          wasHelpful: 'not-useful'
         }
       })
 
@@ -117,7 +117,7 @@ describe('Feedback routes', () => {
 
       setupFeedbackApiMockWithValidation({
         conversationId,
-        wasHelpful: 'yes',
+        wasHelpful: 'useful',
         comment
       })
 
@@ -126,7 +126,7 @@ describe('Feedback routes', () => {
         url: '/feedback',
         payload: {
           conversationId,
-          wasHelpful: 'yes',
+          wasHelpful: 'useful',
           comment
         }
       })
@@ -155,7 +155,7 @@ describe('Feedback routes', () => {
       // Check for error message
       const errorSummary = page.querySelector('.govuk-error-summary')
       expect(errorSummary).not.toBeNull()
-      expect(errorSummary?.textContent).toContain('Please select yes or no')
+      expect(errorSummary?.textContent).toContain('Select how useful the AI Assistant was')
     })
 
     test('should return validation error when wasHelpful is invalid', async () => {
@@ -177,7 +177,7 @@ describe('Feedback routes', () => {
 
       const errorSummary = page.querySelector('.govuk-error-summary')
       expect(errorSummary).not.toBeNull()
-      expect(errorSummary?.textContent).toContain('Please select yes or no')
+      expect(errorSummary?.textContent).toContain('Select how useful the AI Assistant was')
     })
 
     test('should allow missing conversationId as it is optional', async () => {
@@ -187,7 +187,7 @@ describe('Feedback routes', () => {
         method: 'POST',
         url: '/feedback',
         payload: {
-          wasHelpful: 'yes',
+          wasHelpful: 'very-useful',
           conversationId: ''
         }
       })
@@ -207,7 +207,7 @@ describe('Feedback routes', () => {
         url: '/feedback',
         payload: {
           conversationId,
-          wasHelpful: 'yes'
+          wasHelpful: 'useful'
         }
       })
 
@@ -219,14 +219,14 @@ describe('Feedback routes', () => {
       // Check for error message
       const errorSummary = page.querySelector('.govuk-error-summary')
       expect(errorSummary).not.toBeNull()
-      expect(errorSummary?.textContent).toContain('there was a problem submitting your feedback')
+      expect(errorSummary?.textContent).toContain('There was a problem submitting your feedback')
 
       // Form should retain user input
       const hiddenInput = page.querySelector('input[name="conversationId"]')
       expect(hiddenInput?.value).toBe(conversationId)
 
-      const yesRadio = page.querySelector('input[value="yes"]')
-      expect(yesRadio?.checked).toBe(true)
+      const usefulRadio = page.querySelector('input[value="useful"]')
+      expect(usefulRadio?.checked).toBe(true)
     })
 
     test('should handle API timeout gracefully', async () => {
@@ -239,7 +239,7 @@ describe('Feedback routes', () => {
         url: '/feedback',
         payload: {
           conversationId,
-          wasHelpful: 'no',
+          wasHelpful: 'neither',
           comment: 'Not helpful at all'
         }
       })
@@ -261,14 +261,14 @@ describe('Feedback routes', () => {
       setupFeedbackApiMocks()
 
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
-      const longComment = 'This is a very detailed comment. '.repeat(30) // About 900 characters
+      const longComment = 'This is a very detailed comment. '.repeat(35) // About 1100 characters
 
       const response = await server.inject({
         method: 'POST',
         url: '/feedback',
         payload: {
           conversationId,
-          wasHelpful: 'yes',
+          wasHelpful: 'very-useful',
           comment: longComment
         }
       })
@@ -279,14 +279,14 @@ describe('Feedback routes', () => {
 
     test('should reject comments exceeding character limit', async () => {
       const conversationId = '550e8400-e29b-41d4-a716-446655440000'
-      const tooLongComment = 'x'.repeat(1001) // Exceeds 1000 character limit
+      const tooLongComment = 'x'.repeat(1201) // Exceeds 1200 character limit
 
       const response = await server.inject({
         method: 'POST',
         url: '/feedback',
         payload: {
           conversationId,
-          wasHelpful: 'yes',
+          wasHelpful: 'very-useful',
           comment: tooLongComment
         }
       })
@@ -298,7 +298,74 @@ describe('Feedback routes', () => {
 
       const errorSummary = page.querySelector('.govuk-error-summary')
       expect(errorSummary).not.toBeNull()
-      expect(errorSummary?.textContent).toContain('1000 characters')
+      expect(errorSummary?.textContent).toContain('1200 characters')
+    })
+
+    test('should handle validation failure with logger warning for wasHelpful', async () => {
+      const conversationId = '550e8400-e29b-41d4-a716-446655440000'
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/feedback',
+        payload: {
+          conversationId,
+          wasHelpful: '' // Empty value triggers validation
+        }
+      })
+
+      expect(response.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+
+      // Verify error summary is displayed
+      const errorSummary = page.querySelector('.govuk-error-summary')
+      expect(errorSummary).not.toBeNull()
+      expect(errorSummary?.textContent).toContain('Select how useful the AI Assistant was')
+
+      // Verify field error is displayed
+      const fieldError = page.querySelector('.govuk-error-message')
+      expect(fieldError).not.toBeNull()
+
+      // Verify the form retains the conversationId
+      const hiddenInput = page.querySelector('input[name="conversationId"]')
+      expect(hiddenInput?.value).toBe(conversationId)
+    })
+
+    test('should handle validation failure for comment field', async () => {
+      const conversationId = '550e8400-e29b-41d4-a716-446655440000'
+      const tooLongComment = 'x'.repeat(1201) // Exceeds 1200 character limit
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/feedback',
+        payload: {
+          conversationId,
+          wasHelpful: 'useful',
+          comment: tooLongComment
+        }
+      })
+
+      expect(response.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+
+      // Verify error summary with comment error
+      const errorSummary = page.querySelector('.govuk-error-summary')
+      expect(errorSummary).not.toBeNull()
+      expect(errorSummary?.textContent).toContain('1200 characters')
+
+      // Verify error link points to comment field
+      const errorLink = page.querySelector('.govuk-error-summary__list a')
+      expect(errorLink?.getAttribute('href')).toBe('#comment')
+
+      // Verify the form retains both values
+      const hiddenInput = page.querySelector('input[name="conversationId"]')
+      expect(hiddenInput?.value).toBe(conversationId)
+
+      const usefulRadio = page.querySelector('input[value="useful"]')
+      expect(usefulRadio?.checked).toBe(true)
     })
   })
 
@@ -315,8 +382,8 @@ describe('Feedback routes', () => {
       const page = window.document
 
       // Check for success message
-      const heading = page.querySelector('h1')
-      expect(heading?.textContent).toContain('Thank you')
+      const panel = page.querySelector('.govuk-panel__title')
+      expect(panel?.textContent).toContain('Feedback submitted')
 
       const bodyText = page.body.textContent
       expect(bodyText).toContain('feedback')
@@ -343,7 +410,7 @@ describe('Feedback routes', () => {
         url: '/feedback',
         payload: {
           conversationId,
-          wasHelpful: 'yes',
+          wasHelpful: 'useful',
           comment: 'Very helpful information!'
         }
       })
@@ -362,8 +429,8 @@ describe('Feedback routes', () => {
       const { window } = new JSDOM(successResponse.result)
       const page = window.document
 
-      const heading = page.querySelector('h1')
-      expect(heading?.textContent).toContain('Thank you')
+      const panel = page.querySelector('.govuk-panel__title')
+      expect(panel?.textContent).toContain('Feedback submitted')
     })
 
     test('should handle negative feedback with comment', async () => {
@@ -376,7 +443,7 @@ describe('Feedback routes', () => {
         url: '/feedback',
         payload: {
           conversationId,
-          wasHelpful: 'no',
+          wasHelpful: 'not-at-all-useful',
           comment: 'The answer was not relevant to my question about crop rotation.'
         }
       })

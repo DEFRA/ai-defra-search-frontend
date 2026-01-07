@@ -1,15 +1,26 @@
 import Joi from 'joi'
 
-const maxCommentLength = 1000
+const MAX_COMMENT_LENGTH = 1200
+
+const VALID_RATINGS = [
+  'very-useful',
+  'useful',
+  'neither',
+  'not-useful',
+  'not-at-all-useful'
+]
+
+const WAS_HELPFUL_REQUIRED_MESSAGE = 'Select how useful the AI Assistant was'
 
 const feedbackPostSchema = Joi.object({
   conversationId: Joi.string().allow('').optional(),
-  wasHelpful: Joi.string().valid('yes', 'no').required().messages({
-    'any.only': 'Please select yes or no',
-    'any.required': 'Please select yes or no'
+  wasHelpful: Joi.string().valid(...VALID_RATINGS).required().messages({
+    'any.only': WAS_HELPFUL_REQUIRED_MESSAGE,
+    'any.required': WAS_HELPFUL_REQUIRED_MESSAGE,
+    'string.empty': WAS_HELPFUL_REQUIRED_MESSAGE
   }),
-  comment: Joi.string().max(maxCommentLength).allow('').optional().messages({
-    'string.max': `Comment must be no more than ${maxCommentLength} characters`
+  comment: Joi.string().max(MAX_COMMENT_LENGTH).allow('').optional().messages({
+    'string.max': `Comment must be ${MAX_COMMENT_LENGTH} characters or less`
   })
 })
 
