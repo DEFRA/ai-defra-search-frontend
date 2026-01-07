@@ -83,7 +83,7 @@ async function _validateSessionToken (request, session) {
   return { isValid: true, credentials: userSession }
 }
 
-const AUTH = {
+const auth = {
   plugin: {
     name: 'auth',
     register: async (server) => {
@@ -99,4 +99,4 @@ const AUTH = {
   }
 }
 
-export { AUTH }
+export { auth }

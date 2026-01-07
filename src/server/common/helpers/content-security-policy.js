@@ -4,7 +4,7 @@ import Blankie from 'blankie'
  * Manage content security policies.
  * @satisfies {import('@hapi/hapi').Plugin}
  */
-const CONTENT_SECURITY_POLICY = {
+const contentSecurityPolicy = {
   plugin: Blankie,
   options: {
     // Hash 'sha256-GUQ5ad8JK5KmEWmROf3LZd9ge94daqNvd8xy9YS1iDw=' is to support a GOV.UK frontend script bundled within Nunjucks macros
@@ -28,4 +28,4 @@ const CONTENT_SECURITY_POLICY = {
   }
 }
 
-export { CONTENT_SECURITY_POLICY }
+export { contentSecurityPolicy }

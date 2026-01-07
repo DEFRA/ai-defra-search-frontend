@@ -3,7 +3,7 @@ import Joi from 'joi'
 const MIN_CHAT_MESSAGE_LENGTH = 1
 const MAX_CHAT_MESSAGE_LENGTH = 500
 
-const START_POST_SCHEMA = Joi.object({
+const startPostSchema = Joi.object({
   modelId: Joi.string().required().messages({
     'any.required': 'Model ID is required',
     'string.empty': 'Please select a model'
@@ -18,8 +18,8 @@ const START_POST_SCHEMA = Joi.object({
     })
 })
 
-const START_PARAMS_SCHEMA = Joi.object({
+const startParamsSchema = Joi.object({
   conversationId: Joi.string().optional()
 })
 
-export { START_POST_SCHEMA, START_PARAMS_SCHEMA }
+export { startPostSchema, startParamsSchema }

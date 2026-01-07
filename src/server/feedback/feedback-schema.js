@@ -12,7 +12,7 @@ const VALID_RATINGS = [
 
 const WAS_HELPFUL_REQUIRED_MESSAGE = 'Select how useful the AI Assistant was'
 
-const FEEDBACK_POST_SCHEMA = Joi.object({
+const feedbackPostSchema = Joi.object({
   conversationId: Joi.string().allow('').optional(),
   wasHelpful: Joi.string().valid(...VALID_RATINGS).required().messages({
     'any.only': WAS_HELPFUL_REQUIRED_MESSAGE,
@@ -24,4 +24,4 @@ const FEEDBACK_POST_SCHEMA = Joi.object({
   })
 })
 
-export { FEEDBACK_POST_SCHEMA }
+export { feedbackPostSchema }

@@ -2,7 +2,7 @@ import statusCodes from 'http-status-codes'
 
 import { sendQuestion } from './chat-api.js'
 import { getModels } from './models-api.js'
-import { START_POST_SCHEMA, START_PARAMS_SCHEMA } from './chat-schema.js'
+import { startPostSchema, startParamsSchema } from './chat-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
 const END_POINT_PATH = 'start/start'
@@ -27,8 +27,8 @@ export const startGetController = {
 export const startPostController = {
   options: {
     validate: {
-      payload: START_POST_SCHEMA,
-      params: START_PARAMS_SCHEMA,
+      payload: startPostSchema,
+      params: startParamsSchema,
       failAction: async (request, h, error) => {
         const errorMessage = error.details[0]?.message
         const conversationId = request.params.conversationId

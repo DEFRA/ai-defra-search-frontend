@@ -3,29 +3,29 @@ import { getTraceId } from '@defra/hapi-tracing'
 
 import { config } from '../../../../config/config.js'
 
-const LOG_CONFIG = config.get('log')
-const SERVICE_NAME = config.get('serviceName')
-const SERVICE_VERSION = config.get('serviceVersion')
+const logConfig = config.get('log')
+const serviceName = config.get('serviceName')
+const serviceVersion = config.get('serviceVersion')
 
-const FORMATTERS = {
+const formatters = {
   ecs: {
     ...ecsFormat({
-      serviceVersion: SERVICE_VERSION,
-      serviceName: SERVICE_NAME
+      serviceVersion,
+      serviceName
     })
   },
   'pino-pretty': { transport: { target: 'pino-pretty' } }
 }
 
-export const LOGGER_OPTIONS = {
-  enabled: LOG_CONFIG.enabled,
+export const loggerOptions = {
+  enabled: logConfig.enabled,
   ignorePaths: ['/health'],
   redact: {
-    paths: LOG_CONFIG.redact,
+    paths: logConfig.redact,
     remove: true
   },
-  level: LOG_CONFIG.level,
-  ...FORMATTERS[LOG_CONFIG.format],
+  level: logConfig.level,
+  ...formatters[logConfig.format],
   nesting: true,
   mixin () {
     const mixinValues = {}
