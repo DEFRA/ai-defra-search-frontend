@@ -13,25 +13,14 @@
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-full">
 
-      {% if errorMessage %}
-        {{ govukErrorSummary({
-          titleText: "There is a problem",
-          errorList: [
-            {
-              text: errorMessage,
-              href: "#question"
-            }
-          ]
-        }) }}
-      {% endif %}
-
       {% if messages %}
         <h2 class="govuk-heading-l govuk-!-margin-bottom-6">
           AI assistant
         </h2>
 
         {{ defraConversation({
-          messages: messages
+          messages: messages,
+          error: error
          }) }}
       {% endif %}
 
@@ -47,7 +36,8 @@
           </h1>
 
           {{ defraConversation({
-            messages: messages
+            messages: messages,
+            error: error
           }) }}
 
           <form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate>

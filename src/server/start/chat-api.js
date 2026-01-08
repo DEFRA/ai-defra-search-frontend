@@ -30,7 +30,10 @@ async function sendQuestion (question, modelId, conversationId) {
     })
 
     if (!response.ok) {
-      throw new Error(`Chat API returned ${response.status}: ${response.statusText}`)
+      const errorBody = await response.json()
+      const error = new Error(`Chat API returned ${response.status}`)
+      error.response = { data: errorBody }
+      throw error
     }
 
     const data = await response.json()
@@ -47,6 +50,9 @@ async function sendQuestion (question, modelId, conversationId) {
       messages: parsedMessages
     }
   } catch (error) {
+    if (error.response?.data) {
+      throw error
+    }
     throw new Error(`Failed to connect to chat API at ${url}: ${error.message}`)
   }
 }

@@ -1,4 +1,5 @@
 {%- set messages = params.messages if params.messages else [] -%}
+{%- set error = params.error -%}
 {%- set lastUserIndex = -1 -%}
 {%- for message in messages -%}
   {%- if message.role === "user" -%}
@@ -33,5 +34,31 @@
         </div>
       {% endif %}
     {% endfor %}
+    {% if error %}
+      <div class="app-error-message" role="alert" aria-live="polite">
+        <h3 class="govuk-heading-s govuk-!-margin-bottom-2">There is a problem</h3>
+        <div class="app-error-message__body">
+          {% if error.isRetryable %}
+            {# Scenario 1: Temporary error - user can retry #}
+            <p class="govuk-body">The response took too long and timed out.</p>
+            <h4 class="govuk-heading-s govuk-!-margin-bottom-2">What you can do</h4>
+            <ul class="govuk-list govuk-list--bullet">
+              <li>Wait a moment and try sending your message again</li>
+              <li>Try making your message shorter</li>
+            </ul>
+            <h4 class="govuk-heading-s govuk-!-margin-bottom-2">If this keeps happening</h4>
+            <p class="govuk-body">You may need to <a href="/start/clear" class="govuk-link">start a new conversation</a>. You will not be able to recover this conversation, so copy any information you want to keep before starting again.</p>
+          {% else %}
+            {# Scenario 2: Fatal error (400) - user must start over #}
+            <p class="govuk-body">Something went wrong and we cannot continue this conversation.</p>
+            <p class="govuk-body">You'll need to start a new conversation. You will not be able to recover this conversation, so copy any information you want to keep before starting again.</p>
+            <h4 class="govuk-heading-s govuk-!-margin-bottom-2">What you can do</h4>
+            <ul class="govuk-list govuk-list--bullet">
+              <li><a href="/start/clear" class="govuk-link">Start a new conversation</a></li>
+            </ul>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
   </div>
 </div>

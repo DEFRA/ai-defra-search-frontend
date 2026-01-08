@@ -4,6 +4,7 @@ import { sendQuestion } from './chat-api.js'
 import { getModels } from './models-api.js'
 import { startPostSchema, startParamsSchema } from './chat-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
+import { classifyError } from './error-mapping.js'
 
 const END_POINT_PATH = 'start/start'
 
@@ -41,7 +42,7 @@ export const startPostController = {
           conversationId,
           modelId: request.payload?.modelId,
           models,
-          errorMessage
+          error
         }).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
@@ -67,15 +68,28 @@ export const startPostController = {
         models
       })
     } catch (error) {
-      logger.error({ error, question }, 'Error calling chat API')
+      logger.error({
+        error,
+        errorResponse: error.response?.data,
+        errorStatus: error.response?.status,
+        question
+      }, 'Error calling chat API')
+
+      const classifiedError = classifyError(error)
+
+      logger.info({
+        errorType: classifiedError.details?.type || 'unknown',
+        statusCode: classifiedError.status,
+        isRetryable: classifiedError.isRetryable
+      }, 'Classified chat API error')
 
       return h.view(END_POINT_PATH, {
         question,
         conversationId,
         modelId,
         models,
-        errorMessage: 'Sorry, there was a problem getting a response. Please try again.'
-      })
+        error: classifiedError
+      }).code(classifiedError.status)
     }
   }
 }

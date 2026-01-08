@@ -35,7 +35,7 @@
           "rulesOperator": "OR",
           "disableTemplating": false,
           "fallbackTo404": false,
-          "default": true,
+          "default": false,
           "crudKey": "id",
           "callbacks": []
         },
@@ -65,9 +65,9 @@
         },
         {
           "uuid": "766bc47d-a3de-4cbe-80fe-8d008b850f41",
-          "body": "{\n  \"error\": \"Invalid request: question field is required\"\n}",
+          "body": "{\n  \"statusCode\": 400,\n  \"error\": \"Bad Request\",\n  \"message\": \"Your question contains inappropriate content. Please rephrase and try again.\"\n}\n",
           "latency": 0,
-          "statusCode": 400,
+          "statusCode": 200,
           "label": "Bad request - invalid input",
           "headers": [
             {
@@ -108,6 +108,25 @@
           "disableTemplating": false,
           "fallbackTo404": false,
           "default": false,
+          "crudKey": "id",
+          "callbacks": []
+        },
+        {
+          "uuid": "a957a962-d983-4843-ac02-d4ba82c5de8e",
+          "body": "{\n  \"error\": \"Bad Request\",\n  \"message\": \"Validation failed\",\n  \"status\": 400,\n  \"details\": [\n    {\n      \"field\": \"email\",\n      \"message\": \"Invalid email format\"\n    },\n    {\n      \"field\": \"age\",\n      \"message\": \"Must be a positive number\"\n    }\n  ]\n}",
+          "latency": 0,
+          "statusCode": 400,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
           "crudKey": "id",
           "callbacks": []
         }
