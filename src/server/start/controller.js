@@ -1,10 +1,11 @@
 import statusCodes from 'http-status-codes'
 
 import { sendQuestion } from './chat-api.js'
+import { getErrorDetails } from './error-mapping.js'
 import { getModels } from './models-api.js'
 import { startPostSchema, startParamsSchema } from './chat-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
-import { classifyError } from './error-mapping.js'
+import { getConversation, clearConversation } from './conversation-cache.js'
 
 const END_POINT_PATH = 'start/start'
 
@@ -34,15 +35,17 @@ export const startPostController = {
         const errorMessage = error.details[0]?.message
         const conversationId = request.params.conversationId
 
-        let models = []
-        models = await getModels()
+        const models = await getModels()
+        const conversation = await getConversation(conversationId)
+        const messages = conversation?.messages || []
 
         return h.view(END_POINT_PATH, {
           question: request.payload?.question,
           conversationId,
           modelId: request.payload?.modelId,
           models,
-          error
+          messages,
+          errorMessage
         }).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
@@ -68,40 +71,32 @@ export const startPostController = {
         models
       })
     } catch (error) {
-      logger.error({
-        error,
-        errorResponse: error.response?.data,
-        errorStatus: error.response?.status,
-        question
-      }, 'Error calling chat API')
+      logger.error({ error, question }, 'Error calling chat API')
 
-      const classifiedError = classifyError(error)
-
-      logger.info({
-        errorType: classifiedError.details?.type || 'unknown',
-        statusCode: classifiedError.status,
-        isRetryable: classifiedError.isRetryable
-      }, 'Classified chat API error')
+      const conversation = await getConversation(conversationId)
+      const messages = conversation?.messages || []
+      const errorDetails = await getErrorDetails(error)
 
       return h.view(END_POINT_PATH, {
+        messages,
         question,
         conversationId,
         modelId,
         models,
-        error: classifiedError
-      }).code(classifiedError.status)
+        errorDetails
+      })
     }
   }
 }
 
 export const clearConversationController = {
-  handler (_request, h) {
-    const logger = createLogger()
-    logger.info('Clear conversation requested')
+  async handler (request, h) {
+    const conversationId = request.params.conversationId
 
-    // TODO: Call downstream service to clear conversation when available
-    // For now, just redirect to start page which will show a fresh form
-    logger.info('Conversation cleared, redirecting to start page')
+    if (conversationId) {
+      await clearConversation(conversationId)
+    }
+
     return h.redirect('/start')
   }
 }

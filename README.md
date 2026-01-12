@@ -135,6 +135,28 @@ We use Catbox for server-side caching. By default, the service will use CatboxRe
 
 Please note: CatboxMemory (`memory`) is _not_ suitable for production use! The cache will not be shared between each instance of the service and it will not persist between restarts.
 
+### Conversation Caching
+
+The application implements conversation caching to provide resilience when the chat API is unavailable. This ensures users can still see their conversation history even during service disruptions.
+
+**How it works:**
+
+1. **Before API Call**: When a user submits a question, it's immediately stored in Redis cache along with the existing conversation history.
+2. **After Successful API Response**: The complete conversation (including the AI's response) is updated in the cache.
+3. **On API Failure**: If the chat API returns an error, the application retrieves the cached conversation from Redis and displays it to the user, allowing them to see their previous messages.
+
+This approach eliminates the need to call a separate endpoint (`/chat/{conversationId}`) to retrieve conversations on error, making the error handling more efficient and resilient.
+
+**Automatic Cleanup with TTL:**
+
+Conversations are stored with a Time-To-Live (TTL) that matches the session cache TTL (default: 4 hours). This hybrid approach provides:
+
+- **Active conversations stay alive**: Each time a user interacts with a conversation (sends a question), the TTL is reset, extending the expiry time.
+- **Automatic cleanup of stale conversations**: Abandoned conversations are automatically removed by Redis after the TTL expires, preventing stale data from accumulating.
+- **Manual clearing**: Users can explicitly clear conversations using the "Clear conversation" button, which immediately removes the conversation from cache.
+
+The conversation cache is implemented in `src/server/start/conversation-cache.js` and uses the same Redis/Catbox infrastructure as session caching.
+
 ## Licence
 
 THIS INFORMATION IS LICENSED UNDER THE CONDITIONS OF THE OPEN GOVERNMENT LICENCE found at:

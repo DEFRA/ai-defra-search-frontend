@@ -2,9 +2,11 @@ import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
 import { marked } from 'marked'
+import { storeConversation } from './conversation-cache.js'
 
 /**
  * Calls the chat API with a user question and returns the response.
+ * Caches the complete conversation after receiving the API response.
  *
  * @param {string} question - The user's question
  * @param {string} modelId - The ID of the AI model to use
@@ -32,7 +34,11 @@ async function sendQuestion (question, modelId, conversationId) {
     if (!response.ok) {
       const errorBody = await response.json()
       const error = new Error(`Chat API returned ${response.status}`)
-      error.response = { data: errorBody }
+      error.response = {
+        status: response.status,
+        data: errorBody
+      }
+
       throw error
     }
 
@@ -45,12 +51,16 @@ async function sendQuestion (question, modelId, conversationId) {
       }
     })
 
-    return {
+    const result = {
       conversationId: data.conversationId,
       messages: parsedMessages
     }
+
+    await storeConversation(result.conversationId, result.messages, modelId)
+
+    return result
   } catch (error) {
-    if (error.response?.data) {
+    if (error.response) {
       throw error
     }
     throw new Error(`Failed to connect to chat API at ${url}: ${error.message}`)

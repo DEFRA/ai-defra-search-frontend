@@ -1,7 +1,5 @@
 @use "govuk-frontend" as *;
 
-// GOV.UK error red colour
-$app-error-colour: #d4351c;
 
 .app-conversation-container {
   border: $govuk-border-width-form-element solid $govuk-border-colour;
@@ -63,11 +61,11 @@ $app-error-colour: #d4351c;
   }
 }
 
-// Error message styling for conversation errors
 .app-error-message {
-  border-left: 5px solid $app-error-colour;
+  border-left: 5px solid govuk-colour("red");
   background-color: govuk-colour("light-grey");
   padding: govuk-spacing(3);
+  @include govuk-responsive-margin(6, "top");
   @include govuk-responsive-margin(1, "bottom");
 
   &__body {

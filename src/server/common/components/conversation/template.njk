@@ -1,5 +1,7 @@
 {%- set messages = params.messages if params.messages else [] -%}
-{%- set error = params.error -%}
+{%- set errorDetails = params.errorDetails -%}
+{%- set conversationId = params.conversationId -%}
+{%- set hasError = errorDetails and errorDetails.hasError -%}
 {%- set lastUserIndex = -1 -%}
 {%- for message in messages -%}
   {%- if message.role === "user" -%}
@@ -13,13 +15,13 @@
   <div class="govuk-!-padding-4 app-conversation-container">
     {% for message in messages %}
       {% if message.role === "user" %}
-        <div class="app-user-question-wrapper"{% if loop.index0 == lastUserIndex %} id="latest-question" tabindex="-1" autofocus{% endif %}>
+        <div class="app-user-question-wrapper"{% if loop.index0 == lastUserIndex and not hasError %} id="latest-question" tabindex="-1" autofocus{% endif %}>
           <div class="app-user-question">
               {{ message.content | safe }}
           </div>
         </div>
         <p class="govuk-body-s govuk-!-text-align-right govuk-!-margin-top-0">
-          <strong>You</strong> {% if message.timestamp %}({{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}){% endif %}
+          <strong>You</strong>{% if message.timestamp %} at {{ message.timestamp | formatDate("h:mmaaa") }}{% endif %}
         </p>
       {% endif %}
 
@@ -29,17 +31,16 @@
         </div>
         <div class="govuk-!-display-flex govuk-!-justify-content-space-between govuk-!-margin-top-0">
           <p class="govuk-body-s govuk-!-margin-top-0 govuk-!-margin-bottom-0">
-            <strong>AI Assistant</strong> {% if message.modelName %}({{ message.modelName }}){% endif %} {% if message.timestamp %}({{ message.timestamp | formatDate("yyyy-MM-dd HH:mm:ss") }}){% endif %}
+            <strong>AI assistant</strong>{% if message.modelName %} ({{ message.modelName }}){% endif %}{% if message.timestamp %} at {{ message.timestamp | formatDate("h:mmaaa") }}{% endif %}
           </p>
         </div>
       {% endif %}
     {% endfor %}
-    {% if error %}
-      <div class="app-error-message" role="alert" aria-live="polite">
+    {% if errorDetails and errorDetails.hasError %}
+      <div class="app-error-message" role="alert" aria-live="polite" tabindex="-1" autofocus>
         <h3 class="govuk-heading-s govuk-!-margin-bottom-2">There is a problem</h3>
         <div class="app-error-message__body">
-          {% if error.isRetryable %}
-            {# Scenario 1: Temporary error - user can retry #}
+          {% if errorDetails.isRetryable %}
             <p class="govuk-body">The response took too long and timed out.</p>
             <h4 class="govuk-heading-s govuk-!-margin-bottom-2">What you can do</h4>
             <ul class="govuk-list govuk-list--bullet">
@@ -47,18 +48,20 @@
               <li>Try making your message shorter</li>
             </ul>
             <h4 class="govuk-heading-s govuk-!-margin-bottom-2">If this keeps happening</h4>
-            <p class="govuk-body">You may need to <a href="/start/clear" class="govuk-link">start a new conversation</a>. You will not be able to recover this conversation, so copy any information you want to keep before starting again.</p>
+            <p class="govuk-body">You may need to <a href="/start/clear{% if conversationId %}/{{ conversationId }}{% endif %}" class="govuk-link">start a new conversation</a>. You will not be able to recover this conversation, so copy any information you want to keep before starting again.</p>
           {% else %}
-            {# Scenario 2: Fatal error (400) - user must start over #}
             <p class="govuk-body">Something went wrong and we cannot continue this conversation.</p>
             <p class="govuk-body">You'll need to start a new conversation. You will not be able to recover this conversation, so copy any information you want to keep before starting again.</p>
             <h4 class="govuk-heading-s govuk-!-margin-bottom-2">What you can do</h4>
             <ul class="govuk-list govuk-list--bullet">
-              <li><a href="/start/clear" class="govuk-link">Start a new conversation</a></li>
+              <li><a href="/start/clear{% if conversationId %}/{{ conversationId }}{% endif %}" class="govuk-link">Start a new conversation</a></li>
             </ul>
           {% endif %}
         </div>
       </div>
+      <p class="govuk-body-s govuk-!-margin-top-1">
+        <strong>System message</strong>{% if errorDetails.timestamp %} at {{ errorDetails.timestamp | formatDate("h:mmaaa") }}{% endif %}
+      </p>
     {% endif %}
   </div>
 </div>

@@ -22,7 +22,7 @@ export const start = {
         },
         {
           method: ['GET'],
-          path: '/start/clear',
+          path: '/start/clear/{conversationId?}',
           ...clearConversationController
         }
       ])
