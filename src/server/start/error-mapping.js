@@ -12,7 +12,6 @@ async function getErrorDetails (error) {
   const statusCode = error.response?.status || error.status || errorData.statusCode || statusCodes.INTERNAL_SERVER_ERROR
 
   return {
-    hasError: true,
     isRetryable: RETRYABLE_STATUS_CODES.includes(statusCode),
     timestamp: new Date()
   }

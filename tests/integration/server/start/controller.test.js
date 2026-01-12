@@ -402,15 +402,12 @@ describe('Start routes', () => {
     expect(bodyText).not.toContain('Wait a moment and try sending your message again')
     expect(bodyText).toContain('What is user centred design?') // Question should be preserved
 
-    // Check that the error includes a timestamp in the system message
     expect(bodyText).toContain('System message')
     expect(bodyText).toMatch(/System message\s+at\s+\d{1,2}:\d{2}(am|pm)/i)
 
-    // Check that conversationId is preserved in the form action
     const form = page.querySelector('form')
     expect(form.getAttribute('action')).toContain('/start/error-conversation-789')
 
-    // Check that "Start a new conversation" link includes conversationId
     const clearLink = page.querySelector('a[href="/start/clear/error-conversation-789"]')
     expect(clearLink).not.toBeNull()
     expect(clearLink.textContent).toContain('Start a new conversation')
@@ -440,18 +437,15 @@ describe('Start routes', () => {
     expect(bodyText).not.toContain('Something went wrong and we cannot continue this conversation.')
     expect(bodyText).toContain('What is user centred design?')
 
-    // Check that the error includes a timestamp in the system message
     expect(bodyText).toContain('System message')
     expect(bodyText).toMatch(/System message\s+at\s+\d{1,2}:\d{2}(am|pm)/i)
 
-    // Check that "start a new conversation" link does NOT include conversationId when there isn't one
     const clearLink = page.querySelector('a[href="/start/clear"]')
     expect(clearLink).not.toBeNull()
     expect(clearLink.textContent).toContain('start a new conversation')
   })
 
   test('POST /start - when chat API returns 503 Service Unavailable should display retryable error message', async () => {
-    // Setup 503 error mock
     setupChatApiErrorMock(statusCodes.SERVICE_UNAVAILABLE)
     setupModelsApiMocks()
 
@@ -476,7 +470,6 @@ describe('Start routes', () => {
   })
 
   test('POST /start - when chat API returns 504 Gateway Timeout should display retryable error message', async () => {
-    // Setup 504 error mock
     setupChatApiErrorMock(statusCodes.GATEWAY_TIMEOUT)
     setupModelsApiMocks()
 
@@ -501,7 +494,6 @@ describe('Start routes', () => {
   })
 
   test('POST /start - when chat API connection times out should display non-retryable error message', async () => {
-    // Setup network timeout mock
     setupChatApiErrorMock(null, 'timeout')
     setupModelsApiMocks()
 
@@ -548,7 +540,6 @@ describe('Start routes', () => {
     expect(bodyText).not.toContain('Wait a moment and try sending your message again')
     expect(bodyText).toContain('What is user centred design?')
 
-    // Check that "Start a new conversation" link does NOT include conversationId when there isn't one
     const clearLink = page.querySelector('a[href="/start/clear"]')
     expect(clearLink).not.toBeNull()
     expect(clearLink.textContent).toContain('Start a new conversation')
