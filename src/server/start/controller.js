@@ -1,9 +1,11 @@
 import statusCodes from 'http-status-codes'
 
 import { sendQuestion } from './chat-api.js'
+import { getErrorDetails } from './error-mapping.js'
 import { getModels } from './models-api.js'
 import { startPostSchema, startParamsSchema } from './chat-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
+import { getConversation, clearConversation } from './conversation-cache.js'
 
 const END_POINT_PATH = 'start/start'
 
@@ -33,14 +35,16 @@ export const startPostController = {
         const errorMessage = error.details[0]?.message
         const conversationId = request.params.conversationId
 
-        let models = []
-        models = await getModels()
+        const models = await getModels()
+        const conversation = await getConversation(conversationId)
+        const messages = conversation?.messages || []
 
         return h.view(END_POINT_PATH, {
           question: request.payload?.question,
           conversationId,
           modelId: request.payload?.modelId,
           models,
+          messages,
           errorMessage
         }).code(statusCodes.BAD_REQUEST).takeover()
       }
@@ -69,25 +73,30 @@ export const startPostController = {
     } catch (error) {
       logger.error({ error, question }, 'Error calling chat API')
 
+      const conversation = await getConversation(conversationId)
+      const messages = conversation?.messages || []
+      const errorDetails = await getErrorDetails(error)
+
       return h.view(END_POINT_PATH, {
+        messages,
         question,
         conversationId,
         modelId,
         models,
-        errorMessage: 'Sorry, there was a problem getting a response. Please try again.'
+        errorDetails
       })
     }
   }
 }
 
 export const clearConversationController = {
-  handler (_request, h) {
-    const logger = createLogger()
-    logger.info('Clear conversation requested')
+  async handler (request, h) {
+    const conversationId = request.params.conversationId
 
-    // TODO: Call downstream service to clear conversation when available
-    // For now, just redirect to start page which will show a fresh form
-    logger.info('Conversation cleared, redirecting to start page')
+    if (conversationId) {
+      await clearConversation(conversationId)
+    }
+
     return h.redirect('/start')
   }
 }

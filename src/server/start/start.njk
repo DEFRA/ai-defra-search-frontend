@@ -31,7 +31,9 @@
         </h2>
 
         {{ defraConversation({
-          messages: messages
+          messages: messages,
+          errorDetails: errorDetails,
+          conversationId: conversationId
          }) }}
       {% endif %}
 
@@ -47,7 +49,9 @@
           </h1>
 
           {{ defraConversation({
-            messages: messages
+            messages: messages,
+            errorDetails: errorDetails,
+            conversationId: conversationId
           }) }}
 
           <form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate>

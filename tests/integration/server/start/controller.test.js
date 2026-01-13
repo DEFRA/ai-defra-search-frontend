@@ -255,7 +255,130 @@ describe('Start routes', () => {
     expect(form.getAttribute('action')).toContain('/start/existing-conv-456')
   })
 
-  test('POST /start - when chat API returns 500 INTERNAL_SERVER_ERROR error then should display error message', async () => {
+  test('POST /start - validation error should preserve cached conversation and question', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks('plaintext')
+
+    // First, create a conversation by posting a valid question
+    const firstQuestionResponse = await server.inject({
+      method: 'POST',
+      url: '/start',
+      payload: {
+        modelId: 'sonnet-3.7',
+        question: 'What is UCD?'
+      }
+    })
+
+    expect(firstQuestionResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window: firstWindow } = new JSDOM(firstQuestionResponse.result)
+    const firstPage = firstWindow.document
+
+    // Extract conversationId from the form action
+    const firstForm = firstPage.querySelector('form')
+    const formAction = firstForm.getAttribute('action')
+    const conversationId = formAction.split('/start/')[1]
+
+    // Now submit an invalid (empty) question to the same conversation
+    const validationErrorResponse = await server.inject({
+      method: 'POST',
+      url: `/start/${conversationId}`,
+      payload: {
+        modelId: 'sonnet-3.7',
+        question: ''
+      }
+    })
+
+    expect(validationErrorResponse.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+    const { window } = new JSDOM(validationErrorResponse.result)
+    const page = window.document
+
+    // Check that error summary is displayed
+    const errorSummary = page.querySelector('.govuk-error-summary')
+    expect(errorSummary).not.toBeNull()
+
+    // Check that the previous conversation is still displayed
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('What is UCD?')
+    expect(bodyText).toContain('User-Centred Design (UCD) is a framework')
+
+    // Check that conversationId is preserved in the form action
+    const form = page.querySelector('form')
+    expect(form.getAttribute('action')).toContain(`/start/${conversationId}`)
+
+    // Verify conversation messages are displayed
+    const userQuestions = page.querySelectorAll('.app-user-question')
+    const assistantResponses = page.querySelectorAll('.app-assistant-response')
+    expect(userQuestions.length).toBeGreaterThan(0)
+    expect(assistantResponses.length).toBeGreaterThan(0)
+  })
+
+  test('POST /start - validation error with question too long should preserve cached conversation and question', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks('plaintext')
+
+    // First, create a conversation
+    const firstQuestionResponse = await server.inject({
+      method: 'POST',
+      url: '/start',
+      payload: {
+        modelId: 'sonnet-3.7',
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(firstQuestionResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window: firstWindow } = new JSDOM(firstQuestionResponse.result)
+    const firstPage = firstWindow.document
+
+    // Extract conversationId from the form action
+    const firstForm = firstPage.querySelector('form')
+    const formAction = firstForm.getAttribute('action')
+    const conversationId = formAction.split('/start/')[1]
+
+    // Submit a question that's too long
+    const longQuestion = 'q'.repeat(501)
+    const validationErrorResponse = await server.inject({
+      method: 'POST',
+      url: `/start/${conversationId}`,
+      payload: {
+        modelId: 'sonnet-3.7',
+        question: longQuestion
+      }
+    })
+
+    expect(validationErrorResponse.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+    const { window } = new JSDOM(validationErrorResponse.result)
+    const page = window.document
+
+    // Check that error summary is displayed
+    const errorSummary = page.querySelector('.govuk-error-summary')
+    expect(errorSummary).not.toBeNull()
+
+    // Check that the previous conversation is still displayed
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('What is user centred design?')
+    expect(bodyText).toContain('User-Centred Design (UCD)')
+
+    // Check that the invalid question is preserved in the textarea
+    const questionTextarea = page.querySelector('#question')
+    expect(questionTextarea.value).toBe(longQuestion)
+
+    // Check that conversationId is preserved
+    const form = page.querySelector('form')
+    expect(form.getAttribute('action')).toContain(`/start/${conversationId}`)
+
+    // Verify conversation messages are displayed
+    const userQuestions = page.querySelectorAll('.app-user-question')
+    const assistantResponses = page.querySelectorAll('.app-assistant-response')
+    expect(userQuestions.length).toBeGreaterThan(0)
+    expect(assistantResponses.length).toBeGreaterThan(0)
+  })
+
+  test('POST /start - when chat API returns 500 INTERNAL_SERVER_ERROR should display non-retryable error message', async () => {
     // Setup 500 error mock
     setupChatApiErrorMock(statusCodes.INTERNAL_SERVER_ERROR)
     setupModelsApiMocks()
@@ -275,15 +398,22 @@ describe('Start routes', () => {
     const page = window.document
 
     const bodyText = page.body.textContent
-    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('Something went wrong and we cannot continue this conversation.')
+    expect(bodyText).not.toContain('Wait a moment and try sending your message again')
     expect(bodyText).toContain('What is user centred design?') // Question should be preserved
 
-    // Check that conversationId is preserved in the form action
+    expect(bodyText).toContain('System message')
+    expect(bodyText).toMatch(/System message\s+at\s+\d{1,2}:\d{2}(am|pm)/i)
+
     const form = page.querySelector('form')
     expect(form.getAttribute('action')).toContain('/start/error-conversation-789')
+
+    const clearLink = page.querySelector('a[href="/start/clear/error-conversation-789"]')
+    expect(clearLink).not.toBeNull()
+    expect(clearLink.textContent).toContain('Start a new conversation')
   })
 
-  test('POST /start - when chat API returns 502 Bad Gateway then should display error message', async () => {
+  test('POST /start - when chat API returns 502 Bad Gateway should display retryable error message', async () => {
     // Setup 502 error mock
     setupChatApiErrorMock(statusCodes.BAD_GATEWAY)
     setupModelsApiMocks()
@@ -303,12 +433,19 @@ describe('Start routes', () => {
     const page = window.document
 
     const bodyText = page.body.textContent
-    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('Wait a moment and try sending your message again')
+    expect(bodyText).not.toContain('Something went wrong and we cannot continue this conversation.')
     expect(bodyText).toContain('What is user centred design?')
+
+    expect(bodyText).toContain('System message')
+    expect(bodyText).toMatch(/System message\s+at\s+\d{1,2}:\d{2}(am|pm)/i)
+
+    const clearLink = page.querySelector('a[href="/start/clear"]')
+    expect(clearLink).not.toBeNull()
+    expect(clearLink.textContent).toContain('start a new conversation')
   })
 
-  test('POST /start - when chat API returns 503 Service Unavailable then should display error message', async () => {
-    // Setup 503 error mock
+  test('POST /start - when chat API returns 503 Service Unavailable should display retryable error message', async () => {
     setupChatApiErrorMock(statusCodes.SERVICE_UNAVAILABLE)
     setupModelsApiMocks()
 
@@ -327,12 +464,12 @@ describe('Start routes', () => {
     const page = window.document
 
     const bodyText = page.body.textContent
-    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('Wait a moment and try sending your message again')
+    expect(bodyText).not.toContain('Something went wrong and we cannot continue this conversation.')
     expect(bodyText).toContain('What is user centred design?')
   })
 
-  test('POST /start - when chat API returns 504 Gateway Timeout then should display error message', async () => {
-    // Setup 504 error mock
+  test('POST /start - when chat API returns 504 Gateway Timeout should display retryable error message', async () => {
     setupChatApiErrorMock(statusCodes.GATEWAY_TIMEOUT)
     setupModelsApiMocks()
 
@@ -351,12 +488,12 @@ describe('Start routes', () => {
     const page = window.document
 
     const bodyText = page.body.textContent
-    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('Wait a moment and try sending your message again')
+    expect(bodyText).not.toContain('Something went wrong and we cannot continue this conversation.')
     expect(bodyText).toContain('What is user centred design?')
   })
 
-  test('POST /start - when chat API connection times out then should display error message', async () => {
-    // Setup network timeout mock
+  test('POST /start - when chat API connection times out should display non-retryable error message', async () => {
     setupChatApiErrorMock(null, 'timeout')
     setupModelsApiMocks()
 
@@ -375,8 +512,90 @@ describe('Start routes', () => {
     const page = window.document
 
     const bodyText = page.body.textContent
-    expect(bodyText).toContain('Sorry, there was a problem getting a response. Please try again.')
+    expect(bodyText).toContain('Something went wrong and we cannot continue this conversation.')
+    expect(bodyText).not.toContain('Wait a moment and try sending your message again')
     expect(bodyText).toContain('What is user centred design?')
+  })
+
+  test('POST /start - when chat API returns 400 BAD_REQUEST should display non-retryable error message', async () => {
+    setupChatApiErrorMock(statusCodes.BAD_REQUEST)
+    setupModelsApiMocks()
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      payload: {
+        modelId: 'sonnet-3.7',
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Something went wrong and we cannot continue this conversation.')
+    expect(bodyText).not.toContain('Wait a moment and try sending your message again')
+    expect(bodyText).toContain('What is user centred design?')
+
+    const clearLink = page.querySelector('a[href="/start/clear"]')
+    expect(clearLink).not.toBeNull()
+    expect(clearLink.textContent).toContain('Start a new conversation')
+  })
+
+  test('POST /start - when chat API returns 429 TOO_MANY_REQUESTS should display retryable error message', async () => {
+    setupChatApiErrorMock(statusCodes.TOO_MANY_REQUESTS)
+    setupModelsApiMocks()
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start',
+      payload: {
+        modelId: 'sonnet-3.7',
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Wait a moment and try sending your message again')
+    expect(bodyText).not.toContain('Something went wrong and we cannot continue this conversation.')
+    expect(bodyText).toContain('What is user centred design?')
+  })
+
+  test('POST /start - retryable error with conversationId should include conversationId in "start a new conversation" link', async () => {
+    setupChatApiErrorMock(statusCodes.GATEWAY_TIMEOUT)
+    setupModelsApiMocks()
+
+    const response = await server.inject({
+      method: 'POST',
+      url: '/start/timeout-conversation-123',
+      payload: {
+        modelId: 'sonnet-3.7',
+        question: 'What is user centred design?'
+      }
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('Wait a moment and try sending your message again')
+    expect(bodyText).toContain('If this keeps happening')
+    expect(bodyText).toContain('What is user centred design?')
+
+    // Check that "start a new conversation" link includes conversationId
+    const clearLink = page.querySelector('a[href="/start/clear/timeout-conversation-123"]')
+    expect(clearLink).not.toBeNull()
+    expect(clearLink.textContent).toContain('start a new conversation')
   })
 
   test('GET /start - when models API returns 500 error should display error page', async () => {

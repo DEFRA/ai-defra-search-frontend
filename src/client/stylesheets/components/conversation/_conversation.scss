@@ -1,5 +1,6 @@
 @use "govuk-frontend" as *;
 
+
 .app-conversation-container {
   border: $govuk-border-width-form-element solid $govuk-border-colour;
   border-radius: 0;
@@ -56,6 +57,29 @@
 
   p {
     margin-bottom: 0;
-    color: govuk-colour("dark-grey");
+    color: govuk-colour("black");
+  }
+}
+
+.app-error-message {
+  border-left: 5px solid govuk-colour("red");
+  background-color: govuk-colour("light-grey");
+  padding: govuk-spacing(3);
+  @include govuk-responsive-margin(6, "top");
+  @include govuk-responsive-margin(1, "bottom");
+
+  &__body {
+    p {
+      margin-bottom: govuk-spacing(2);
+      color: govuk-colour("black");
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    ul {
+      margin-bottom: govuk-spacing(2);
+    }
   }
 }
