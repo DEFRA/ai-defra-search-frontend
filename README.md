@@ -141,9 +141,8 @@ The application implements conversation caching to provide resilience when the c
 
 **How it works:**
 
-1. **Before API Call**: When a user submits a question, it's immediately stored in Redis cache along with the existing conversation history.
-2. **After Successful API Response**: The complete conversation (including the AI's response) is updated in the cache.
-3. **On API Failure**: If the chat API returns an error, the application retrieves the cached conversation from Redis and displays it to the user, allowing them to see their previous messages.
+1. **After Successful API Response**: The complete conversation (including the AI's response) is updated in the cache.
+2. **On API Failure**: If the chat API returns an error, the application retrieves the cached conversation from Redis and displays it to the user, allowing them to see their previous messages.
 
 This approach eliminates the need to call a separate endpoint (`/chat/{conversationId}`) to retrieve conversations on error, making the error handling more efficient and resilient.
 

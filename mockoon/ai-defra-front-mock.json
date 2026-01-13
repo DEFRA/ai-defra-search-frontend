@@ -65,7 +65,7 @@
         },
         {
           "uuid": "766bc47d-a3de-4cbe-80fe-8d008b850f41",
-          "body": "{\n  \"error\": \"Invalid request: question field is required\"\n}",
+          "body": "{\n  \"detail\": \"An error occurred (ValidationException) when calling the Converse operation: <AWS error message>\"\n}",
           "latency": 0,
           "statusCode": 400,
           "label": "Bad request - invalid input",
