@@ -18,7 +18,13 @@ export const start = {
         {
           method: 'POST',
           path: '/start/{conversationId?}',
-          ...startPostController
+          ...startPostController,
+          options: {
+            ...startPostController.options,
+            timeout: {
+              socket: 3 * 60 * 1000 // 3 minutes to allow for SSE processing
+            }
+          }
         },
         {
           method: ['GET'],
