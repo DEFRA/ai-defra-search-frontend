@@ -1,3 +1,4 @@
+import {EventSource} from 'eventsource'
 import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
@@ -5,32 +6,7 @@ import { marked } from 'marked'
 import { storeConversation } from './conversation-cache.js'
 import statusCodes from 'http-status-codes'
 import { createLogger } from '../common/helpers/logging/logger.js'
-
-function createSimpleSSEParser (onEvent) {
-  let buffer = ''
-  return {
-    feed (chunk) {
-      buffer += chunk
-      const parts = buffer.split(/\r?\n\r?\n/)
-      buffer = parts.pop() || ''
-      for (const part of parts) {
-        if (!part.trim()) continue
-        const lines = part.split(/\r?\n/)
-        let eventName = null
-        const dataLines = []
-        for (const line of lines) {
-          const idx = line.indexOf(':')
-          if (idx === -1) continue
-          const field = line.slice(0, idx).trim()
-          const value = line.slice(idx + 1).replace(/^\s?/, '')
-          if (field === 'data') dataLines.push(value)
-          else if (field === 'event') eventName = value
-        }
-        onEvent({ type: 'event', event: eventName || 'message', data: dataLines.join('\n') })
-      }
-    }
-  }
-}
+import sanitizeHtml from 'sanitize-html'
 
 export { sendQuestion }
 
@@ -47,7 +23,6 @@ const SSE_KEEPALIVE_CHECK_MS = 10 * 1000
  */
 function createSSEError (message, status, data) {
   const error = new Error(message)
-  // Expose status and data as enumerable properties for structured logging
   error.status = status
   error.data = data
   error.response = {
@@ -71,7 +46,9 @@ function camelizeKeys (input) {
 }
 
 /**
- * Sends a question to the chat API and consumes the SSE response until completion.
+ * Sends a question to the chat API using POST-then-GET pattern.
+ * First POSTs the question and gets message/conversation IDs,
+ * then opens an EventSource to stream status updates.
  * Resolves with the completed conversation payload (keys are camelCased).
  * @param {string} question
  * @param {string} modelId
@@ -80,20 +57,47 @@ function camelizeKeys (input) {
  */
 async function sendQuestion (question, modelId, conversationId) {
   const chatApiUrl = config.get('chatApiUrl')
-  const url = `${chatApiUrl}/chat`
+  const postUrl = `${chatApiUrl}/chat`
+  const logger = createLogger()
 
-  return new Promise(async (resolve, reject) => {
-    const controller = new AbortController()
-    const signal = controller.signal
+  // Step 1: POST the question and get IDs
+  const postResponse = await fetch(postUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, conversationId: conversationId || null, modelId })
+  })
 
+  if (!postResponse.ok) {
+    const errorBody = await postResponse.text().catch(() => '')
+    const error = createSSEError(
+      `Chat API returned ${postResponse.status}`,
+      postResponse.status,
+      { errorBody }
+    )
+    throw error
+  }
+
+  const postData = await postResponse.json()
+  const messageId = postData.message_id || postData.messageId
+  const resultConversationId = postData.conversation_id || postData.conversationId
+
+  if (!messageId) {
+    throw createSSEError(
+      'Chat API did not return message_id',
+      statusCodes.BAD_GATEWAY,
+      { postData }
+    )
+  }
+
+  // Step 2: Open EventSource to stream status updates
+  return new Promise((resolve, reject) => {
     let lastEventTime = Date.now()
-    let messageId = null
-    let resultConversationId = null
     let isResolved = false
+    let eventSource = null
 
     const overallTimer = setTimeout(() => {
-      if (!isResolved) {
-        controller.abort()
+      if (!isResolved && eventSource) {
+        eventSource.close()
         const error = createSSEError(
           'Request timeout: No response received within time limit',
           statusCodes.REQUEST_TIMEOUT,
@@ -104,8 +108,8 @@ async function sendQuestion (question, modelId, conversationId) {
     }, SSE_TIMEOUT_MS)
 
     const keepAliveTimer = setInterval(() => {
-      if (Date.now() - lastEventTime > SSE_KEEPALIVE_TIMEOUT_MS && !isResolved) {
-        controller.abort()
+      if (Date.now() - lastEventTime > SSE_KEEPALIVE_TIMEOUT_MS && !isResolved && eventSource) {
+        eventSource.close()
         const error = createSSEError(
           'Keep-alive timeout: No events received within time limit',
           statusCodes.REQUEST_TIMEOUT,
@@ -118,109 +122,82 @@ async function sendQuestion (question, modelId, conversationId) {
     const cleanupTimers = () => {
       clearTimeout(overallTimer)
       clearInterval(keepAliveTimer)
-      try { controller.abort() } catch (e) {}
+      if (eventSource) {
+        try { eventSource.close() } catch (e) {}
+      }
     }
 
-    const headers = { 'Content-Type': 'application/json', Accept: 'text/event-stream' }
+    const streamUrl = `${chatApiUrl}/chat/stream/${messageId}`
+    eventSource = new EventSource(streamUrl)
 
-    const body = JSON.stringify({ question, conversationId: conversationId || null, modelId })
+    eventSource.addEventListener('status', (event) => {
+      lastEventTime = Date.now()
+      if (isResolved) return
 
-    try {
-      const response = await fetch(url, { method: 'POST', headers, body, signal })
-      if (!response.ok) {
-        const errorBody = await response.text().catch(() => '')
-        cleanupTimers()
-        const error = createSSEError(`Chat API returned ${response.status}`, response.status, { errorBody })
-        reject(error)
+      let payload
+      try {
+        payload = JSON.parse(event.data)
+      } catch (err) {
+        try {
+          logger.warn({ err: err.message, eventSize: event.data ? event.data.length : 0 }, 'SSE payload parse failed')
+        } catch (e) {}
         return
       }
 
+      const status = payload.status || payload.state
+      if (status === 'completed' || status === 'done') {
+        isResolved = true
+        cleanupTimers()
+
+        const raw = payload.result || payload
+        const result = camelizeKeys(raw)
+        if (Array.isArray(result.messages)) {
+          result.messages = result.messages.map((m) => {
+            const content = m.content || m.text || ''
+            const rendered = marked(String(content))
+            const safe = sanitizeHtml(rendered)
+            return Object.assign({}, m, { text: String(content), content: safe })
+          })
+        }
+        if (result.conversationId) {
+          storeConversation(result.conversationId, result.messages || [], modelId).catch((cacheErr) => {
+            try {
+              logger.error({ err: cacheErr.message, conversationId: result.conversationId }, 'Failed to write conversation cache')
+            } catch (e) {}
+          })
+        }
+        resolve(result)
+      } else if (status === 'failed' || status === 'error') {
+        isResolved = true
+        cleanupTimers()
+        reject(createSSEError(
+          payload.error_message || payload.error || 'SSE reported failure',
+          statusCodes.BAD_GATEWAY,
+          payload
+        ))
+      }
+    })
+
+    eventSource.addEventListener('keepalive', () => {
       lastEventTime = Date.now()
+    })
 
-      const logger = createLogger()
+    eventSource.addEventListener('error', (err) => {
+      if (isResolved) return
+      isResolved = true
+      cleanupTimers()
 
-      const parser = createSimpleSSEParser((event) => {
-        if (event.type === 'event') {
-          lastEventTime = Date.now()
-          if (!event.data) return
-          try {
-            const payload = JSON.parse(event.data)
-            const status = payload.status || payload.state
-            if (status === 'completed' || status === 'done') {
-              if (!isResolved) {
-                isResolved = true
-                cleanupTimers()
-                const raw = payload.result || payload
-                const result = camelizeKeys(raw)
-                if (Array.isArray(result.messages)) {
-                  result.messages = result.messages.map((m) => {
-                    const content = m.content || m.text || ''
-                    const rendered = marked(String(content))
-                    return Object.assign({}, m, { text: String(content), content: rendered })
-                  })
-                }
-                if (result.conversationId) {
-                  storeConversation(result.conversationId, result.messages || [], modelId).catch((cacheErr) => {
-                    try { logger.error({ err: cacheErr.message, conversationId: result.conversationId }, 'Failed to write conversation cache') } catch (e) {}
-                  })
-                }
-
-                resolve(result)
-              }
-            } else if (status === 'failed' || status === 'error') {
-              if (!isResolved) {
-                isResolved = true
-                cleanupTimers()
-                const err = createSSEError(payload.error_message || payload.error || 'SSE reported failure', statusCodes.BAD_GATEWAY, payload)
-                reject(err)
-              }
-            }
-          } catch (err) {
-            try { logger.warn({ err: err.message, eventSize: event.data ? event.data.length : 0 }, 'SSE payload parse failed') } catch (e) {}
-          }
-        }
-      })
-
-      // Support both WHATWG ReadableStream (getReader) and Node.js Readable (async iterator)
-      if (response.body && typeof response.body.getReader === 'function') {
-        const reader = response.body.getReader()
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          lastEventTime = Date.now()
-          const chunk = Buffer.from(value).toString('utf8')
-          parser.feed(chunk)
-        }
-      } else if (response.body && typeof response.body[Symbol.asyncIterator] === 'function') {
-        for await (const chunkPart of response.body) {
-          lastEventTime = Date.now()
-          const chunk = Buffer.isBuffer(chunkPart) ? chunkPart.toString('utf8') : String(chunkPart)
-          parser.feed(chunk)
-        }
-      } else {
-        // Fallback: read full text
-        const text = await response.text().catch(() => '')
-        if (text) parser.feed(text)
+      const error = createSSEError(
+        'EventSource connection error',
+        statusCodes.BAD_GATEWAY,
+        { message: err.message || String(err), messageId, conversationId: resultConversationId }
+      )
+      if (err && typeof err === 'object') {
+        error.status = err.status || statusCodes.BAD_GATEWAY
+        error.data = err.data || error.data
       }
-
-      if (!isResolved) {
-        isResolved = true
-        cleanupTimers()
-        const err = createSSEError('SSE stream ended before completion', statusCodes.BAD_GATEWAY, { messageId, conversationId: resultConversationId })
-        reject(err)
-      }
-    } catch (err) {
-      if (!isResolved) {
-        isResolved = true
-        cleanupTimers()
-        // Ensure the error carries a status and data for the frontend logger/view
-        if (err && typeof err === 'object') {
-          err.status = err.status || statusCodes.BAD_GATEWAY
-          err.data = err.data || { message: err.message || String(err) }
-        }
-        reject(err)
-      }
-    }
+      reject(error)
+    })
   })
 }
  
