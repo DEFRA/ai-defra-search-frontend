@@ -45,7 +45,7 @@ function getCacheKey (conversationId) {
  * @param {string} modelId - The model ID used
  * @returns {Promise<void>}
  */
-async function storeConversation (conversationId, messages, modelId) {
+async function storeConversation (conversationId, messages, modelId, meta = {}) {
   const logger = createLogger()
   const cache = getCache()
 
@@ -55,7 +55,8 @@ async function storeConversation (conversationId, messages, modelId) {
       conversationId,
       messages,
       modelId,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      ...meta
     }
 
     await cache.set(key, value, cacheTtl)
