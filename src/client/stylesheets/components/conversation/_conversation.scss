@@ -55,6 +55,14 @@
   background-color: govuk-colour("light-grey");
   @include govuk-responsive-margin(1, "bottom");
 
+  &[autofocus]:focus {
+    outline: none;
+  }
+
+  &[autofocus] {
+    scroll-margin-top: govuk-spacing(3);
+  }
+
   p {
     margin-bottom: 0;
     color: govuk-colour("black");

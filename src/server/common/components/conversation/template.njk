@@ -2,9 +2,13 @@
 {%- set errorDetails = params.errorDetails -%}
 {%- set conversationId = params.conversationId -%}
 {%- set lastUserIndex = -1 -%}
+{%- set lastAssistantIndex = -1 -%}
 {%- for message in messages -%}
   {%- if message.role === "user" -%}
     {%- set lastUserIndex = loop.index0 -%}
+  {%- endif -%}
+  {%- if message.role === "assistant" -%}
+    {%- set lastAssistantIndex = loop.index0 -%}
   {%- endif -%}
 {%- endfor -%}
 
@@ -14,7 +18,7 @@
   <div class="govuk-!-padding-4 app-conversation-container">
     {% for message in messages %}
       {% if message.role === "user" %}
-        <div class="app-user-question-wrapper"{% if loop.index0 == lastUserIndex and not errorDetails %} id="latest-question" tabindex="-1" autofocus{% endif %}>
+        <div class="app-user-question-wrapper"{% if loop.index0 == lastUserIndex and lastAssistantIndex < lastUserIndex and not errorDetails %} id="latest-question" tabindex="-1" autofocus{% endif %}>
           <div class="app-user-question">
               {{ message.content | safe }}
           </div>
@@ -25,7 +29,7 @@
       {% endif %}
 
       {% if message.role === "assistant" %}
-        <div class="app-assistant-response govuk-body govuk-!-width-two-thirds">
+        <div class="app-assistant-response govuk-body govuk-!-width-two-thirds"{% if loop.index0 == lastAssistantIndex and not errorDetails %} id="latest-response" tabindex="-1" autofocus{% endif %}>
             {{ message.content | safe }}
         </div>
         <div class="govuk-!-display-flex govuk-!-justify-content-space-between govuk-!-margin-top-0">
