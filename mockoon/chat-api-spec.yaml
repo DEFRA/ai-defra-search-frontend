@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Chat Service API
-  description: Mock API for chat service backend
-  version: 1.0.0
+  description: Async chat service backend with polling-based message retrieval
+  version: 2.0.0
 servers:
   - url: http://localhost:3000
     description: Local mock server
@@ -10,8 +10,11 @@ servers:
 paths:
   /chat:
     post:
-      summary: Send a chat message
-      description: Sends a message to the chat service and receives a response with conversation history
+      summary: Queue a chat message for async processing
+      description: |
+        Queues a user message for asynchronous processing. Returns immediately 
+        with a 202 Accepted status and identifiers (conversation_id, message_id) 
+        that can be used to poll for the result via GET /conversations/{conversation_id}.
       operationId: postChat
       requestBody:
         required: true
@@ -21,34 +24,117 @@ paths:
               type: object
               required:
                 - question
-                - modelId
+                - model_id
               properties:
                 conversation_id:
                   type: string
                   format: uuid
-                  description: Optional conversation ID. If not provided, a new conversation will be created
+                  description: Optional conversation ID to continue an existing conversation
                   example: "550e8400-e29b-41d4-a716-446655440000"
                 question:
                   type: string
                   description: The user's question or message
                   example: "What is the weather like today?"
-                modelId:
+                model_id:
                   type: string
                   description: The ID of the AI model to use
-                  example: "sonnet-3.7"
+                  example: "sonnet-3-7"
             examples:
               newConversation:
                 summary: New conversation
                 value:
                   question: "Hello, how are you?"
+                  model_id: "sonnet-3-7"
               existingConversation:
                 summary: Existing conversation
                 value:
                   conversation_id: "550e8400-e29b-41d4-a716-446655440000"
                   question: "Can you tell me more?"
+                  model_id: "haiku"
+      responses:
+        '202':
+          description: Message queued successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message_id
+                  - conversation_id
+                  - status
+                properties:
+                  message_id:
+                    type: string
+                    format: uuid
+                    description: The unique identifier for the queued message
+                    example: "60311e26-e318-4d53-8d75-daed95cbd646"
+                  conversation_id:
+                    type: string
+                    format: uuid
+                    description: The conversation identifier
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  status:
+                    type: string
+                    enum: [queued]
+                    description: Initial status of the message
+                    example: "queued"
+              examples:
+                queued:
+                  summary: Message queued
+                  value:
+                    message_id: "60311e26-e318-4d53-8d75-daed95cbd646"
+                    conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                    status: "queued"
+        '400':
+          description: Bad request - unsupported model ID or invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Unsupported model ID: invalid-model"
+        '404':
+          description: Conversation not found (when continuing existing conversation)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: "Conversation not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+
+  /conversations/{conversation_id}:
+    get:
+      summary: Get conversation by ID
+      description: |
+        Retrieves a conversation with all its messages and their current processing status.
+        Use this endpoint to poll for message completion after POSTing to /chat.
+      operationId: getConversation
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          description: The UUID of the conversation to retrieve
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
       responses:
         '200':
-          description: Successful response with conversation messages
+          description: Conversation retrieved successfully
           content:
             application/json:
               schema:
@@ -64,61 +150,71 @@ paths:
                     example: "550e8400-e29b-41d4-a716-446655440000"
                   messages:
                     type: array
-                    description: Array of messages in the conversation
+                    description: Array of messages with their processing status
                     items:
-                      type: object
-                      required:
-                        - role
-                        - model
-                        - content
-                      properties:
-                        role:
-                          type: string
-                          enum:
-                            - user
-                            - assistant
-                          description: The role of the message sender
-                          example: "user"
-                        model:
-                          type: string
-                          description: The model used for the response (for assistant messages)
-                          example: "gpt-4"
-                        content:
-                          type: string
-                          description: The message content
-                          example: "Hello! How can I help you today?"
+                      $ref: '#/components/schemas/Message'
               examples:
-                singleExchange:
-                  summary: Single message exchange
+                completed:
+                  summary: Conversation with completed messages
                   value:
                     conversation_id: "550e8400-e29b-41d4-a716-446655440000"
                     messages:
-                      - role: "user"
-                        model: "user-input"
-                        content: "Hello, how are you?"
-                      - role: "assistant"
-                        model: "gpt-4"
-                        content: "Hello! I'm doing well, thank you for asking. How can I assist you today?"
-        '400':
-          description: Bad request - invalid input
+                      - message_id: "60311e26-e318-4d53-8d75-daed95cbd646"
+                        role: "user"
+                        content: "What is UCD?"
+                        model_id: "sonnet-3-7"
+                        model_name: "Sonnet 3.7"
+                        status: "completed"
+                        error_message: null
+                        error_code: null
+                        timestamp: "2026-02-04T12:00:00.000000+00:00"
+                      - message_id: "70422e37-f429-5e64-9e86-ebfe96ddc757"
+                        role: "assistant"
+                        content: "User-Centred Design (UCD) is an iterative design process..."
+                        model_id: "sonnet-3-7"
+                        model_name: "Sonnet 3.7"
+                        status: "completed"
+                        error_message: null
+                        error_code: null
+                        timestamp: "2026-02-04T12:00:15.123456+00:00"
+                processing:
+                  summary: Conversation with processing message
+                  value:
+                    conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                    messages:
+                      - message_id: "60311e26-e318-4d53-8d75-daed95cbd646"
+                        role: "user"
+                        content: "What is AI?"
+                        model_id: "haiku"
+                        model_name: "Haiku"
+                        status: "processing"
+                        error_message: null
+                        error_code: null
+                        timestamp: "2026-02-04T12:00:00.000000+00:00"
+                failed:
+                  summary: Conversation with failed message
+                  value:
+                    conversation_id: "550e8400-e29b-41d4-a716-446655440000"
+                    messages:
+                      - message_id: "60311e26-e318-4d53-8d75-daed95cbd646"
+                        role: "user"
+                        content: "What is AI?"
+                        model_id: "haiku"
+                        model_name: "Haiku"
+                        status: "failed"
+                        error_message: "Rate limit exceeded"
+                        error_code: 429
+                        timestamp: "2026-02-04T12:00:00.000000+00:00"
+        '404':
+          description: Conversation not found
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  error:
+                  detail:
                     type: string
-                    example: "Invalid request: question field is required"
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Internal server error"
+                    example: "Conversation not found"
 
 components:
   schemas:
@@ -126,23 +222,46 @@ components:
       type: object
       required:
         - question
-        - modelId
+        - model_id
       properties:
-        conversationId:
+        conversation_id:
           type: string
           format: uuid
+          description: Optional UUID of an existing conversation
         question:
           type: string
-        modelId:
+          description: The user's question
+        model_id:
           type: string
+          description: The ID of the AI model to use
 
     ChatResponse:
       type: object
       required:
-        - conversationId
+        - message_id
+        - conversation_id
+        - status
+      properties:
+        message_id:
+          type: string
+          format: uuid
+          description: The unique identifier for the queued message
+        conversation_id:
+          type: string
+          format: uuid
+          description: The conversation identifier
+        status:
+          type: string
+          enum: [queued]
+          description: Initial status of the message
+
+    ConversationResponse:
+      type: object
+      required:
+        - conversation_id
         - messages
       properties:
-        conversationId:
+        conversation_id:
           type: string
           format: uuid
         messages:
@@ -153,16 +272,50 @@ components:
     Message:
       type: object
       required:
+        - message_id
         - role
-        - model
         - content
+        - model_id
+        - model_name
+        - status
+        - timestamp
       properties:
+        message_id:
+          type: string
+          format: uuid
+          description: Unique identifier for the message
         role:
           type: string
           enum:
             - user
             - assistant
-        model:
-          type: string
+          description: The role of the message sender
         content:
           type: string
+          description: The message content (markdown for assistant messages)
+        model_id:
+          type: string
+          description: The model ID used
+        model_name:
+          type: string
+          description: Human-readable model name
+        status:
+          type: string
+          enum:
+            - queued
+            - processing
+            - completed
+            - failed
+          description: Current processing status of the message
+        error_message:
+          type: string
+          nullable: true
+          description: Error message if status is 'failed'
+        error_code:
+          type: integer
+          nullable: true
+          description: HTTP status code if status is 'failed'
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp of message creation
