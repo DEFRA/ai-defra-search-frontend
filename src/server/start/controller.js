@@ -85,14 +85,14 @@ export const startGetController = {
           models,
           modelId: null
         })
-      } catch (err) {
-        if (err.message === 'timeout') {
+      } catch (error) {
+        if (error.message === 'timeout') {
           return h.view(START_VIEW_PATH, { conversationId, messages: [], models, modelId: null })
         }
-        if (err.response?.status === statusCodes.NOT_FOUND) {
+        if (error.response?.status === statusCodes.NOT_FOUND) {
           return h.view(START_VIEW_PATH, { conversationId, messages: [], notFound: true, models, modelId: null }).code(statusCodes.NOT_FOUND)
         }
-        throw err
+        throw error
       }
     } catch (error) {
       logger.error({ error, conversationId }, 'Error fetching conversation')
@@ -152,8 +152,8 @@ export const startPostController = {
 
         const updatedMessages = [...existingMessages, newUserMessage, placeholderAssistantMessage]
         await storeConversation(id, updatedMessages, modelId, { initialViewPending: true })
-      } catch (err) {
-        logger.error({ err, conversationId: id }, 'Failed to store conversation in cache')
+      } catch (error) {
+        logger.error({ error, conversationId: id }, 'Failed to store conversation in cache')
       }
 
       return h.redirect(`/start/${id}`).code(statusCodes.SEE_OTHER)

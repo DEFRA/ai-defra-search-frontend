@@ -820,4 +820,34 @@ describe('Start routes', () => {
     expect(clearLink).not.toBeNull()
     expect(clearLink.textContent).toContain('Clear conversation')
   })
+
+  test('GET /start/clear/{conversationId} should clear specific conversation and redirect', async () => {
+    setupModelsApiMocks()
+
+    const clearResponse = await server.inject({
+      method: 'GET',
+      url: '/start/clear/some-conversation-id'
+    })
+
+    expect(clearResponse.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(clearResponse.headers.location).toBe('/start')
+  })
+
+  test('GET /start/{conversationId} - should display conversation when API returns successfully', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks('plaintext')
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start/mock-conversation-123'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('AI assistant')
+  })
 })

@@ -74,7 +74,7 @@ async function _validateSessionToken (request, session) {
     const decoded = Jwt.token.decode(userSession.token)
 
     Jwt.token.verifyTime(decoded)
-  } catch (err) {
+  } catch (error) {
     request.server.logger.info('Session JWT token is invalid or has expired')
 
     return { isValid: false }
