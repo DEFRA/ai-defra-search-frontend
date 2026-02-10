@@ -1,5 +1,6 @@
 import statusCodes from 'http-status-codes'
 import { JSDOM } from 'jsdom'
+import nock from 'nock'
 
 import { createServer } from '../../../../src/server/server.js'
 import { cleanupChatApiMocks, setupChatApiErrorMock, setupChatApiMocks } from '../../../mocks/chat-api-handlers.js'
@@ -849,5 +850,44 @@ describe('Start routes', () => {
 
     const bodyText = page.body.textContent
     expect(bodyText).toContain('AI assistant')
+  })
+
+  test('GET /start/{conversationId} when API times out should show empty conversation', async () => {
+    cleanupChatApiMocks()
+    setupModelsApiMocks()
+
+    nock('http://host.docker.internal:3018')
+      .get('/conversations/timeout-conv')
+      .delay(1500)
+      .reply(200, { conversationId: 'timeout-conv', messages: [] })
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start/timeout-conv'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const messages = page.querySelectorAll('.app-user-question, .app-assistant-response')
+    expect(messages.length).toBe(0)
+  })
+
+  test('GET /start/{conversationId} when API returns 404 should show not found', async () => {
+    cleanupChatApiMocks()
+    setupModelsApiMocks()
+
+    nock('http://host.docker.internal:3018')
+      .get('/conversations/not-found')
+      .reply(404, { error: 'Not found' })
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start/not-found'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.NOT_FOUND)
   })
 })
