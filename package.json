@@ -34,7 +34,8 @@
   "overrides": {
     "useragent": {
       "tmp": "^0.2.4"
-    }
+    },
+    "@isaacs/brace-expansion": "5.0.1"
   },
   "dependencies": {
     "@defra/cdp-auditing": "0.1.0",
@@ -64,16 +65,16 @@
     "hapi-pulse": "3.0.1",
     "http-status-codes": "2.3.0",
     "ioredis": "5.6.1",
-    "joi": "17.13.3",
     "jsdom": "27.2.0",
-    "lodash": "4.17.21",
+    "joi": "17.13.3",
+    "lodash": "4.17.23",
     "node-fetch": "3.3.2",
     "nunjucks": "3.2.4",
     "pino": "9.7.0",
     "pino-pretty": "13.0.0",
     "semver": "7.7.2",
     "undici": "7.18.2",
-    "marked": "16.4.1"
+    "marked": "16.4.2"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "4.0.14",
@@ -96,7 +97,7 @@
     "terser-webpack-plugin": "5.3.14",
     "vitest": "4.0.14",
     "vitest-fetch-mock": "0.4.5",
-    "webpack": "5.99.9",
+    "webpack": "5.105.0",
     "webpack-assets-manifest": "6.2.1",
     "webpack-cli": "6.0.1"
   }
