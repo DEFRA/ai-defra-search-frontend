@@ -89,14 +89,14 @@ export const startGetController = {
         if (err.message === 'timeout') {
           return h.view(START_VIEW_PATH, { conversationId, messages: [], models, modelId: null })
         }
-        if (err.response && err.response.status === 404) {
+        if (err.response?.status === statusCodes.NOT_FOUND) {
           return h.view(START_VIEW_PATH, { conversationId, messages: [], notFound: true, models, modelId: null }).code(statusCodes.NOT_FOUND)
         }
         throw err
       }
     } catch (error) {
       logger.error({ error, conversationId }, 'Error fetching conversation')
-      if (error.response && error.response.status === 404) {
+      if (error.response?.status === statusCodes.NOT_FOUND) {
         const models = await getModels()
         return h.view(START_VIEW_PATH, { conversationId, messages: [], notFound: true, models, modelId: null }).code(statusCodes.NOT_FOUND)
       }
