@@ -6,7 +6,7 @@ import { getErrorDetails } from './error-mapping.js'
  * Builds the error view model for server errors
  * @returns {Object} The view model for the error page
  */
-export function buildServerErrorViewModel () {
+function buildServerErrorViewModel () {
   return {
     pageTitle: 'Something went wrong',
     heading: 500,
@@ -21,7 +21,7 @@ export function buildServerErrorViewModel () {
  * @param {string} errorMessage - The validation error message
  * @returns {Promise<Object>} The view model for validation errors
  */
-export async function buildValidationErrorViewModel (request, errorMessage) {
+async function buildValidationErrorViewModel (request, errorMessage) {
   const { conversationId } = request.params
   const { question, modelId } = request.payload || {}
 
@@ -46,7 +46,7 @@ export async function buildValidationErrorViewModel (request, errorMessage) {
  * @param {Array} models - The list of available models
  * @returns {Object} The view model for successful response
  */
-export function buildChatSuccessViewModel (response, modelId, models) {
+function buildChatSuccessViewModel (response, modelId, models) {
   return {
     messages: response.messages,
     conversationId: response.conversationId,
@@ -65,7 +65,7 @@ export function buildChatSuccessViewModel (response, modelId, models) {
  * @param {Error} error - The error from the API
  * @returns {Promise<Object>} The view model for API errors
  */
-export async function buildApiErrorViewModel (conversationId, question, modelId, models, error) {
+async function buildApiErrorViewModel (conversationId, question, modelId, models, error) {
   const conversation = await getConversation(conversationId)
   const messages = conversation?.messages || []
   const errorDetails = await getErrorDetails(error)
@@ -79,3 +79,5 @@ export async function buildApiErrorViewModel (conversationId, question, modelId,
     errorDetails
   }
 }
+
+export { buildServerErrorViewModel, buildValidationErrorViewModel, buildChatSuccessViewModel, buildApiErrorViewModel }

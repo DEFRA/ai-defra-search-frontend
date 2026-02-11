@@ -14,7 +14,7 @@ import {
 
 const START_VIEW_PATH = 'start/start'
 
-export const startGetController = {
+const startGetController = {
   /**
    * Handles both initial page load and conversation display.
    * If no conversationId: shows empty form with model selection.
@@ -27,12 +27,10 @@ export const startGetController = {
     try {
       const models = await getModels()
 
-      // If no conversationId, show empty start page
       if (!conversationId) {
         return h.view(START_VIEW_PATH, { models })
       }
 
-      // If conversationId exists, show conversation
       const cached = await getCachedConversation(conversationId)
 
       if (cached?.initialViewPending) {
@@ -105,7 +103,7 @@ export const startGetController = {
   }
 }
 
-export const startPostController = {
+const startPostController = {
   options: {
     validate: {
       payload: startPostSchema,
@@ -167,7 +165,7 @@ export const startPostController = {
   }
 }
 
-export const clearConversationController = {
+const clearConversationController = {
   /**
    * Clears the conversation cache and redirects to the start page.
    */
@@ -181,3 +179,5 @@ export const clearConversationController = {
     return h.redirect('/start')
   }
 }
+
+export { startGetController, startPostController, clearConversationController }
