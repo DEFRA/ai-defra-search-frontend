@@ -890,4 +890,21 @@ describe('Start routes', () => {
 
     expect(response.statusCode).toBe(statusCodes.NOT_FOUND)
   })
+
+  test('GET /start/{conversationId} when API returns 500 after timeout should show server error', async () => {
+    cleanupChatApiMocks()
+    setupModelsApiMocks()
+
+    nock('http://host.docker.internal:3018')
+      .get('/conversations/error-conv')
+      .delay(500)
+      .reply(500, { error: 'Internal server error' })
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start/error-conv'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
+  })
 })
