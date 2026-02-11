@@ -147,7 +147,8 @@ export const startPostController = {
         const placeholderAssistantMessage = {
           role: 'assistant',
           content: marked.parse('AI agent is responding, refresh to see latest response'),
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          isPlaceholder: true
         }
 
         const updatedMessages = [...existingMessages, newUserMessage, placeholderAssistantMessage]

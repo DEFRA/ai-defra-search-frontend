@@ -210,4 +210,119 @@ describe('Conversation Component', () => {
       expect(bodyText).toContain('Haiku')
     })
   })
+
+  describe('Refresh Button', () => {
+    test('should render refresh button for placeholder assistant messages', () => {
+      const template = `
+        {% from "conversation/macro.njk" import defraConversation %}
+        {{ defraConversation({
+          messages: messages,
+          conversationId: conversationId
+        }) }}
+      `
+
+      const messages = [
+        {
+          role: 'assistant',
+          content: '<p>AI agent is responding, refresh to see latest response</p>',
+          timestamp: '2024-01-01T10:00:00Z',
+          isPlaceholder: true
+        }
+      ]
+
+      const conversationId = 'test-conversation-123'
+
+      const html = env.renderString(template, { messages, conversationId })
+      const { window } = new JSDOM(html)
+      const page = window.document
+
+      const refreshButton = page.querySelector('a.govuk-button')
+
+      expect(refreshButton).not.toBeNull()
+      expect(refreshButton.textContent.trim()).toBe('Refresh')
+      expect(refreshButton.getAttribute('href')).toBe('/start/test-conversation-123')
+      expect(refreshButton.getAttribute('draggable')).toBe('false')
+    })
+
+    test('should not render refresh button for regular assistant messages', () => {
+      const template = `
+        {% from "conversation/macro.njk" import defraConversation %}
+        {{ defraConversation({
+          messages: messages,
+          conversationId: conversationId
+        }) }}
+      `
+
+      const messages = [
+        {
+          role: 'assistant',
+          content: '<p>This is a regular response</p>',
+          timestamp: '2024-01-01T10:00:00Z',
+          isPlaceholder: false
+        }
+      ]
+
+      const conversationId = 'test-conversation-123'
+
+      const html = env.renderString(template, { messages, conversationId })
+      const { window } = new JSDOM(html)
+      const page = window.document
+
+      const refreshButton = page.querySelector('a.govuk-button')
+
+      expect(refreshButton).toBeNull()
+    })
+
+    test('should render refresh button without conversationId', () => {
+      const template = `
+        {% from "conversation/macro.njk" import defraConversation %}
+        {{ defraConversation({
+          messages: messages
+        }) }}
+      `
+
+      const messages = [
+        {
+          role: 'assistant',
+          content: '<p>AI agent is responding, refresh to see latest response</p>',
+          timestamp: '2024-01-01T10:00:00Z',
+          isPlaceholder: true
+        }
+      ]
+
+      const html = env.renderString(template, { messages })
+      const { window } = new JSDOM(html)
+      const page = window.document
+
+      const refreshButton = page.querySelector('a.govuk-button')
+
+      expect(refreshButton).not.toBeNull()
+      expect(refreshButton.getAttribute('href')).toBe('/start')
+    })
+
+    test('should not render refresh button when isPlaceholder is undefined', () => {
+      const template = `
+        {% from "conversation/macro.njk" import defraConversation %}
+        {{ defraConversation({
+          messages: messages
+        }) }}
+      `
+
+      const messages = [
+        {
+          role: 'assistant',
+          content: '<p>AI agent is responding, refresh to see latest response</p>',
+          timestamp: '2024-01-01T10:00:00Z'
+        }
+      ]
+
+      const html = env.renderString(template, { messages })
+      const { window } = new JSDOM(html)
+      const page = window.document
+
+      const refreshButton = page.querySelector('a.govuk-button')
+
+      expect(refreshButton).toBeNull()
+    })
+  })
 })
