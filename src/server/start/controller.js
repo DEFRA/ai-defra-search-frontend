@@ -42,8 +42,8 @@ const startGetController = {
               cached.modelId || null,
               { initialViewPending: false }
             )
-          } catch (bgErr) {
-            logger.error({ bgErr, conversationId }, 'Failed to clear initialViewPending flag')
+          } catch (error) {
+            logger.error({ error, conversationId }, 'Failed to clear initialViewPending flag')
           }
         })()
 
@@ -73,8 +73,8 @@ const startGetController = {
             null,
             { initialViewPending: false }
           )
-        } catch (cacheErr) {
-          logger.error({ cacheErr, conversationId }, 'Failed to update cache with API conversation')
+        } catch (error) {
+          logger.error({ error, conversationId }, 'Failed to update cache with API conversation')
         }
 
         return h.view(START_VIEW_PATH, {
