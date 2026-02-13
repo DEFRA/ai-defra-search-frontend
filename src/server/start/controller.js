@@ -1,15 +1,18 @@
 import statusCodes from 'http-status-codes'
-import { marked } from 'marked'
+// marked is used in view-model factories now
 
 import { sendQuestion, getConversation as getConversationApi } from './chat-api.js'
 import { getModels } from './models-api.js'
 import { startPostSchema, startParamsSchema } from './chat-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 import { getConversation as getCachedConversation, storeConversation, clearConversation } from './conversation-cache.js'
+import { config } from '../../config/config.js'
 import {
   buildServerErrorViewModel,
   buildValidationErrorViewModel,
-  buildApiErrorViewModel
+  buildApiErrorViewModel,
+  buildUserMessage,
+  buildPlaceholderMessage
 } from './chat-view-models.js'
 
 const START_VIEW_PATH = 'start/start'
@@ -34,18 +37,16 @@ const startGetController = {
       const cached = await getCachedConversation(conversationId)
 
       if (cached?.initialViewPending) {
-        ;(async () => {
-          try {
-            await storeConversation(
-              cached.conversationId,
-              cached.messages,
-              cached.modelId || null,
-              { initialViewPending: false }
-            )
-          } catch (error) {
-            logger.error({ error, conversationId }, 'Failed to clear initialViewPending flag')
-          }
-        })()
+        try {
+          await storeConversation(
+            cached.conversationId,
+            cached.messages,
+            cached.modelId || null,
+            { initialViewPending: false }
+          )
+        } catch (error) {
+          logger.error({ error, conversationId }, 'Failed to clear initialViewPending flag')
+        }
 
         return h.view(START_VIEW_PATH, {
           messages: cached.messages,
@@ -56,7 +57,7 @@ const startGetController = {
       }
 
       try {
-        const timeoutMs = 1000
+        const timeoutMs = config.get('chatApiTimeoutMs')
         const conversation = await Promise.race([
           getConversationApi(conversationId),
           new Promise((_resolve, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
@@ -135,19 +136,8 @@ const startPostController = {
         const existingConversation = await getCachedConversation(id)
         const existingMessages = existingConversation?.messages || []
 
-        const newUserMessage = {
-          role: 'user',
-          content: marked.parse(question),
-          message_id: response.messageId,
-          timestamp: new Date().toISOString()
-        }
-
-        const placeholderAssistantMessage = {
-          role: 'assistant',
-          content: marked.parse('AI agent is responding, refresh to see latest response'),
-          timestamp: new Date().toISOString(),
-          isPlaceholder: true
-        }
+        const newUserMessage = buildUserMessage(question, response.messageId)
+        const placeholderAssistantMessage = buildPlaceholderMessage(response.messageId)
 
         const updatedMessages = [...existingMessages, newUserMessage, placeholderAssistantMessage]
         await storeConversation(id, updatedMessages, modelId, { initialViewPending: true })

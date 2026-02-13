@@ -58,9 +58,6 @@ describe('Controller error path coverage', () => {
       models: mockModels,
       modelId: 'model-1'
     })
-
-    // Wait for background task to complete
-    await new Promise(resolve => setTimeout(resolve, 50))
     expect(conversationCache.storeConversation).toHaveBeenCalled()
   })
 

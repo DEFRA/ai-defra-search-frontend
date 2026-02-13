@@ -239,6 +239,12 @@ export const config = convict({
     default: null,
     env: 'API_BASE_URL'
   },
+  chatApiTimeoutMs: {
+    doc: 'Timeout for chat API requests in milliseconds',
+    format: Number,
+    default: 3000,
+    env: 'CHAT_API_TIMEOUT_MS'
+  },
   auth: {
     enabled: {
       doc: 'Enable MS Entra authentication - Should only be disabled for local development purposes',
@@ -250,18 +256,21 @@ export const config = convict({
       tenantId: {
         doc: 'MS Entra tenant ID',
         format: String,
+        nullable: true,
         default: null,
         env: 'MS_ENTRA_TENANT_ID'
       },
       clientId: {
         doc: 'MS Entra application ID',
         format: String,
+        nullable: true,
         default: null,
         env: 'MS_ENTRA_CLIENT_ID'
       },
       clientSecret: {
         doc: 'MS Entra application secret',
         format: String,
+        nullable: true,
         default: null,
         sensitive: true,
         env: 'MS_ENTRA_CLIENT_SECRET'
@@ -269,6 +278,7 @@ export const config = convict({
       redirectHost: {
         doc: 'Redirect host for MS Entra authentication callbacks',
         format: 'url',
+        nullable: true,
         default: null,
         env: 'MS_ENTRA_REDIRECT_HOST'
       }

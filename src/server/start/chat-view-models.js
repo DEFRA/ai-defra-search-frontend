@@ -1,7 +1,38 @@
 import { getModels } from './models-api.js'
 import { getConversation } from './conversation-cache.js'
 import { getErrorDetails } from './error-mapping.js'
+import { marked } from 'marked'
 
+const PLACEHOLDER_MESSAGE = 'AI agent is responding, refresh to see latest response'
+/**
+ * Build a user message object for storing in the conversation cache
+ * @param {string} question
+ * @param {string} messageId
+ */
+function buildUserMessage (question, messageId) {
+  return {
+    role: 'user',
+    content: marked.parse(question),
+    message_id: messageId,
+    timestamp: new Date().toISOString(),
+    status: 'completed'
+  }
+}
+
+/**
+ * Build a placeholder assistant message used for no-JS flow
+ * @param {string} [messageId]
+ */
+function buildPlaceholderMessage (messageId = null) {
+  return {
+    role: 'assistant',
+    content: marked.parse(PLACEHOLDER_MESSAGE),
+    message_id: messageId,
+    timestamp: new Date().toISOString(),
+    status: 'pending',
+    isPlaceholder: true
+  }
+}
 /**
  * Builds the error view model for server errors
  * @returns {Object} The view model for the error page
@@ -39,21 +70,7 @@ async function buildValidationErrorViewModel (request, errorMessage) {
   }
 }
 
-/**
- * Builds the view model for successful chat response
- * @param {Object} response - The API response containing messages and conversationId
- * @param {string} modelId - The model ID
- * @param {Array} models - The list of available models
- * @returns {Object} The view model for successful response
- */
-function buildChatSuccessViewModel (response, modelId, models) {
-  return {
-    messages: response.messages,
-    conversationId: response.conversationId,
-    modelId,
-    models
-  }
-}
+
 
 /**
  * Builds the view model for API errors
@@ -80,4 +97,4 @@ async function buildApiErrorViewModel (conversationId, question, modelId, models
   }
 }
 
-export { buildServerErrorViewModel, buildValidationErrorViewModel, buildChatSuccessViewModel, buildApiErrorViewModel }
+export { buildServerErrorViewModel, buildValidationErrorViewModel, buildApiErrorViewModel, PLACEHOLDER_MESSAGE, buildUserMessage, buildPlaceholderMessage }
