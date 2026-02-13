@@ -1,6 +1,4 @@
 import statusCodes from 'http-status-codes'
-// marked is used in view-model factories now
-
 import { sendQuestion, getConversation as getConversationApi } from './chat-api.js'
 import { getModels } from './models-api.js'
 import { startPostSchema, startParamsSchema } from './chat-schema.js'
