@@ -70,8 +70,6 @@ async function buildValidationErrorViewModel (request, errorMessage) {
   }
 }
 
-
-
 /**
  * Builds the view model for API errors
  * Handles fetching conversation and error details internally
