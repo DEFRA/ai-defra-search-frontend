@@ -2,16 +2,17 @@ import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
 import { marked } from 'marked'
-import { storeConversation } from './conversation-cache.js'
 
 /**
- * Calls the chat API with a user question and returns the response.
- * Caches the complete conversation after receiving the API response.
+ * Send a question to the backend chat API. The backend queues the request and
+ * returns identifiers (conversation_id, message_id) rather than the full
+ * message content. This function returns the identifiers so the caller can
+ * redirect to a conversation view.
  *
  * @param {string} question - The user's question
  * @param {string} modelId - The ID of the AI model to use
  * @param {string} conversationId - Optional conversation ID to continue an existing conversation
- * @returns {Promise<Object>} The API response containing conversationId and messages
+ * @returns {Promise<Object>} An object containing `conversationId`, `messageId` and `status`
  * @throws {Error} If the API request fails
  */
 async function sendQuestion (question, modelId, conversationId) {
@@ -27,7 +28,7 @@ async function sendQuestion (question, modelId, conversationId) {
       body: JSON.stringify({
         question,
         conversation_id: conversationId || null,
-        modelId
+        model_id: modelId
       })
     })
 
@@ -44,21 +45,11 @@ async function sendQuestion (question, modelId, conversationId) {
 
     const data = await response.json()
 
-    const parsedMessages = data.messages.map(message => {
-      return {
-        ...message,
-        content: marked.parse(message.content)
-      }
-    })
-
-    const result = {
-      conversationId: data.conversationId,
-      messages: parsedMessages
+    return {
+      conversationId: data.conversation_id || data.conversationId,
+      messageId: data.message_id || data.messageId,
+      status: data.status
     }
-
-    await storeConversation(result.conversationId, result.messages, modelId)
-
-    return result
   } catch (error) {
     if (error.response) {
       throw error
@@ -67,4 +58,38 @@ async function sendQuestion (question, modelId, conversationId) {
   }
 }
 
-export { sendQuestion }
+/**
+ * Retrieve a conversation from the backend chat API and parse message
+ * markdown into HTML for server-side rendering.
+ *
+ * @param {string} conversationId - UUID of the conversation
+ * @returns {Promise<Object>} The conversation object { conversationId, messages }
+ */
+async function getConversation (conversationId, timeoutMs = 2000) {
+  const chatApiUrl = config.get('chatApiUrl')
+  const url = `${chatApiUrl}/conversations/${conversationId}`
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  const response = await fetch(url, { signal: controller.signal })
+  clearTimeout(timeout)
+  if (!response.ok) {
+    const error = new Error(`Chat API returned ${response.status}`)
+    error.response = { status: response.status, data: await response.text() }
+    throw error
+  }
+
+  const data = await response.json()
+
+  const parsedMessages = (data.messages || []).map(message => ({
+    ...message,
+    content: message.content ? marked.parse(message.content) : ''
+  }))
+
+  return {
+    conversationId: data.conversation_id || data.conversationId,
+    messages: parsedMessages
+  }
+}
+
+export { sendQuestion, getConversation }

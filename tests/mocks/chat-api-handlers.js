@@ -2,6 +2,9 @@ import nock from 'nock'
 
 const chatApiBaseUrl = 'http://host.docker.internal:3018'
 
+// Store posted conversations to return them on GET
+const conversationStore = new Map()
+
 /**
  * Setup mock handlers for the chat API using nock
  */
@@ -40,13 +43,15 @@ function setupChatApiMocks (responseType = 'plaintext') {
   nock(chatApiBaseUrl)
     .persist()
     .post('/chat', (body) => {
-      return typeof body.question === 'string' && typeof body.modelId === 'string'
+      return typeof body.question === 'string' && typeof body.model_id === 'string'
     })
     .reply(200, (uri, requestBody) => {
       const response = responses[responseType] || responses.plaintext
-      // Return a response with the actual question from the request
-      return {
-        conversationId: 'mock-conversation-123',
+      const conversationId = 'mock-conversation-123'
+
+      // Build the conversation with the actual question and mock response
+      const conversation = {
+        conversation_id: conversationId,
         messages: [
           {
             role: 'user',
@@ -54,6 +59,35 @@ function setupChatApiMocks (responseType = 'plaintext') {
           },
           ...response.messages.filter(m => m.role === 'assistant')
         ]
+      }
+
+      // Store for GET requests
+      conversationStore.set(conversationId, conversation)
+
+      return {
+        conversationId,
+        messageId: 'mock-message-456',
+        messages: conversation.messages
+      }
+    })
+
+  // Mock GET /conversations/{id} for retrieving conversations
+  nock(chatApiBaseUrl)
+    .persist()
+    .get(/\/conversations\/(.*)/)
+    .reply(200, (uri) => {
+      const conversationId = uri.split('/conversations/')[1]
+      const stored = conversationStore.get(conversationId)
+
+      if (stored) {
+        return stored
+      }
+
+      // Fallback to default response if not found
+      const response = responses[responseType] || responses.plaintext
+      return {
+        conversation_id: conversationId,
+        messages: response.messages
       }
     })
 
@@ -71,13 +105,13 @@ function setupChatApiErrorMock (statusCode, errorType) {
   if (errorType === 'timeout') {
     nock(chatApiBaseUrl)
       .post('/chat', (body) => {
-        return typeof body.question === 'string' && typeof body.modelId === 'string'
+        return typeof body.question === 'string' && typeof body.model_id === 'string'
       })
       .replyWithError('ETIMEDOUT')
   } else {
     nock(chatApiBaseUrl)
       .post('/chat', (body) => {
-        return typeof body.question === 'string' && typeof body.modelId === 'string'
+        return typeof body.question === 'string' && typeof body.model_id === 'string'
       })
       .reply(statusCode, { error: 'Error from chat API' })
   }
@@ -88,6 +122,7 @@ function setupChatApiErrorMock (statusCode, errorType) {
  */
 function cleanupChatApiMocks () {
   nock.cleanAll()
+  conversationStore.clear()
 }
 
 export { setupChatApiMocks, cleanupChatApiMocks, setupChatApiErrorMock }

@@ -1,5 +1,6 @@
 import statusCodes from 'http-status-codes'
 import { JSDOM } from 'jsdom'
+import nock from 'nock'
 
 import { createServer } from '../../../../src/server/server.js'
 import { cleanupChatApiMocks, setupChatApiErrorMock, setupChatApiMocks } from '../../../mocks/chat-api-handlers.js'
@@ -8,6 +9,7 @@ import {
   setupModelsApiErrorMock,
   setupModelsApiMocks
 } from '../../../mocks/models-api-handlers.js'
+import { clearConversation } from '../../../../src/server/start/conversation-cache.js'
 
 describe('Start routes', () => {
   let server
@@ -17,9 +19,11 @@ describe('Start routes', () => {
     await server.initialize()
   })
 
-  beforeEach(() => {
+  beforeEach(async () => {
     cleanupChatApiMocks()
     cleanupModelsApiMocks()
+    // Clear the shared mock conversation from cache
+    await clearConversation('mock-conversation-123')
   })
 
   afterAll(async () => {
@@ -73,9 +77,27 @@ describe('Start routes', () => {
       }
     })
 
-    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+    // Expect 303 redirect on successful POST
+    expect(questionResponse.statusCode).toBe(statusCodes.SEE_OTHER)
+    expect(questionResponse.headers.location).toMatch(/\/start\/mock-conversation-123/)
 
-    const { window } = new JSDOM(questionResponse.result)
+    // Follow redirect to conversation page (first load shows cached placeholder)
+    const firstGetResponse = await server.inject({
+      method: 'GET',
+      url: questionResponse.headers.location
+    })
+
+    expect(firstGetResponse.statusCode).toBe(statusCodes.OK)
+
+    // Make second GET request to simulate refresh and fetch real API response
+    const conversationResponse = await server.inject({
+      method: 'GET',
+      url: questionResponse.headers.location
+    })
+
+    expect(conversationResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(conversationResponse.result)
     const page = window.document
 
     // Check the page contains the question and response from mock API
@@ -103,9 +125,27 @@ describe('Start routes', () => {
       }
     })
 
-    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+    // Expect 303 redirect on successful POST
+    expect(questionResponse.statusCode).toBe(statusCodes.SEE_OTHER)
+    expect(questionResponse.headers.location).toMatch(/\/start\/mock-conversation-123/)
 
-    const { window } = new JSDOM(questionResponse.result)
+    // Follow redirect to conversation page (first load shows cached placeholder)
+    const firstGetResponse = await server.inject({
+      method: 'GET',
+      url: questionResponse.headers.location
+    })
+
+    expect(firstGetResponse.statusCode).toBe(statusCodes.OK)
+
+    // Make second GET request to simulate refresh and fetch real API response
+    const conversationResponse = await server.inject({
+      method: 'GET',
+      url: questionResponse.headers.location
+    })
+
+    expect(conversationResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(conversationResponse.result)
     const page = window.document
 
     const bodyText = page.body.textContent
@@ -127,9 +167,27 @@ describe('Start routes', () => {
       }
     })
 
-    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+    // Expect 303 redirect on successful POST
+    expect(questionResponse.statusCode).toBe(statusCodes.SEE_OTHER)
+    expect(questionResponse.headers.location).toMatch(/\/start\/mock-conversation-123/)
 
-    const { window } = new JSDOM(questionResponse.result)
+    // Follow redirect to conversation page (first load shows cached placeholder)
+    const firstGetResponse = await server.inject({
+      method: 'GET',
+      url: questionResponse.headers.location
+    })
+
+    expect(firstGetResponse.statusCode).toBe(statusCodes.OK)
+
+    // Make second GET request to simulate refresh and fetch real API response
+    const conversationResponse = await server.inject({
+      method: 'GET',
+      url: questionResponse.headers.location
+    })
+
+    expect(conversationResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(conversationResponse.result)
     const page = window.document
 
     const bodyText = page.body.textContent
@@ -155,9 +213,19 @@ describe('Start routes', () => {
       }
     })
 
-    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+    // Expect 303 redirect on successful POST
+    expect(questionResponse.statusCode).toBe(statusCodes.SEE_OTHER)
+    expect(questionResponse.headers.location).toMatch(/\/start\/mock-conversation-123/)
 
-    const { window } = new JSDOM(questionResponse.result)
+    // Follow redirect to conversation page
+    const conversationResponse = await server.inject({
+      method: 'GET',
+      url: questionResponse.headers.location
+    })
+
+    expect(conversationResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(conversationResponse.result)
     const page = window.document
 
     // Check that the form action includes the conversationId from response
@@ -179,9 +247,27 @@ describe('Start routes', () => {
       }
     })
 
-    expect(haikuResponse.statusCode).toBe(statusCodes.OK)
+    // Expect 303 redirect on successful POST
+    expect(haikuResponse.statusCode).toBe(statusCodes.SEE_OTHER)
+    expect(haikuResponse.headers.location).toMatch(/\/start\/mock-conversation-123/)
 
-    const { window } = new JSDOM(haikuResponse.result)
+    // Follow redirect to conversation page (first load shows cached placeholder)
+    const firstGetResponse = await server.inject({
+      method: 'GET',
+      url: haikuResponse.headers.location
+    })
+
+    expect(firstGetResponse.statusCode).toBe(statusCodes.OK)
+
+    // Make second GET request to simulate refresh and fetch real API response
+    const conversationResponse = await server.inject({
+      method: 'GET',
+      url: haikuResponse.headers.location
+    })
+
+    expect(conversationResponse.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(conversationResponse.result)
     const page = window.document
 
     // Verify the selected model is preserved in the form
@@ -269,15 +355,24 @@ describe('Start routes', () => {
       }
     })
 
-    expect(firstQuestionResponse.statusCode).toBe(statusCodes.OK)
+    // Expect 303 redirect on successful POST
+    expect(firstQuestionResponse.statusCode).toBe(statusCodes.SEE_OTHER)
+    expect(firstQuestionResponse.headers.location).toMatch(/\/start\/mock-conversation-123/)
 
-    const { window: firstWindow } = new JSDOM(firstQuestionResponse.result)
-    const firstPage = firstWindow.document
+    // Extract conversationId from redirect location
+    const conversationId = firstQuestionResponse.headers.location.split('/start/')[1]
 
-    // Extract conversationId from the form action
-    const firstForm = firstPage.querySelector('form')
-    const formAction = firstForm.getAttribute('action')
-    const conversationId = formAction.split('/start/')[1]
+    // Follow redirect to populate cache (first GET returns cached placeholder)
+    await server.inject({
+      method: 'GET',
+      url: firstQuestionResponse.headers.location
+    })
+
+    // Second GET fetches real API response and updates cache
+    await server.inject({
+      method: 'GET',
+      url: firstQuestionResponse.headers.location
+    })
 
     // Now submit an invalid (empty) question to the same conversation
     const validationErrorResponse = await server.inject({
@@ -328,15 +423,24 @@ describe('Start routes', () => {
       }
     })
 
-    expect(firstQuestionResponse.statusCode).toBe(statusCodes.OK)
+    // Expect 303 redirect on successful POST
+    expect(firstQuestionResponse.statusCode).toBe(statusCodes.SEE_OTHER)
+    expect(firstQuestionResponse.headers.location).toMatch(/\/start\/mock-conversation-123/)
 
-    const { window: firstWindow } = new JSDOM(firstQuestionResponse.result)
-    const firstPage = firstWindow.document
+    // Extract conversationId from redirect location
+    const conversationId = firstQuestionResponse.headers.location.split('/start/')[1]
 
-    // Extract conversationId from the form action
-    const firstForm = firstPage.querySelector('form')
-    const formAction = firstForm.getAttribute('action')
-    const conversationId = formAction.split('/start/')[1]
+    // Follow redirect to populate cache (first GET returns cached placeholder)
+    await server.inject({
+      method: 'GET',
+      url: firstQuestionResponse.headers.location
+    })
+
+    // Second GET fetches real API response and updates cache
+    await server.inject({
+      method: 'GET',
+      url: firstQuestionResponse.headers.location
+    })
 
     // Submit a question that's too long
     const longQuestion = 'q'.repeat(501)
@@ -650,10 +754,20 @@ describe('Start routes', () => {
       }
     })
 
-    expect(questionResponse.statusCode).toBe(statusCodes.OK)
+    // Expect 303 redirect on successful POST
+    expect(questionResponse.statusCode).toBe(statusCodes.SEE_OTHER)
+    expect(questionResponse.headers.location).toMatch(/\/start\/mock-conversation-123/)
 
-    // Verify conversation has messages
-    const { window: windowWithMessages } = new JSDOM(questionResponse.result)
+    // Follow redirect to conversation page to verify messages
+    const conversationResponse = await server.inject({
+      method: 'GET',
+      url: questionResponse.headers.location
+    })
+
+    expect(conversationResponse.statusCode).toBe(statusCodes.OK)
+
+    // Verify conversation has messages (cached user question + placeholder)
+    const { window: windowWithMessages } = new JSDOM(conversationResponse.result)
     const pageWithMessages = windowWithMessages.document
     const conversationWithMessages = pageWithMessages.querySelector('.app-conversation-container')
     expect(conversationWithMessages).not.toBeNull()
@@ -706,5 +820,91 @@ describe('Start routes', () => {
     const clearLink = pageAfterClear.querySelector('a[href="/start/clear"]')
     expect(clearLink).not.toBeNull()
     expect(clearLink.textContent).toContain('Clear conversation')
+  })
+
+  test('GET /start/clear/{conversationId} should clear specific conversation and redirect', async () => {
+    setupModelsApiMocks()
+
+    const clearResponse = await server.inject({
+      method: 'GET',
+      url: '/start/clear/some-conversation-id'
+    })
+
+    expect(clearResponse.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+    expect(clearResponse.headers.location).toBe('/start')
+  })
+
+  test('GET /start/{conversationId} - should display conversation when API returns successfully', async () => {
+    setupModelsApiMocks()
+    setupChatApiMocks('plaintext')
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start/mock-conversation-123'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const bodyText = page.body.textContent
+    expect(bodyText).toContain('AI assistant')
+  })
+
+  test('GET /start/{conversationId} when API times out should show empty conversation', async () => {
+    cleanupChatApiMocks()
+    setupModelsApiMocks()
+
+    nock('http://host.docker.internal:3018')
+      .get('/conversations/timeout-conv')
+      .delay(1500)
+      .reply(200, { conversationId: 'timeout-conv', messages: [] })
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start/timeout-conv'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.OK)
+
+    const { window } = new JSDOM(response.result)
+    const page = window.document
+
+    const messages = page.querySelectorAll('.app-user-question, .app-assistant-response')
+    expect(messages.length).toBe(0)
+  })
+
+  test('GET /start/{conversationId} when API returns 404 should show not found', async () => {
+    cleanupChatApiMocks()
+    setupModelsApiMocks()
+
+    nock('http://host.docker.internal:3018')
+      .get('/conversations/not-found')
+      .reply(404, { error: 'Not found' })
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start/not-found'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.NOT_FOUND)
+  })
+
+  test('GET /start/{conversationId} when API returns 500 after timeout should show server error', async () => {
+    cleanupChatApiMocks()
+    setupModelsApiMocks()
+
+    nock('http://host.docker.internal:3018')
+      .get('/conversations/error-conv')
+      .delay(500)
+      .reply(500, { error: 'Internal server error' })
+
+    const response = await server.inject({
+      method: 'GET',
+      url: '/start/error-conv'
+    })
+
+    expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
   })
 })
