@@ -245,6 +245,13 @@ export const config = convict({
     default: 3000,
     env: 'CHAT_API_TIMEOUT_MS'
   },
+  dataApiUrl: {
+    doc: 'Data API base URL (knowledge management, snapshots)',
+    format: String,
+    nullable: true,
+    default: null,
+    env: 'DATA_API_URL'
+  },
   auth: {
     enabled: {
       doc: 'Enable MS Entra authentication - Should only be disabled for local development purposes',

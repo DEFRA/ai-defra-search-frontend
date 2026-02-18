@@ -54,7 +54,13 @@
             conversationId: conversationId
           }) }}
 
-          <form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate>
+          {% if responsePending %}
+            {{ govukInsetText({
+              text: "Please wait for the current response before sending another question. Refresh the page to see the latest response."
+            }) }}
+          {% endif %}
+
+          <form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate{% if responsePending %} aria-disabled="true"{% endif %}>
 
             {{ govukTextarea({
               name: "question",
@@ -67,20 +73,23 @@
               },
               hint: {
                 text: "For example, 'How do I design an accessible form?' or 'Can you help me put together a research plan?'"
-              }
+              },
+              disabled: responsePending
             }) }}
 
             <div class="govuk-button-group">
               {{ govukButton({
                 text: "Send",
-                classes: "govuk-button--secondary"
+                classes: "govuk-button--secondary",
+                disabled: responsePending
               }) }}
-              <p class="govuk-body"><a href="/start/clear" class="govuk-link">Clear conversation</a>.</p>
+              <p class="govuk-body"><a href="/start/clear{% if conversationId %}/{{ conversationId }}{% endif %}" class="govuk-link">Clear conversation</a>.</p>
             </div>
 
             {{ defraModelSelect({
                     models: models,
-                    modelId: modelId
+                    modelId: modelId,
+                    disabled: responsePending
             }) }}
 
           </form>
@@ -91,7 +100,13 @@
     <div class="app-prompt-input-container">
       <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
-          <form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate>
+          {% if responsePending %}
+            {{ govukInsetText({
+              text: "Please wait for the current response before sending another question. Refresh the page to see the latest response."
+            }) }}
+          {% endif %}
+
+          <form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate{% if responsePending %} aria-disabled="true"{% endif %}>
              {{ govukTextarea({
               name: "question",
               id: "question",
@@ -103,21 +118,24 @@
               },
               hint: {
                 text: "For example, 'How do I design an accessible form?' or 'Can you help me put together a research plan?'"
-              }
+              },
+              disabled: responsePending
             }) }}
 
 
             <div class="govuk-button-group">
               {{ govukButton({
                 text: "Send",
-                classes: "govuk-button--secondary"
+                classes: "govuk-button--secondary",
+                disabled: responsePending
               }) }}
-              <p class="govuk-body"><a href="/start/clear" class="govuk-link">Clear conversation</a>.</p>
+              <p class="govuk-body"><a href="/start/clear{% if conversationId %}/{{ conversationId }}{% endif %}" class="govuk-link">Clear conversation</a>.</p>
             </div>
 
             {{ defraModelSelect({
                     models: models,
-                    modelId: modelId
+                    modelId: modelId,
+                    disabled: responsePending
             }) }}
 
           </form>

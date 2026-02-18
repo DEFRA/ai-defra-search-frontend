@@ -1,0 +1,229 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/summary-list/macro.njk" import govukSummaryList %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      {% set breadcrumbs = [
+        { text: 'Home', href: '/' },
+        { text: 'Knowledge Management', href: '/knowledge' },
+        { text: group.title, href: '/knowledge/' + group.groupId }
+      ] %}
+
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [{ text: errorMessage }]
+        }) }}
+      {% endif %}
+
+      {% if request.query.sourceAdded %}
+        {{ govukInsetText({
+          text: "Source added successfully."
+        }) }}
+      {% endif %}
+
+      {% if request.query.sourceRemoved %}
+        {{ govukInsetText({
+          text: "Source removed successfully."
+        }) }}
+      {% endif %}
+
+      {% if request.query.activated %}
+        {{ govukInsetText({
+          text: "Snapshot activated successfully."
+        }) }}
+      {% endif %}
+
+      {% if request.query.error %}
+        {{ govukErrorSummary({
+          titleText: "Error",
+          errorList: [{ text: request.query.error }]
+        }) }}
+      {% endif %}
+
+      {% if request.query.addError %}
+        {{ govukErrorSummary({
+          titleText: "Add source failed",
+          errorList: [{ text: request.query.addError }]
+        }) }}
+      {% endif %}
+
+      {% if request.query.queryError %}
+        {{ govukErrorSummary({
+          titleText: "Query failed",
+          errorList: [{ text: request.query.queryError }]
+        }) }}
+      {% endif %}
+
+      <p class="govuk-body govuk-!-margin-bottom-6">
+        <a href="/knowledge" class="govuk-back-link">Back to groups</a>
+      </p>
+
+      <h1 class="govuk-heading-xl">{{ group.title }} <span class="govuk-!-font-weight-regular">({{ group.groupId }})</span></h1>
+
+      <p class="govuk-body-l govuk-!-margin-top-2">{{ group.description }}</p>
+
+      <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--l">
+
+      <h2 class="govuk-heading-m">Sources</h2>
+      {% if sources.length === 0 %}
+        <p class="govuk-body">No sources in this group.</p>
+      {% else %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th class="govuk-table__header">Source ID</th>
+              <th class="govuk-table__header">Name</th>
+              <th class="govuk-table__header">Type</th>
+              <th class="govuk-table__header">Location</th>
+              <th class="govuk-table__header">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for s in sources %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell"><code class="govuk-!-font-size-14">{{ s.sourceId }}</code></td>
+                <td class="govuk-table__cell">{{ s.name }}</td>
+                <td class="govuk-table__cell">{{ s.type }}</td>
+                <td class="govuk-table__cell">{{ s.location }}</td>
+                <td class="govuk-table__cell">
+                  <form action="/knowledge/{{ group.groupId }}/sources/{{ s.sourceId }}/remove" method="post" style="display: inline;">
+                    <button type="submit" class="govuk-link govuk-link--no-visited-state" style="background:none;border:none;padding:0;cursor:pointer;color:#1d70b8;">Remove</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+
+      <h3 class="govuk-heading-s govuk-!-margin-top-6">Add source</h3>
+      <form action="/knowledge/{{ group.groupId }}/sources/add" method="post" novalidate>
+        <div class="govuk-grid-row govuk-!-margin-bottom-4">
+          <div class="govuk-grid-column-one-third">
+            <label class="govuk-label" for="source_name">Name</label>
+            <input class="govuk-input govuk-input--width-20" id="source_name" name="source_name" type="text" required>
+          </div>
+          <div class="govuk-grid-column-one-third">
+            <label class="govuk-label" for="source_type">Type</label>
+            <select class="govuk-select govuk-input--width-20" id="source_type" name="source_type" required>
+              <option value="BLOB">BLOB</option>
+              <option value="PRECHUNKED_BLOB" selected>PRECHUNKED_BLOB</option>
+            </select>
+          </div>
+          <div class="govuk-grid-column-one-third">
+            <label class="govuk-label" for="source_location">Location</label>
+            <input class="govuk-input govuk-input--width-20" id="source_location" name="source_location" type="text" required>
+          </div>
+        </div>
+        {{ govukButton({ text: "Add source", classes: "govuk-button--secondary" }) }}
+      </form>
+
+      <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--l">
+
+      <section id="ingest">
+      <h2 class="govuk-heading-m">Ingest</h2>
+      {% if request.query.ingested %}
+        <div class="govuk-panel govuk-panel--confirmation govuk-!-margin-bottom-6">
+          <h2 class="govuk-panel__title">Ingestion initiated</h2>
+          <div class="govuk-panel__body">Processing has started. Each source will be processed individually. This may take a few minutes.</div>
+        </div>
+      {% endif %}
+      <p class="govuk-body">Process sources and create a new snapshot. Each source will be processed individually.</p>
+      <form action="/knowledge/{{ group.groupId }}/ingest" method="post">
+        {{ govukButton({
+          text: "Trigger ingest",
+          classes: "govuk-button--secondary"
+        }) }}
+      </form>
+      </section>
+
+      <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--l">
+
+      <h2 class="govuk-heading-m">Snapshots</h2>
+      {% if snapshots.length === 0 %}
+        <p class="govuk-body">No snapshots yet. Trigger ingest to create one.</p>
+      {% else %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th class="govuk-table__header">Snapshot ID</th>
+              <th class="govuk-table__header">Version</th>
+              <th class="govuk-table__header">Created</th>
+              <th class="govuk-table__header">Chunks</th>
+              <th class="govuk-table__header">Per-source counts</th>
+              <th class="govuk-table__header">Status</th>
+              <th class="govuk-table__header">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for snap in snapshots %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell"><code class="govuk-!-font-size-14">{{ snap.snapshot_id }}</code></td>
+                <td class="govuk-table__cell">{{ snap.version }}</td>
+                <td class="govuk-table__cell">{{ snap.created_at | formatDate }}</td>
+                <td class="govuk-table__cell">{{ snap.chunk_count }}</td>
+                <td class="govuk-table__cell">{{ snap.source_chunk_summary or '—' }}</td>
+                <td class="govuk-table__cell">
+                  {% if group.activeSnapshot == snap.snapshot_id %}
+                    <strong class="govuk-tag govuk-tag--green">Active</strong>
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+                <td class="govuk-table__cell">
+                  {% if group.activeSnapshot != snap.snapshot_id %}
+                    <form action="/knowledge/{{ group.groupId }}/snapshots/{{ snap.snapshot_id }}/activate" method="post" style="display: inline;">
+                      <button type="submit" class="govuk-button govuk-button--secondary govuk-!-margin-0" style="padding: 5px 10px; font-size: 14px;">Activate</button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+
+      <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--l">
+
+      {% if group.activeSnapshot %}
+        <h2 class="govuk-heading-m">Query active snapshot</h2>
+        <p class="govuk-body">Search the active snapshot ({{ group.activeSnapshot }}) for relevant content.</p>
+        <form action="/knowledge/{{ group.groupId }}/query" method="post" novalidate>
+          <div class="govuk-grid-row govuk-!-margin-bottom-4">
+            <div class="govuk-grid-column-two-thirds">
+              <label class="govuk-label" for="query">Search query</label>
+              <input class="govuk-input" id="query" name="query" type="text" value="{{ lastQuery or '' }}" placeholder="Enter your search question...">
+            </div>
+            <div class="govuk-grid-column-one-third">
+              <label class="govuk-label" for="max_results">Max results</label>
+              <input class="govuk-input govuk-input--width-5" id="max_results" name="max_results" type="number" value="{{ lastMaxResults or 5 }}" min="1" max="20">
+            </div>
+          </div>
+          {{ govukButton({ text: "Search" }) }}
+        </form>
+
+        {% if queryResults and (queryResults | length) > 0 %}
+          <h3 class="govuk-heading-s govuk-!-margin-top-6">Results</h3>
+          {% for r in queryResults %}
+            <div class="govuk-body govuk-!-margin-bottom-4" style="border-left: 4px solid #1d70b8; padding-left: 1rem;">
+              <p class="govuk-!-margin-bottom-1"><strong>{{ r.name }}</strong> <span class="govuk-hint">({{ r.similarityCategory }}, {{ (r.similarityScore * 100).toFixed(1) }}%)</span></p>
+              <p class="govuk-!-margin-bottom-1">{{ r.content }}</p>
+              <p class="govuk-body-s govuk-!-margin-0"><code>{{ r.sourceId }}</code> · {{ r.location }}</p>
+            </div>
+          {% endfor %}
+        {% elif queryResults and (queryResults | length) == 0 and lastQuery %}
+          <p class="govuk-body govuk-!-margin-top-4">No results found for "{{ lastQuery }}".</p>
+        {% endif %}
+      {% else %}
+        <h2 class="govuk-heading-m">Query snapshot</h2>
+        <p class="govuk-body">Activate a snapshot above to enable querying. No active snapshot is set for this group.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

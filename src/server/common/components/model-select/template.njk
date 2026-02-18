@@ -1,8 +1,9 @@
 {%- set models = params.models if params.models else [] -%}
 {%- set selectedModelId = params.modelId if params.modelId else '' -%}
+{%- set disabled = params.disabled if params.disabled else false -%}
 
 {% if models.length > 0 %}
-  <fieldset class="govuk-fieldset govuk-!-margin-bottom-8">
+  <fieldset class="govuk-fieldset govuk-!-margin-bottom-8"{% if disabled %} disabled{% endif %}>
     <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
       <h2 class="govuk-fieldset__heading">
         Select AI model

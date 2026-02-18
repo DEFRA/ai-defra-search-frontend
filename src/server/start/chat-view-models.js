@@ -4,6 +4,8 @@ import { getErrorDetails } from './error-mapping.js'
 import { marked } from 'marked'
 
 const PLACEHOLDER_MESSAGE = 'AI agent is responding, refresh to see latest response'
+
+const hasPendingResponse = (messages) => messages?.some(m => m.isPlaceholder) ?? false
 /**
  * Build a user message object for storing in the conversation cache
  * @param {string} question
@@ -66,7 +68,8 @@ async function buildValidationErrorViewModel (request, errorMessage) {
     modelId,
     models,
     messages,
-    errorMessage
+    errorMessage,
+    responsePending: hasPendingResponse(messages)
   }
 }
 
@@ -91,8 +94,9 @@ async function buildApiErrorViewModel (conversationId, question, modelId, models
     conversationId,
     modelId,
     models,
-    errorDetails
+    errorDetails,
+    responsePending: hasPendingResponse(messages)
   }
 }
 
-export { buildServerErrorViewModel, buildValidationErrorViewModel, buildApiErrorViewModel, PLACEHOLDER_MESSAGE, buildUserMessage, buildPlaceholderMessage }
+export { buildServerErrorViewModel, buildValidationErrorViewModel, buildApiErrorViewModel, PLACEHOLDER_MESSAGE, buildUserMessage, buildPlaceholderMessage, hasPendingResponse }

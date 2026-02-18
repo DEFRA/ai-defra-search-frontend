@@ -1,0 +1,91 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      {% set breadcrumbs = [
+        { text: 'Home', href: '/' },
+        { text: 'Knowledge Management', href: '/knowledge' },
+        { text: 'Add group', href: '/knowledge/add' }
+      ] %}
+
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [{ text: errorMessage }]
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-xl">Add knowledge group</h1>
+
+      <p class="govuk-body">Create a new knowledge group with at least one source. You can add more sources later from the group page.</p>
+
+      <form action="/knowledge/add" method="post" novalidate>
+        {{ govukInput({
+          label: { text: "Group name", classes: "govuk-label--m" },
+          name: "name",
+          id: "name",
+          value: values.name if values else "",
+          classes: "govuk-input--width-30"
+        }) }}
+
+        {{ govukTextarea({
+          label: { text: "Description", classes: "govuk-label--m" },
+          name: "description",
+          id: "description",
+          value: values.description if values else "",
+          rows: 3
+        }) }}
+
+        {{ govukInput({
+          label: { text: "Owner", classes: "govuk-label--m" },
+          name: "owner",
+          id: "owner",
+          value: values.owner if values else "",
+          classes: "govuk-input--width-30"
+        }) }}
+
+        <h2 class="govuk-heading-m govuk-!-margin-top-6">First source (required)</h2>
+
+        {{ govukInput({
+          label: { text: "Source name", classes: "govuk-label--s" },
+          name: "source_name",
+          id: "source_name",
+          value: values.source_name if values else "",
+          classes: "govuk-input--width-30"
+        }) }}
+
+        {{ govukRadios({
+          name: "source_type",
+          fieldset: {
+            legend: { text: "Source type", classes: "govuk-fieldset__legend--s" }
+          },
+          items: [
+            { value: "BLOB", text: "BLOB" },
+            { value: "PRECHUNKED_BLOB", text: "PRECHUNKED_BLOB" }
+          ],
+          value: values.source_type if values else "PRECHUNKED_BLOB"
+        }) }}
+
+        {{ govukInput({
+          label: { text: "Location (URL or path)", classes: "govuk-label--s" },
+          name: "source_location",
+          id: "source_location",
+          value: values.source_location if values else "",
+          classes: "govuk-input--width-30"
+        }) }}
+
+        <div class="govuk-button-group govuk-!-margin-top-6">
+          {{ govukButton({ text: "Create group" }) }}
+          <a href="/knowledge" class="govuk-link">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

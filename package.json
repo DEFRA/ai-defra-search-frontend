@@ -35,7 +35,10 @@
     "useragent": {
       "tmp": "^0.2.4"
     },
-    "@isaacs/brace-expansion": "5.0.1"
+    "@isaacs/brace-expansion": "5.0.1",
+    "ajv-formats": { "ajv": "8.18.0" },
+    "schema-utils": { "ajv": "8.18.0" },
+    "table": { "ajv": "8.18.0" }
   },
   "dependencies": {
     "@defra/cdp-auditing": "0.1.0",

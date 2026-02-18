@@ -8,11 +8,13 @@ describe('#startServer', () => {
   let hapiServerSpy
   let startServerImport
   let createServerImport
+  let modelsApiImport
 
   beforeAll(async () => {
     vi.stubEnv('PORT', '3097')
 
     createServerImport = await import('../../../../../src/server/server.js')
+    modelsApiImport = await import('../../../../../src/server/start/models-api.js')
     startServerImport = await import('../../../../../src/server/common/helpers/start-server.js')
 
     createServerSpy = vi.spyOn(createServerImport, 'createServer')
@@ -53,6 +55,27 @@ describe('#startServer', () => {
       await expect(startServerImport.startServer()).rejects.toThrow(
         'Server failed to start'
       )
+
+      createServerSpy.mockRestore()
+      createServerSpy = vi.spyOn(createServerImport, 'createServer')
+    })
+  })
+
+  describe('Pre-warm models fetch', () => {
+    test('should call getModels when NODE_ENV is not test', async () => {
+      const origNodeEnv = process.env.NODE_ENV
+      process.env.NODE_ENV = 'development'
+
+      const getModelsSpy = vi.spyOn(modelsApiImport, 'getModels').mockResolvedValue([])
+
+      const server = await startServerImport.startServer()
+
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      expect(getModelsSpy).toHaveBeenCalled()
+      await server.stop({ timeout: 0 })
+      getModelsSpy.mockRestore()
+      process.env.NODE_ENV = origNodeEnv
     })
   })
 })

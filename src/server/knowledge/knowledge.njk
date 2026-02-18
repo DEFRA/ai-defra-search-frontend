@@ -1,0 +1,53 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-full">
+      {% set breadcrumbs = [{ text: 'Home', href: '/' }, { text: 'Knowledge Management', href: '/knowledge' }] %}
+
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [{ text: errorMessage }]
+        }) }}
+      {% endif %}
+
+      <h1 class="govuk-heading-xl">Knowledge Management</h1>
+
+      <p class="govuk-body">
+        <a href="/knowledge/add" class="govuk-link govuk-link--no-visited-state">Add new group</a>
+      </p>
+
+      {% if groups.length === 0 %}
+        <p class="govuk-body">No knowledge groups found.</p>
+      {% else %}
+        <table class="govuk-table">
+          <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+              <th class="govuk-table__header">Group ID</th>
+              <th class="govuk-table__header">Name</th>
+              <th class="govuk-table__header">Description</th>
+              <th class="govuk-table__header">Owner</th>
+              <th class="govuk-table__header">Sources</th>
+              <th class="govuk-table__header">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="govuk-table__body">
+            {% for g in groups %}
+              <tr class="govuk-table__row">
+                <td class="govuk-table__cell"><code class="govuk-!-font-size-14">{{ g.groupId }}</code></td>
+                <td class="govuk-table__cell">{{ g.title }}</td>
+                <td class="govuk-table__cell">{% if g.description %}{{ g.description.slice(0, 60) }}{% if g.description.length > 60 %}…{% endif %}{% endif %}</td>
+                <td class="govuk-table__cell">{{ g.owner }}</td>
+                <td class="govuk-table__cell">{{ g.sourceCount }}</td>
+                <td class="govuk-table__cell"><a href="/knowledge/{{ g.groupId }}" class="govuk-link">View</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
