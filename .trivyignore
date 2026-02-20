@@ -1,15 +1,6 @@
-# Use this file to ignore specific vulnerabilities in Aqua Trivy scans.
-# Each entry must:
-# * Start with the vulnerability ID (e.g., CVE-YYYY-NNNN)
-# * Include an expiration date in ISO 8601 format (YYYY-MM-DDTHH:MM:SS.sssZ) after 'exp:'
-#
-# Example:
-# CVE-2021-12345 exp:2023-12-31T23:59:59.000Z
-#
-# See https://trivy.dev/docs/latest/configuration/filtering/#trivyignore
+# ajv 6.12.6 - transitive from @eslint/eslintrc, no fix for 6.x line (unmaintained).
+# ajv 8.x instances upgraded to 8.18.0 via npm overrides.
+CVE-2025-69873
 
-# Useragent: Regular Expression Denial of Service (ReDoS)
-# Reason: Workaround (truncate user-agent strings) implemented in application code. Waiting for upstream package fix.
-# Created: 2025-11-26T15:00:00.000Z
-# Expires: 2026-10-31T15:00:00.000Z
+# useragent 2.3.0 - transitive dep, 2.3.1 fix never published to npm.
 CVE-2020-26311

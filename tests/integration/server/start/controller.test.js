@@ -10,11 +10,13 @@ import {
   setupModelsApiMocks
 } from '../../../mocks/models-api-handlers.js'
 import { clearConversation } from '../../../../src/server/start/conversation-cache.js'
+import { clearModelsCache } from '../../../../src/server/start/models-api.js'
 
 describe('Start routes', () => {
   let server
 
   beforeAll(async () => {
+    clearModelsCache()
     server = await createServer()
     await server.initialize()
   })
@@ -22,6 +24,7 @@ describe('Start routes', () => {
   beforeEach(async () => {
     cleanupChatApiMocks()
     cleanupModelsApiMocks()
+    clearModelsCache()
     // Clear the shared mock conversation from cache
     await clearConversation('mock-conversation-123')
   })
@@ -702,44 +705,6 @@ describe('Start routes', () => {
     expect(clearLink.textContent).toContain('start a new conversation')
   })
 
-  test('GET /start - when models API returns 500 error should display error page', async () => {
-    // Setup 500 error mock for models API
-    setupModelsApiErrorMock(statusCodes.INTERNAL_SERVER_ERROR)
-
-    const response = await server.inject({
-      method: 'GET',
-      url: '/start',
-    })
-
-    expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
-
-    const { window } = new JSDOM(response.result)
-    const page = window.document
-
-    // Check that error message is displayed
-    const bodyText = page.body.textContent
-    expect(bodyText).toContain('Sorry, there was a problem with the service request')
-  })
-
-  test('GET /start - when models API times out should display error page', async () => {
-    // Setup network timeout mock for models API
-    setupModelsApiErrorMock(null, 'timeout')
-
-    const response = await server.inject({
-      method: 'GET',
-      url: '/start'
-    })
-
-    expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
-
-    const { window } = new JSDOM(response.result)
-    const page = window.document
-
-    // Check that error message is displayed
-    const bodyText = page.body.textContent
-    expect(bodyText).toContain('Sorry, there was a problem with the service request')
-  })
-
   test('GET /start/clear should clear conversation and redirect to start page', async () => {
     setupModelsApiMocks()
     setupChatApiMocks()
@@ -906,5 +871,54 @@ describe('Start routes', () => {
     })
 
     expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
+  })
+
+  describe('models API error handling (isolated server to avoid cache pollution)', () => {
+    let isolatedServer
+
+    beforeAll(async () => {
+      clearModelsCache()
+      isolatedServer = await createServer()
+      await isolatedServer.initialize()
+    })
+
+    afterAll(async () => {
+      await isolatedServer.stop({ timeout: 0 })
+    })
+
+    beforeEach(() => {
+      cleanupModelsApiMocks()
+      clearModelsCache()
+    })
+
+    test('GET /start - when models API returns 500 error should display error page', async () => {
+      setupModelsApiErrorMock(statusCodes.INTERNAL_SERVER_ERROR)
+
+      const response = await isolatedServer.inject({
+        method: 'GET',
+        url: '/start'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
+
+      const { window } = new JSDOM(response.result)
+      const bodyText = window.document.body.textContent
+      expect(bodyText).toContain('Sorry, there was a problem with the service request')
+    })
+
+    test('GET /start - when models API times out should display error page', async () => {
+      setupModelsApiErrorMock(null, 'timeout')
+
+      const response = await isolatedServer.inject({
+        method: 'GET',
+        url: '/start'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
+
+      const { window } = new JSDOM(response.result)
+      const bodyText = window.document.body.textContent
+      expect(bodyText).toContain('Sorry, there was a problem with the service request')
+    })
   })
 })

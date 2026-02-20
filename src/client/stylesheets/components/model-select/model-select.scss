@@ -20,8 +20,8 @@
 }
 
 .defra-model-select__model-description {
-  @include govuk-font($size: 16);
   color: govuk-colour("dark-grey");
   font-weight: normal;
   text-align: left;
+  @include govuk-font($size: 16);
 }

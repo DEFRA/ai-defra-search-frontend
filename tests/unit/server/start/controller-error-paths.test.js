@@ -56,7 +56,8 @@ describe('Controller error path coverage', () => {
       messages: mockCached.messages,
       conversationId: mockCached.conversationId,
       models: mockModels,
-      modelId: 'model-1'
+      modelId: 'model-1',
+      responsePending: false
     })
     expect(conversationCache.storeConversation).toHaveBeenCalled()
   })
@@ -75,7 +76,8 @@ describe('Controller error path coverage', () => {
       conversationId: 'conv-456',
       messages: [],
       models: mockModels,
-      modelId: null
+      modelId: null,
+      responsePending: false
     })
   })
 
@@ -98,7 +100,8 @@ describe('Controller error path coverage', () => {
       messages: mockConversation.messages,
       conversationId: mockConversation.conversationId,
       models: mockModels,
-      modelId: null
+      modelId: null,
+      responsePending: false
     })
   })
 
@@ -120,9 +123,147 @@ describe('Controller error path coverage', () => {
       messages: [],
       notFound: true,
       models: mockModels,
-      modelId: null
+      modelId: null,
+      responsePending: false
     })
     expect(mockH.code).toHaveBeenCalledWith(statusCodes.NOT_FOUND)
+  })
+
+  test('should handle timeout and fallback to cached messages', async () => {
+    const mockModels = [{ id: 'model-1' }]
+    const mockCached = {
+      conversationId: 'conv-timeout',
+      messages: [{ role: 'user', content: 'test' }],
+      modelId: 'model-1',
+      initialViewPending: false
+    }
+
+    mockRequest.params.conversationId = 'conv-timeout'
+    vi.mocked(modelsApi.getModels).mockResolvedValue(mockModels)
+    vi.mocked(conversationCache.getConversation).mockResolvedValue(mockCached)
+    vi.mocked(chatApi.getConversation).mockRejectedValue(new Error('timeout'))
+
+    await startGetController.handler(mockRequest, mockH)
+
+    expect(mockH.view).toHaveBeenCalledWith('start/start', {
+      conversationId: 'conv-timeout',
+      messages: mockCached.messages,
+      models: mockModels,
+      modelId: 'model-1',
+      responsePending: false
+    })
+  })
+
+  test('should handle AbortError and fallback to cached', async () => {
+    const mockModels = [{ id: 'model-1' }]
+    const mockCached = {
+      conversationId: 'conv-abort',
+      messages: [{ role: 'user', content: 'q' }],
+      modelId: null,
+      initialViewPending: false
+    }
+    const abortError = new Error('Aborted')
+    abortError.name = 'AbortError'
+
+    mockRequest.params.conversationId = 'conv-abort'
+    vi.mocked(modelsApi.getModels).mockResolvedValue(mockModels)
+    vi.mocked(conversationCache.getConversation).mockResolvedValue(mockCached)
+    vi.mocked(chatApi.getConversation).mockRejectedValue(abortError)
+
+    await startGetController.handler(mockRequest, mockH)
+
+    expect(mockH.view).toHaveBeenCalledWith('start/start', {
+      conversationId: 'conv-abort',
+      messages: mockCached.messages,
+      models: mockModels,
+      modelId: null,
+      responsePending: false
+    })
+  })
+
+  test('should handle error.type aborted and fallback to cached', async () => {
+    const mockModels = [{ id: 'model-1' }]
+    const mockCached = { conversationId: 'c1', messages: [], modelId: null, initialViewPending: false }
+    const err = new Error('aborted')
+    err.type = 'aborted'
+
+    mockRequest.params.conversationId = 'c1'
+    vi.mocked(modelsApi.getModels).mockResolvedValue(mockModels)
+    vi.mocked(conversationCache.getConversation).mockResolvedValue(mockCached)
+    vi.mocked(chatApi.getConversation).mockRejectedValue(err)
+
+    await startGetController.handler(mockRequest, mockH)
+
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
+      conversationId: 'c1',
+      messages: [],
+      models: mockModels
+    }))
+  })
+
+  test('should handle error.cause AbortError and fallback to cached', async () => {
+    const mockModels = [{ id: 'model-1' }]
+    const mockCached = { conversationId: 'c2', messages: [{ role: 'user', content: 'hi' }], modelId: null, initialViewPending: false }
+    const cause = new Error('Aborted')
+    cause.name = 'AbortError'
+    const err = new Error('fetch failed', { cause })
+
+    mockRequest.params.conversationId = 'c2'
+    vi.mocked(modelsApi.getModels).mockResolvedValue(mockModels)
+    vi.mocked(conversationCache.getConversation).mockResolvedValue(mockCached)
+    vi.mocked(chatApi.getConversation).mockRejectedValue(err)
+
+    await startGetController.handler(mockRequest, mockH)
+
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
+      conversationId: 'c2',
+      messages: mockCached.messages,
+      models: mockModels
+    }))
+  })
+
+  test('should return conflict when pending response exists on POST', async () => {
+    const mockModels = [{ id: 'model-1' }]
+    const mockCached = {
+      conversationId: 'conv-pending',
+      messages: [
+        { role: 'user', content: 'q1' },
+        { role: 'assistant', content: '', messageId: 'm1', isPlaceholder: true }
+      ],
+      modelId: 'model-1',
+      initialViewPending: false
+    }
+
+    mockRequest.params.conversationId = 'conv-pending'
+    mockRequest.payload = { modelId: 'model-1', question: 'q2' }
+    vi.mocked(modelsApi.getModels).mockResolvedValue(mockModels)
+    vi.mocked(conversationCache.getConversation).mockImplementation(async () => mockCached)
+    vi.mocked(chatViewModels.hasPendingResponse).mockReturnValue(true)
+
+    await startPostController.handler(mockRequest, mockH)
+
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
+      messages: mockCached.messages,
+      conversationId: 'conv-pending',
+      models: mockModels,
+      modelId: 'model-1',
+      responsePending: true,
+      errorMessage: 'Please wait for the current response before sending another question.'
+    }))
+    expect(mockH.code).toHaveBeenCalledWith(statusCodes.CONFLICT)
+    expect(chatApi.sendQuestion).not.toHaveBeenCalled()
+  })
+
+  test('should handle chat API error and show error view on POST', async () => {
+    mockRequest.payload = { modelId: 'model-1', question: 'Test' }
+    vi.mocked(chatApi.sendQuestion).mockRejectedValue(new Error('API error'))
+    vi.mocked(modelsApi.getModels).mockResolvedValue([{ id: 'model-1' }])
+    vi.mocked(chatViewModels.buildApiErrorViewModel).mockResolvedValue({ errorMessage: 'API error', models: [], conversationId: null })
+
+    await startPostController.handler(mockRequest, mockH)
+
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({ errorMessage: 'API error' }))
+    expect(chatViewModels.buildApiErrorViewModel).toHaveBeenCalled()
   })
 
   test('should handle cache error when storing conversation in POST', async () => {

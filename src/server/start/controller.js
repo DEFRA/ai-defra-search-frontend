@@ -10,10 +10,35 @@ import {
   buildValidationErrorViewModel,
   buildApiErrorViewModel,
   buildUserMessage,
-  buildPlaceholderMessage
+  buildPlaceholderMessage,
+  hasPendingResponse
 } from './chat-view-models.js'
 
 const START_VIEW_PATH = 'start/start'
+
+function buildStartViewState (opts) {
+  const { messages = [], conversationId, models, modelId = null, responsePending = false, notFound = false } = opts
+  return { messages, conversationId, models, modelId, responsePending, ...(notFound && { notFound: true }) }
+}
+
+async function clearInitialViewPending (cached, logger, conversationId) {
+  try {
+    await storeConversation(
+      cached.conversationId,
+      cached.messages,
+      cached.modelId || null,
+      { initialViewPending: false }
+    )
+  } catch (error) {
+    logger.error({ error, conversationId }, 'Failed to clear initialViewPending flag')
+  }
+}
+
+function isTimeoutOrAbort (error) {
+  const isTimeout = error.message === 'timeout'
+  const isAbort = error.name === 'AbortError' || error.type === 'aborted' || error?.cause?.name === 'AbortError'
+  return isTimeout || isAbort
+}
 
 const startGetController = {
   /**
@@ -29,40 +54,31 @@ const startGetController = {
       const models = await getModels()
 
       if (!conversationId) {
-        return h.view(START_VIEW_PATH, { models })
+        return h.view(START_VIEW_PATH, { models, responsePending: false })
       }
 
       const cached = await getCachedConversation(conversationId)
 
       if (cached?.initialViewPending) {
-        try {
-          await storeConversation(
-            cached.conversationId,
-            cached.messages,
-            cached.modelId || null,
-            { initialViewPending: false }
-          )
-        } catch (error) {
-          logger.error({ error, conversationId }, 'Failed to clear initialViewPending flag')
-        }
-
-        return h.view(START_VIEW_PATH, {
+        await clearInitialViewPending(cached, logger, conversationId)
+        return h.view(START_VIEW_PATH, buildStartViewState({
           messages: cached.messages,
           conversationId: cached.conversationId,
           models,
-          modelId: cached.modelId || null
-        })
+          modelId: cached.modelId || null,
+          responsePending: hasPendingResponse(cached.messages)
+        }))
       }
 
       try {
         const timeoutMs = config.get('chatApiTimeoutMs')
         const conversation = await Promise.race([
-          getConversationApi(conversationId),
+          getConversationApi(conversationId, timeoutMs),
           new Promise((_resolve, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
         ])
 
         if (!conversation) {
-          return h.view(START_VIEW_PATH, { conversationId, messages: [], models, modelId: null })
+          return h.view(START_VIEW_PATH, buildStartViewState({ conversationId, models }))
         }
 
         try {
@@ -76,18 +92,26 @@ const startGetController = {
           logger.error({ error, conversationId }, 'Failed to update cache with API conversation')
         }
 
-        return h.view(START_VIEW_PATH, {
+        return h.view(START_VIEW_PATH, buildStartViewState({
           messages: conversation.messages,
           conversationId: conversation.conversationId,
           models,
-          modelId: null
-        })
+          responsePending: hasPendingResponse(conversation.messages)
+        }))
       } catch (error) {
-        if (error.message === 'timeout') {
-          return h.view(START_VIEW_PATH, { conversationId, messages: [], models, modelId: null })
+        if (isTimeoutOrAbort(error)) {
+          const fallbackMessages = cached?.messages ?? []
+          return h.view(START_VIEW_PATH, buildStartViewState({
+            conversationId,
+            messages: fallbackMessages,
+            models,
+            modelId: cached?.modelId ?? null,
+            responsePending: hasPendingResponse(fallbackMessages)
+          }))
         }
         if (error.response?.status === statusCodes.NOT_FOUND) {
-          return h.view(START_VIEW_PATH, { conversationId, messages: [], notFound: true, models, modelId: null }).code(statusCodes.NOT_FOUND)
+          return h.view(START_VIEW_PATH, buildStartViewState({ conversationId, models, notFound: true }))
+            .code(statusCodes.NOT_FOUND)
         }
         throw error
       }
@@ -95,10 +119,41 @@ const startGetController = {
       logger.error({ error, conversationId }, 'Error fetching conversation')
       if (error.response?.status === statusCodes.NOT_FOUND) {
         const models = await getModels()
-        return h.view(START_VIEW_PATH, { conversationId, messages: [], notFound: true, models, modelId: null }).code(statusCodes.NOT_FOUND)
+        return h.view(START_VIEW_PATH, buildStartViewState({ conversationId, models, notFound: true }))
+          .code(statusCodes.NOT_FOUND)
       }
       return h.view('error/index', buildServerErrorViewModel()).code(statusCodes.INTERNAL_SERVER_ERROR)
     }
+  }
+}
+
+async function checkPendingResponseConflict (conversationId, modelId, h) {
+  const cached = await getCachedConversation(conversationId)
+  if (!hasPendingResponse(cached?.messages)) {
+    return null
+  }
+
+  const models = await getModels()
+  return h.view(START_VIEW_PATH, {
+    messages: cached.messages,
+    conversationId,
+    models,
+    modelId: cached?.modelId ?? modelId,
+    responsePending: true,
+    errorMessage: 'Please wait for the current response before sending another question.'
+  }).code(statusCodes.CONFLICT)
+}
+
+async function storeConversationWithPlaceholder (id, question, response, modelId, logger) {
+  try {
+    const existingConversation = await getCachedConversation(id)
+    const existingMessages = existingConversation?.messages || []
+    const newUserMessage = buildUserMessage(question, response.messageId)
+    const placeholderAssistantMessage = buildPlaceholderMessage(response.messageId)
+    const updatedMessages = [...existingMessages, newUserMessage, placeholderAssistantMessage]
+    await storeConversation(id, updatedMessages, modelId, { initialViewPending: true })
+  } catch (error) {
+    logger.error({ error, conversationId: id }, 'Failed to store conversation in cache')
   }
 }
 
@@ -124,24 +179,20 @@ const startPostController = {
     const { modelId, question } = request.payload
     const conversationId = request.params.conversationId
 
+    if (conversationId) {
+      const conflictResponse = await checkPendingResponseConflict(conversationId, modelId, h)
+      if (conflictResponse) {
+        return conflictResponse
+      }
+    }
+
     try {
       const response = await sendQuestion(question, modelId, conversationId)
       const id = response.conversationId
 
       logger.info({ conversationId: id, messageId: response.messageId }, 'Question submitted, redirecting to conversation')
 
-      try {
-        const existingConversation = await getCachedConversation(id)
-        const existingMessages = existingConversation?.messages || []
-
-        const newUserMessage = buildUserMessage(question, response.messageId)
-        const placeholderAssistantMessage = buildPlaceholderMessage(response.messageId)
-
-        const updatedMessages = [...existingMessages, newUserMessage, placeholderAssistantMessage]
-        await storeConversation(id, updatedMessages, modelId, { initialViewPending: true })
-      } catch (error) {
-        logger.error({ error, conversationId: id }, 'Failed to store conversation in cache')
-      }
+      await storeConversationWithPlaceholder(id, question, response, modelId, logger)
 
       return h.redirect(`/start/${id}`).code(statusCodes.SEE_OTHER)
     } catch (error) {
