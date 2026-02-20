@@ -38,7 +38,8 @@
     "@isaacs/brace-expansion": "5.0.1",
     "ajv-formats": { "ajv": "8.18.0" },
     "schema-utils": { "ajv": "8.18.0" },
-    "table": { "ajv": "8.18.0" }
+    "table": { "ajv": "8.18.0" },
+    "minimatch": "10.2.1"
   },
   "dependencies": {
     "@defra/cdp-auditing": "0.1.0",
