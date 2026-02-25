@@ -28,8 +28,8 @@ describe('Homepage (GET /)', () => {
       const page = window.document
 
       const bodyText = page.body.textContent
-      expect(bodyText).toContain('Do not enter any personal data')
-      expect(bodyText).toContain('internal use only')
+      expect(bodyText).toContain('This AI Assistant is a test environment')
+      expect(bodyText).toContain('Do not enter sensitive or personal data')
 
       const startChatLink = page.querySelector('a[href="/start"]')
       expect(startChatLink).not.toBeNull()
