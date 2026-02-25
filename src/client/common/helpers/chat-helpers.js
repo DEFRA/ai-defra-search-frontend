@@ -57,7 +57,10 @@ function renderUserMessage (question, messageId) {
 
   const userMessage = document.createElement('div')
   userMessage.className = 'app-user-question'
-  userMessage.textContent = question
+ 
+  const userMessageP = document.createElement('p')
+  userMessageP.textContent = question
+  userMessage.appendChild(userMessageP)
 
   const timestamp = document.createElement('p')
   timestamp.className = 'govuk-body-s govuk-!-text-align-right govuk-!-margin-top-0'
@@ -68,6 +71,16 @@ function renderUserMessage (question, messageId) {
   userMessageWrapper.appendChild(userMessage)
   conversationContainer.appendChild(userMessageWrapper)
   conversationContainer.appendChild(timestamp)
+
+  const placeholder = document.createElement('div')
+  placeholder.className = 'app-assistant-placeholder'
+  placeholder.dataset.forMessageId = messageId
+  conversationContainer.appendChild(placeholder)
+  
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const scrollOptions = prefersReduced ? { block: 'nearest', inline: 'nearest' } : { behavior: 'smooth', block: 'center' }
+  userMessageWrapper.scrollIntoView(scrollOptions)
+  placeholder.scrollIntoView(scrollOptions)
 }
 
 /**
@@ -82,26 +95,102 @@ function renderAssistantMessage (content, modelName, timestamp) {
     return
   }
 
-  const assistantResponse = document.createElement('div')
-  assistantResponse.className = 'app-assistant-response-wrapper'
-  assistantResponse.innerHTML = `
-    <div class="app-assistant-response">
-      <div class="app-assistant-response-content">${content}</div>
-      <div class="app-assistant-response-meta">
-        <span class="app-assistant-response-model">${modelName}</span>
-        <span class="app-assistant-response-timestamp">${new Date(timestamp).toLocaleString()}</span>
+  const assistantDiv = document.createElement('div')
+  assistantDiv.className = 'app-assistant-response govuk-body govuk-!-width-two-thirds'
+  assistantDiv.innerHTML = content || ''
+
+  const metaDiv = document.createElement('div')
+  metaDiv.className = 'govuk-!-display-flex govuk-!-justify-content-space-between govuk-!-margin-top-0'
+
+  const metaP = document.createElement('p')
+  metaP.className = 'govuk-body-s govuk-!-margin-top-0 govuk-!-margin-bottom-0'
+  const timePart = timestamp ? ` at ${new Date(timestamp).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true })}` : ''
+  metaP.innerHTML = `<strong>AI assistant</strong>${modelName ? ` (${modelName})` : ''}${timePart}`
+
+  metaDiv.appendChild(metaP)
+
+  conversationContainer.appendChild(assistantDiv)
+  conversationContainer.appendChild(metaDiv)
+
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const scrollOptions = prefersReduced ? { block: 'nearest', inline: 'nearest' } : { behavior: 'smooth', block: 'center' }
+  assistantDiv.scrollIntoView(scrollOptions)
+
+  assistantDiv.focus()
+}
+
+/**
+ * Render an inline loading placeholder for the assistant response associated
+ * with a given user message id.
+ * @param {string} userMessageId
+ */
+function renderInlineLoading (userMessageId) {
+  const placeholder = findElement(`.app-assistant-placeholder[data-for-message-id="${userMessageId}"]`)
+  if (!placeholder) return
+
+  placeholder.innerHTML = `
+    <div class="app-assistant-response govuk-body govuk-!-width-two-thirds">
+      <div class="chat-loading" aria-hidden="true">
+        <span class="chat-loading__text">AI assistant is typing</span>
+        <span class="chat-loading__dots">
+          <span class="chat-loading__dot"></span>
+          <span class="chat-loading__dot"></span>
+          <span class="chat-loading__dot"></span>
+        </span>
       </div>
     </div>
   `
+}
 
-  const metaWrapper = document.createElement('div')
-  metaWrapper.className = 'app-assistant-response-meta-wrapper'
-  metaWrapper.appendChild(assistantResponse)
+/**
+ * Replace the inline loading placeholder with the assistant message content.
+ * @param {string} userMessageId
+ * @param {string} content
+ * @param {string} modelName
+ * @param {string|number|Date} timestamp
+ */
+function replaceInlineLoadingWithAssistant (userMessageId, content, modelName, timestamp) {
+  const placeholder = findElement(`.app-assistant-placeholder[data-for-message-id="${userMessageId}"]`)
+  if (!placeholder) return
 
-  conversationContainer.appendChild(assistantResponse)
-  conversationContainer.appendChild(metaWrapper)
+  const assistantHtml = `
+    <div class="app-assistant-response govuk-body govuk-!-width-two-thirds">${content || ''}</div>
+    <div class="govuk-!-display-flex govuk-!-justify-content-space-between govuk-!-margin-top-0">
+      <p class="govuk-body-s govuk-!-margin-top-0 govuk-!-margin-bottom-0">
+        <strong>AI assistant</strong>${modelName ? ` (${modelName})` : ''}${timestamp ? ` at ${new Date(timestamp).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true })}` : ''}
+      </p>
+    </div>
+  `
 
-  assistantResponse.focus()
+  placeholder.innerHTML = assistantHtml
+  const assistantEl = placeholder.querySelector('.app-assistant-response')
+  if (assistantEl) {
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const scrollOptions = prefersReduced ? { block: 'nearest', inline: 'nearest' } : { behavior: 'smooth', block: 'center' }
+    assistantEl.scrollIntoView(scrollOptions)
+    assistantEl.focus()
+  }
+}
+
+/**
+ * Replace inline loading with an error message for the given user message id.
+ * @param {string} userMessageId
+ * @param {{isRetryable:boolean, timestamp?:string}} errorDetails
+ */
+function replaceInlineLoadingWithError (userMessageId, errorDetails) {
+  const placeholder = findElement(`.app-assistant-placeholder[data-for-message-id="${userMessageId}"]`)
+  if (!placeholder) return
+
+  const retryable = errorDetails && errorDetails.isRetryable
+
+  placeholder.innerHTML = `
+    <div class="app-error-message" role="alert" aria-live="polite" tabindex="-1">
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-2">There is a problem</h3>
+      <div class="app-error-message__body">
+        ${retryable ? '<p class="govuk-body">The response took too long and timed out.</p>' : '<p class="govuk-body">Something went wrong and we cannot continue this conversation.</p>'}
+      </div>
+    </div>
+  `
 }
 
 /**
@@ -172,6 +261,9 @@ export {
   hideLoadingIndicator,
   renderUserMessage,
   renderAssistantMessage,
+  renderInlineLoading,
+  replaceInlineLoadingWithAssistant,
+  replaceInlineLoadingWithError,
   fetchConversation,
   findAssistantMessage,
   postChat,

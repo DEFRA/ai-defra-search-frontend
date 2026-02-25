@@ -4,11 +4,15 @@ import {
   hideLoadingIndicator,
   renderUserMessage,
   renderAssistantMessage,
+  renderInlineLoading,
+  replaceInlineLoadingWithAssistant,
+  replaceInlineLoadingWithError,
   fetchConversation,
   findAssistantMessage,
   postChat,
   setFormDisabled
 } from '../common/helpers/chat-helpers.js'
+
 const DEFAULT_POLL_INTERVAL_MS = 1000
 const DEFAULT_POLL_MAX_ATTEMPTS = 14
 const DEFAULT_POLL_BACKOFF_MULTIPLIER = 1.1
@@ -94,7 +98,7 @@ async function handleFormSubmit (event, form) {
     const data = await postChat(question, modelId, conversationId)
 
     renderUserMessage(question, data.messageId)
-    showLoadingIndicator()
+    renderInlineLoading(data.messageId)
     questionTextarea.value = ''
 
     const assistantMessage = await pollForResponse(data.conversationId, data.messageId)
@@ -102,7 +106,9 @@ async function handleFormSubmit (event, form) {
     hideLoadingIndicator()
 
     if (assistantMessage) {
-      renderAssistantMessage(assistantMessage.content, assistantMessage.modelName, assistantMessage.timestamp)
+      replaceInlineLoadingWithAssistant(data.messageId, assistantMessage.content, assistantMessage.modelName, assistantMessage.timestamp)
+    } else {
+      replaceInlineLoadingWithError(data.messageId, { isRetryable: true })
     }
 
     if (!conversationId && data.conversationId) {
