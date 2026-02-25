@@ -6,6 +6,10 @@ FROM defradigital/node-development:${PARENT_VERSION} AS development
 ARG PARENT_VERSION
 LABEL uk.gov.defra.ffc.parent-image=defradigital/node-development:${PARENT_VERSION}
 
+USER root
+RUN apk add --no-cache curl
+USER node
+
 ENV TZ="Europe/London"
 
 ARG PORT
