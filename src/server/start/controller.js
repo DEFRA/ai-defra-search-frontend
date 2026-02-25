@@ -67,13 +67,16 @@ const startGetController = {
 
       if (cached?.initialViewPending) {
         await clearInitialViewPending(cached, logger, conversationId)
-        return h.view(START_VIEW_PATH, { ...buildStartViewState({
-          messages: cached.messages,
-          conversationId: cached.conversationId,
-          models,
-          modelId: cached.modelId || null,
-          responsePending: hasPendingResponse(cached.messages)
-        }), chatConfig })
+        return h.view(START_VIEW_PATH, {
+          ...buildStartViewState({
+            messages: cached.messages,
+            conversationId: cached.conversationId,
+            models,
+            modelId: cached.modelId || null,
+            responsePending: hasPendingResponse(cached.messages)
+          }),
+          chatConfig
+        })
       }
 
       try {
@@ -98,22 +101,28 @@ const startGetController = {
           logger.error({ error, conversationId }, 'Failed to update cache with API conversation')
         }
 
-        return h.view(START_VIEW_PATH, { ...buildStartViewState({
-          messages: conversation.messages,
-          conversationId: conversation.conversationId,
-          models,
-          responsePending: hasPendingResponse(conversation.messages)
-        }), chatConfig })
+        return h.view(START_VIEW_PATH, {
+          ...buildStartViewState({
+            messages: conversation.messages,
+            conversationId: conversation.conversationId,
+            models,
+            responsePending: hasPendingResponse(conversation.messages)
+          }),
+          chatConfig
+        })
       } catch (error) {
         if (isTimeoutOrAbort(error)) {
           const fallbackMessages = cached?.messages ?? []
-          return h.view(START_VIEW_PATH, { ...buildStartViewState({
-            conversationId,
-            messages: fallbackMessages,
-            models,
-            modelId: cached?.modelId ?? null,
-            responsePending: hasPendingResponse(fallbackMessages)
-          }), chatConfig })
+          return h.view(START_VIEW_PATH, {
+            ...buildStartViewState({
+              conversationId,
+              messages: fallbackMessages,
+              models,
+              modelId: cached?.modelId ?? null,
+              responsePending: hasPendingResponse(fallbackMessages)
+            }),
+            chatConfig
+          })
         }
         if (error.response?.status === statusCodes.NOT_FOUND) {
           return h.view(START_VIEW_PATH, { ...buildStartViewState({ conversationId, models, notFound: true }), chatConfig })
@@ -140,7 +149,14 @@ async function checkPendingResponseConflict (conversationId, modelId, h) {
   }
 
   const models = await getModels()
-        return h.view(START_VIEW_PATH, {
+  const chatConfig = {
+    pollIntervalMs: config.get('chat.pollIntervalMs'),
+    pollMaxAttempts: config.get('chat.pollMaxAttempts'),
+    pollBackoffMultiplier: config.get('chat.pollBackoffMultiplier'),
+    pollMaxIntervalMs: config.get('chat.pollMaxIntervalMs')
+  }
+
+  return h.view(START_VIEW_PATH, {
     messages: cached.messages,
     conversationId,
     models,
@@ -172,12 +188,15 @@ const startPostController = {
       failAction: async (request, h, error) => {
         const errorMessage = error.details[0]?.message
         const viewModel = await buildValidationErrorViewModel(request, errorMessage)
-        return h.view(START_VIEW_PATH, { ...viewModel, chatConfig: {
-          pollIntervalMs: config.get('chat.pollIntervalMs'),
-          pollMaxAttempts: config.get('chat.pollMaxAttempts'),
-          pollBackoffMultiplier: config.get('chat.pollBackoffMultiplier'),
-          pollMaxIntervalMs: config.get('chat.pollMaxIntervalMs')
-        } }).code(statusCodes.BAD_REQUEST).takeover()
+        return h.view(START_VIEW_PATH, {
+          ...viewModel,
+          chatConfig: {
+            pollIntervalMs: config.get('chat.pollIntervalMs'),
+            pollMaxAttempts: config.get('chat.pollMaxAttempts'),
+            pollBackoffMultiplier: config.get('chat.pollBackoffMultiplier'),
+            pollMaxIntervalMs: config.get('chat.pollMaxIntervalMs')
+          }
+        }).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
   },
@@ -211,12 +230,15 @@ const startPostController = {
       logger.error({ error, question }, 'Error calling chat API')
       const models = await getModels()
       const viewModel = await buildApiErrorViewModel(conversationId, question, modelId, models, error)
-      return h.view(START_VIEW_PATH, { ...viewModel, chatConfig: {
-        pollIntervalMs: config.get('chat.pollIntervalMs'),
-        pollMaxAttempts: config.get('chat.pollMaxAttempts'),
-        pollBackoffMultiplier: config.get('chat.pollBackoffMultiplier'),
-        pollMaxIntervalMs: config.get('chat.pollMaxIntervalMs')
-      } })
+      return h.view(START_VIEW_PATH, {
+        ...viewModel,
+        chatConfig: {
+          pollIntervalMs: config.get('chat.pollIntervalMs'),
+          pollMaxAttempts: config.get('chat.pollMaxAttempts'),
+          pollBackoffMultiplier: config.get('chat.pollBackoffMultiplier'),
+          pollMaxIntervalMs: config.get('chat.pollMaxIntervalMs')
+        }
+      })
     }
   }
 }

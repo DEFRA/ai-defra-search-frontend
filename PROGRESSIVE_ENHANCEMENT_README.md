@@ -21,7 +21,6 @@ Key implementation notes
 - The server still fully supports no-JS users: `POST /start` performs the same queueing and redirect to `/start/{id}`, and the server-rendered `GET /start/{id}` remains authoritative.
 - The frontend uses a small cache (`conversation-cache.js`) and stores a placeholder assistant message when a question is queued so the no-JS view shows the pending state immediately.
 - Polling is deliberately conservative (short initial interval + exponential backoff) to balance responsiveness and load.
-- Temporary debug logging used during development has been removed before committing.
 
 Files changed / primary locations
 - `src/server/start/controller.js` — added JSON endpoints `apiChatController` and `apiGetConversationController` (these reuse `chat-api.js`).

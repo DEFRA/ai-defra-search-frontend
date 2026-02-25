@@ -52,13 +52,13 @@ describe('Controller error path coverage', () => {
 
     await startGetController.handler(mockRequest, mockH)
 
-    expect(mockH.view).toHaveBeenCalledWith('start/start', {
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
       messages: mockCached.messages,
       conversationId: mockCached.conversationId,
       models: mockModels,
       modelId: 'model-1',
       responsePending: false
-    })
+    }))
     expect(conversationCache.storeConversation).toHaveBeenCalled()
   })
 
@@ -72,13 +72,13 @@ describe('Controller error path coverage', () => {
 
     await startGetController.handler(mockRequest, mockH)
 
-    expect(mockH.view).toHaveBeenCalledWith('start/start', {
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
       conversationId: 'conv-456',
       messages: [],
       models: mockModels,
       modelId: null,
       responsePending: false
-    })
+    }))
   })
 
   test('should handle cache error when storing API conversation', async () => {
@@ -96,13 +96,13 @@ describe('Controller error path coverage', () => {
 
     await startGetController.handler(mockRequest, mockH)
 
-    expect(mockH.view).toHaveBeenCalledWith('start/start', {
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
       messages: mockConversation.messages,
       conversationId: mockConversation.conversationId,
       models: mockModels,
       modelId: null,
       responsePending: false
-    })
+    }))
   })
 
   test('should handle 404 error in outer catch block', async () => {
@@ -118,14 +118,14 @@ describe('Controller error path coverage', () => {
     await startGetController.handler(mockRequest, mockH)
 
     expect(modelsApi.getModels).toHaveBeenCalledTimes(2)
-    expect(mockH.view).toHaveBeenCalledWith('start/start', {
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
       conversationId: 'not-found',
       messages: [],
       notFound: true,
       models: mockModels,
       modelId: null,
       responsePending: false
-    })
+    }))
     expect(mockH.code).toHaveBeenCalledWith(statusCodes.NOT_FOUND)
   })
 
@@ -145,13 +145,13 @@ describe('Controller error path coverage', () => {
 
     await startGetController.handler(mockRequest, mockH)
 
-    expect(mockH.view).toHaveBeenCalledWith('start/start', {
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
       conversationId: 'conv-timeout',
       messages: mockCached.messages,
       models: mockModels,
       modelId: 'model-1',
       responsePending: false
-    })
+    }))
   })
 
   test('should handle AbortError and fallback to cached', async () => {
@@ -172,13 +172,13 @@ describe('Controller error path coverage', () => {
 
     await startGetController.handler(mockRequest, mockH)
 
-    expect(mockH.view).toHaveBeenCalledWith('start/start', {
+    expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
       conversationId: 'conv-abort',
       messages: mockCached.messages,
       models: mockModels,
       modelId: null,
       responsePending: false
-    })
+    }))
   })
 
   test('should handle error.type aborted and fallback to cached', async () => {

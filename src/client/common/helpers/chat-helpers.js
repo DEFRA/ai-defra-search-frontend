@@ -57,7 +57,7 @@ function renderUserMessage (question, messageId) {
 
   const userMessage = document.createElement('div')
   userMessage.className = 'app-user-question'
- 
+
   const userMessageP = document.createElement('p')
   userMessageP.textContent = question
   userMessage.appendChild(userMessageP)
@@ -76,7 +76,7 @@ function renderUserMessage (question, messageId) {
   placeholder.className = 'app-assistant-placeholder'
   placeholder.dataset.forMessageId = messageId
   conversationContainer.appendChild(placeholder)
-  
+
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const scrollOptions = prefersReduced ? { block: 'nearest', inline: 'nearest' } : { behavior: 'smooth', block: 'center' }
   userMessageWrapper.scrollIntoView(scrollOptions)

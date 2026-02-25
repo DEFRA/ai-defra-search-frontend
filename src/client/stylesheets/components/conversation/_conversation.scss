@@ -131,6 +131,7 @@
     transform: scale(0);
     opacity: 0.5;
   }
+  
   40% {
     transform: scale(1);
     opacity: 1;
@@ -138,19 +139,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chat-loading__dot {
+  .chat-loading .chat-loading__dot {
     animation: none;
     opacity: 1;
     transform: scale(1);
+    display: none;
   }
 
   .chat-loading__dots::after {
     content: "...";
     margin-left: govuk-spacing(1);
-  }
-
-  .chat-loading__dot {
-    display: none;
   }
 }
 

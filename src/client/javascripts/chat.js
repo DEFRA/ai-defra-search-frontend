@@ -3,7 +3,6 @@ import {
   showLoadingIndicator,
   hideLoadingIndicator,
   renderUserMessage,
-  renderAssistantMessage,
   renderInlineLoading,
   replaceInlineLoadingWithAssistant,
   replaceInlineLoadingWithError,

@@ -21,7 +21,7 @@ describe('start plugin', () => {
 
     start.plugin.register(mockServer)
 
-    expect(routes).toHaveLength(3)
+    expect(routes).toHaveLength(5)
   })
 
   test('should register GET /start/{conversationId?} route', () => {
