@@ -1,0 +1,26 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <h1 class="govuk-heading-xl">AI Assistant</h1>
+
+      <p class="govuk-body">
+        This service uses AI to assist with your queries. Do not enter any personal data, sensitive information, or data that is classified above OFFICIAL into this system. Any information you submit may be processed by AI systems and retained in accordance with our data retention policy.
+      </p>
+
+      <p class="govuk-body">
+        By using this service you confirm you have read and understood these restrictions. This tool is intended for internal use only and must not be used to process data relating to individuals or any information that could identify a person. If you are unsure whether information is appropriate to enter, do not proceed.
+      </p>
+
+      {{ govukButton({
+        text: "Start Chat",
+        href: "/start"
+      }) }}
+
+    </div>
+  </div>
+{% endblock %}

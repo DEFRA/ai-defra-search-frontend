@@ -18,6 +18,6 @@ export const authController = {
 
     request.cookieAuth.set({ id: sessionId })
 
-    return h.redirect('/start')
+    return h.redirect('/')
   }
 }
