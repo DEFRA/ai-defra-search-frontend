@@ -1,4 +1,4 @@
-import { startGetController, startPostController, clearConversationController } from './controller.js'
+import { startGetController, startPostController, clearConversationController, apiChatController, apiGetConversationController } from './controller.js'
 
 /**
  * Sets up the routes used for authentication.
@@ -23,6 +23,16 @@ export const start = {
           method: ['GET'],
           path: '/start/clear/{conversationId?}',
           ...clearConversationController
+        },
+        {
+          method: 'POST',
+          path: '/api/chat',
+          ...apiChatController
+        },
+        {
+          method: 'GET',
+          path: '/api/conversations/{conversationId}',
+          ...apiGetConversationController
         }
       ])
     }

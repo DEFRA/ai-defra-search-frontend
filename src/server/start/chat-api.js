@@ -71,24 +71,30 @@ async function getConversation (conversationId, timeoutMs = 2000) {
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
-  const response = await fetch(url, { signal: controller.signal })
-  clearTimeout(timeout)
-  if (!response.ok) {
-    const error = new Error(`Chat API returned ${response.status}`)
-    error.response = { status: response.status, data: await response.text() }
+  try {
+    const response = await fetch(url, { signal: controller.signal })
+    clearTimeout(timeout)
+
+    if (!response.ok) {
+      const error = new Error(`Chat API returned ${response.status}`)
+      error.response = { status: response.status, data: await response.text() }
+      throw error
+    }
+
+    const data = await response.json()
+
+    const parsedMessages = (data.messages || []).map(message => ({
+      ...message,
+      content: message.content ? marked.parse(message.content) : ''
+    }))
+
+    return {
+      conversationId: data.conversation_id || data.conversationId,
+      messages: parsedMessages
+    }
+  } catch (error) {
+    clearTimeout(timeout)
     throw error
-  }
-
-  const data = await response.json()
-
-  const parsedMessages = (data.messages || []).map(message => ({
-    ...message,
-    content: message.content ? marked.parse(message.content) : ''
-  }))
-
-  return {
-    conversationId: data.conversation_id || data.conversationId,
-    messages: parsedMessages
   }
 }
 

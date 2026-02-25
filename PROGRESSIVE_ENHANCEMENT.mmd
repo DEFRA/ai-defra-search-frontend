@@ -1,0 +1,25 @@
+flowchart TD
+  subgraph NoJS [No-JS server-rendered flow]
+    A1["User submits form (POST /start)"] --> A2["Server `sendQuestion()` -> agent queues request"]
+    A2 --> A3["Server stores placeholder + redirects to `/start/{id}`"]
+    A3 --> A4["Browser GET /start/{id} -> server renders conversation (after user refreshes)"]
+  end
+
+  subgraph JS [JS-enhanced flow]
+    B1["User submits form (intercepted by `chat.js`)"] --> B2["POST /api/chat -> frontend `sendQuestion()` proxy"]
+    B2 --> B3["{conversationId, messageId}"]
+    B3 --> B4[Client renders user message + placeholder + loading]
+    B4 --> B5["Client polls GET /api/conversations/{id} (exponential backoff)"]
+    B5 -->|completed| B6[Client renders assistant message in DOM]
+    B5 -->|not ready| B4
+    B6 -->|if new conversation| B7["Update URL to /start/{conversationId}"]
+  end
+
+  subgraph Runtime [Runtime injection]
+    R1[Server builds view model with `chatConfig`] --> R2[Template injects `window.CHAT_CONFIG` into page]
+    R2 --> B4
+  end
+
+  style NoJS fill:#f8f9fa,stroke:#333,stroke-width:1px
+  style JS fill:#eef6ff,stroke:#333,stroke-width:1px
+  style Runtime fill:#fff4e6,stroke:#333,stroke-width:1px

@@ -49,25 +49,31 @@ const startGetController = {
   async handler (request, h) {
     const logger = createLogger()
     const conversationId = request.params.conversationId
+    const chatConfig = {
+      pollIntervalMs: config.get('chat.pollIntervalMs'),
+      pollMaxAttempts: config.get('chat.pollMaxAttempts'),
+      pollBackoffMultiplier: config.get('chat.pollBackoffMultiplier'),
+      pollMaxIntervalMs: config.get('chat.pollMaxIntervalMs')
+    }
 
     try {
       const models = await getModels()
 
       if (!conversationId) {
-        return h.view(START_VIEW_PATH, { models, responsePending: false })
+        return h.view(START_VIEW_PATH, { models, responsePending: false, chatConfig })
       }
 
       const cached = await getCachedConversation(conversationId)
 
       if (cached?.initialViewPending) {
         await clearInitialViewPending(cached, logger, conversationId)
-        return h.view(START_VIEW_PATH, buildStartViewState({
+        return h.view(START_VIEW_PATH, { ...buildStartViewState({
           messages: cached.messages,
           conversationId: cached.conversationId,
           models,
           modelId: cached.modelId || null,
           responsePending: hasPendingResponse(cached.messages)
-        }))
+        }), chatConfig })
       }
 
       try {
@@ -78,7 +84,7 @@ const startGetController = {
         ])
 
         if (!conversation) {
-          return h.view(START_VIEW_PATH, buildStartViewState({ conversationId, models }))
+          return h.view(START_VIEW_PATH, { ...buildStartViewState({ conversationId, models }), chatConfig })
         }
 
         try {
@@ -92,25 +98,25 @@ const startGetController = {
           logger.error({ error, conversationId }, 'Failed to update cache with API conversation')
         }
 
-        return h.view(START_VIEW_PATH, buildStartViewState({
+        return h.view(START_VIEW_PATH, { ...buildStartViewState({
           messages: conversation.messages,
           conversationId: conversation.conversationId,
           models,
           responsePending: hasPendingResponse(conversation.messages)
-        }))
+        }), chatConfig })
       } catch (error) {
         if (isTimeoutOrAbort(error)) {
           const fallbackMessages = cached?.messages ?? []
-          return h.view(START_VIEW_PATH, buildStartViewState({
+          return h.view(START_VIEW_PATH, { ...buildStartViewState({
             conversationId,
             messages: fallbackMessages,
             models,
             modelId: cached?.modelId ?? null,
             responsePending: hasPendingResponse(fallbackMessages)
-          }))
+          }), chatConfig })
         }
         if (error.response?.status === statusCodes.NOT_FOUND) {
-          return h.view(START_VIEW_PATH, buildStartViewState({ conversationId, models, notFound: true }))
+          return h.view(START_VIEW_PATH, { ...buildStartViewState({ conversationId, models, notFound: true }), chatConfig })
             .code(statusCodes.NOT_FOUND)
         }
         throw error
@@ -119,7 +125,7 @@ const startGetController = {
       logger.error({ error, conversationId }, 'Error fetching conversation')
       if (error.response?.status === statusCodes.NOT_FOUND) {
         const models = await getModels()
-        return h.view(START_VIEW_PATH, buildStartViewState({ conversationId, models, notFound: true }))
+        return h.view(START_VIEW_PATH, { ...buildStartViewState({ conversationId, models, notFound: true }), chatConfig })
           .code(statusCodes.NOT_FOUND)
       }
       return h.view('error/index', buildServerErrorViewModel()).code(statusCodes.INTERNAL_SERVER_ERROR)
@@ -134,13 +140,14 @@ async function checkPendingResponseConflict (conversationId, modelId, h) {
   }
 
   const models = await getModels()
-  return h.view(START_VIEW_PATH, {
+        return h.view(START_VIEW_PATH, {
     messages: cached.messages,
     conversationId,
     models,
     modelId: cached?.modelId ?? modelId,
     responsePending: true,
-    errorMessage: 'Please wait for the current response before sending another question.'
+    errorMessage: 'Please wait for the current response before sending another question.',
+    chatConfig
   }).code(statusCodes.CONFLICT)
 }
 
@@ -165,7 +172,12 @@ const startPostController = {
       failAction: async (request, h, error) => {
         const errorMessage = error.details[0]?.message
         const viewModel = await buildValidationErrorViewModel(request, errorMessage)
-        return h.view(START_VIEW_PATH, viewModel).code(statusCodes.BAD_REQUEST).takeover()
+        return h.view(START_VIEW_PATH, { ...viewModel, chatConfig: {
+          pollIntervalMs: config.get('chat.pollIntervalMs'),
+          pollMaxAttempts: config.get('chat.pollMaxAttempts'),
+          pollBackoffMultiplier: config.get('chat.pollBackoffMultiplier'),
+          pollMaxIntervalMs: config.get('chat.pollMaxIntervalMs')
+        } }).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
   },
@@ -199,7 +211,12 @@ const startPostController = {
       logger.error({ error, question }, 'Error calling chat API')
       const models = await getModels()
       const viewModel = await buildApiErrorViewModel(conversationId, question, modelId, models, error)
-      return h.view(START_VIEW_PATH, viewModel)
+      return h.view(START_VIEW_PATH, { ...viewModel, chatConfig: {
+        pollIntervalMs: config.get('chat.pollIntervalMs'),
+        pollMaxAttempts: config.get('chat.pollMaxAttempts'),
+        pollBackoffMultiplier: config.get('chat.pollBackoffMultiplier'),
+        pollMaxIntervalMs: config.get('chat.pollMaxIntervalMs')
+      } })
     }
   }
 }
@@ -219,4 +236,81 @@ const clearConversationController = {
   }
 }
 
-export { startGetController, startPostController, clearConversationController }
+const apiChatController = {
+  options: {
+    validate: {
+      payload: startPostSchema,
+      failAction: async (_request, h, error) => {
+        const errorMessage = error.details[0]?.message
+        return h.response({ error: errorMessage }).code(statusCodes.BAD_REQUEST).takeover()
+      }
+    }
+  },
+  /**
+   * JSON endpoint that proxies to the chat agent.
+   * Returns identifiers for client polling rather than rendering HTML.
+   */
+  async handler (request, h) {
+    const logger = createLogger()
+    const { modelId, question } = request.payload
+    const conversationId = request.payload.conversationId || null
+
+    try {
+      const response = await sendQuestion(question, modelId, conversationId)
+      logger.info({ conversationId: response.conversationId, messageId: response.messageId }, 'API chat question submitted')
+
+      return h.response({
+        conversationId: response.conversationId,
+        messageId: response.messageId,
+        status: response.status
+      }).code(statusCodes.OK)
+    } catch (error) {
+      logger.error({ error, question }, 'Error in API chat endpoint')
+      return h.response({
+        error: 'Failed to send question to the chat service'
+      }).code(statusCodes.INTERNAL_SERVER_ERROR)
+    }
+  }
+}
+
+const apiGetConversationController = {
+  options: {
+    validate: {
+      params: startParamsSchema
+    }
+  },
+  /**
+   * JSON endpoint that retrieves a conversation from the agent.
+   * Returns parsed conversation data for client consumption.
+   */
+  async handler (request, h) {
+    const logger = createLogger()
+    const { conversationId } = request.params
+
+    try {
+      const timeoutMs = config.get('chatApiTimeoutMs')
+      const conversation = await getConversationApi(conversationId, timeoutMs)
+
+      if (!conversation) {
+        return h.response({ error: 'Conversation not found' }).code(statusCodes.NOT_FOUND)
+      }
+
+      return h.response({
+        conversationId: conversation.conversationId,
+        messages: conversation.messages
+      }).code(statusCodes.OK)
+    } catch (error) {
+      logger.error({ error, conversationId }, 'Error in API get conversation endpoint')
+
+      if (error.response?.status === statusCodes.NOT_FOUND) {
+        return h.response({ error: 'Conversation not found' }).code(statusCodes.NOT_FOUND)
+      }
+
+      return h.response({
+        error: 'Failed to retrieve conversation'
+      }).code(statusCodes.INTERNAL_SERVER_ERROR)
+    }
+  }
+}
+
+export { startGetController, startPostController, clearConversationController, apiChatController, apiGetConversationController }

@@ -47,6 +47,18 @@
         </div>
       {% endif %}
     {% endfor %}
+
+    <div id="loading-indicator" hidden>
+      <div class="chat-loading" aria-hidden="true">
+        <span class="chat-loading__text">AI assistant is typing</span>
+        <span class="chat-loading__dots">
+          <span class="chat-loading__dot"></span>
+          <span class="chat-loading__dot"></span>
+          <span class="chat-loading__dot"></span>
+        </span>
+      </div>
+    </div>
+
     {% if errorDetails %}
       <div class="app-error-message" role="alert" aria-live="polite" tabindex="-1" autofocus>
         <h3 class="govuk-heading-s govuk-!-margin-bottom-2">There is a problem</h3>

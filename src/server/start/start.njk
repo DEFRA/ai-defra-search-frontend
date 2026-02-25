@@ -144,3 +144,9 @@
     </div>
   {% endif %}
 {% endblock %}
+
+{% if chatConfig %}
+  <script>
+    window.CHAT_CONFIG = {{ chatConfig | dump | safe }};
+  </script>
+{% endif %}

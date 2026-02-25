@@ -15,7 +15,8 @@ const startPostSchema = Joi.object({
       'string.min': 'Question must be at least 1 character',
       'string.max': 'Question must be no more than 500 characters',
       'any.required': 'Question is required'
-    })
+    }),
+  conversationId: Joi.string().optional().allow(null)
 })
 
 const startParamsSchema = Joi.object({

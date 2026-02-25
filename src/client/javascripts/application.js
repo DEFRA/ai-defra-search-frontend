@@ -10,6 +10,8 @@ import {
   SkipLink
 } from 'govuk-frontend'
 
+import { attachFormHooks } from './chat.js'
+
 createAll(Button)
 createAll(CharacterCount)
 createAll(Checkboxes)
@@ -19,3 +21,4 @@ createAll(Radios)
 createAll(SkipLink)
 
 initAll()
+attachFormHooks()

@@ -245,6 +245,32 @@ export const config = convict({
     default: 3000,
     env: 'CHAT_API_TIMEOUT_MS'
   },
+  chat: {
+    pollIntervalMs: {
+      doc: 'Initial client polling interval in milliseconds',
+      format: Number,
+      default: 2000,
+      env: 'CHAT_POLL_INTERVAL_MS'
+    },
+    pollMaxAttempts: {
+      doc: 'Maximum number of polling attempts before giving up',
+      format: Number,
+      default: 150,
+      env: 'CHAT_POLL_MAX_ATTEMPTS'
+    },
+    pollBackoffMultiplier: {
+      doc: 'Exponential backoff multiplier for polling',
+      format: Number,
+      default: 1.5,
+      env: 'CHAT_POLL_BACKOFF_MULTIPLIER'
+    },
+    pollMaxIntervalMs: {
+      doc: 'Maximum polling interval in milliseconds',
+      format: Number,
+      default: 10000,
+      env: 'CHAT_POLL_MAX_INTERVAL_MS'
+    }
+  },
   dataApiUrl: {
     doc: 'Data API base URL (knowledge management, snapshots)',
     format: String,

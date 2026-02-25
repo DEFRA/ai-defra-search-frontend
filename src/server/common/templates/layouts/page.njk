@@ -32,6 +32,8 @@
 {% endblock %}
 
 {% block beforeContent %}
+  <div id="ai-status" role="status" aria-live="polite" class="govuk-visually-hidden"></div>
+  
   {{ govukPhaseBanner({
     tag: {
       text: "Alpha"
