@@ -37,15 +37,10 @@ async function pollForResponse (conversationId, userMessageId) {
   const startTime = Date.now()
   let attempts = 0
   let currentInterval = POLL_INTERVAL_MS
-
   while (attempts < POLL_MAX_ATTEMPTS) {
     if (Date.now() - startTime >= POLL_TOTAL_TIMEOUT_MS) {
       return null
     }
-
-    attempts++
-
-    await new Promise(resolve => setTimeout(resolve, currentInterval))
 
     try {
       const conversation = await fetchConversation(conversationId)
@@ -56,14 +51,16 @@ async function pollForResponse (conversationId, userMessageId) {
         return null
       }
 
-      if (possibleAssistantMessage && possibleAssistantMessage.role === 'assistant' && possibleAssistantMessage.status === 'completed') {
+      if (possibleAssistantMessage && possibleAssistantMessage.status === 'completed') {
         return possibleAssistantMessage
       }
-
-      currentInterval = Math.min(currentInterval * POLL_BACKOFF_MULTIPLIER, POLL_MAX_INTERVAL_MS)
     } catch (error) {
       // swallow transient errors and retry until max attempts
     }
+
+    attempts++
+    await new Promise(resolve => setTimeout(resolve, currentInterval))
+    currentInterval = Math.min(currentInterval * POLL_BACKOFF_MULTIPLIER, POLL_MAX_INTERVAL_MS)
   }
 
   return null
@@ -132,7 +129,14 @@ function attachFormHooks () {
     return
   }
 
+  // mark the form so tests can detect the hook was attached
+  try {
+    form.dataset.chatEnhanced = 'true'
+  } catch (e) {
+    // ignore dataset errors in older envs
+  }
+
   form.addEventListener('submit', (event) => handleFormSubmit(event, form))
 }
 
-export { attachFormHooks, showLoadingIndicator, hideLoadingIndicator }
+export { attachFormHooks, showLoadingIndicator, hideLoadingIndicator, pollForResponse, handleFormSubmit }

@@ -1,6 +1,6 @@
 ## Progressive enhancement: implemented approach (JavaScript-first)
 
-This document now reflects the actual implementation in this repository: a JavaScript-first enhancement that preserves the server-rendered POST/redirect flow as the no-JS fallback.
+This document now reflects the actual implementation in this repository: a JavaScript-first enhancement that preserves the server-rendered POST/redirect flow as the no-JS fallback. 
 
 Goals
 - Provide a dynamic client experience for users with JavaScript enabled.
@@ -24,14 +24,21 @@ Key implementation notes
 
 Files changed / primary locations
 - `src/server/start/controller.js` — added JSON endpoints `apiChatController` and `apiGetConversationController` (these reuse `chat-api.js`).
-- `src/server/start/chat-api.js` — helper functions to call the agent (`sendQuestion`, `getConversation`) are used by the new JSON endpoints.
+- `src/server/start/index.js` — registers the frontend JSON route `POST /api/chat` (proxies to controller handlers used by the client enhancement).
+- `src/server/start/chat-api.js` — helper functions to call the agent (`sendQuestion`, `getConversation`) used by the JSON endpoints.
+- `src/server/start/conversation-cache.js` — small server-side cache used to store pending conversation state so server-rendered views can show a pending placeholder immediately.
+- `src/server/common/components/conversation/template.njk` — server-rendered conversation component (contains `.app-conversation-container` and `.app-user-question-wrapper` elements that the client enhancement updates).
 - `src/client/javascripts/chat.js` — client-side enhancement (intercept submit, POST `/api/chat`, render placeholder, poll `/api/conversations/{id}`, render assistant message).
 - `src/client/javascripts/application.js` — imports and invokes `attachFormHooks()` so the module is included in the build.
-
-Operational notes
-- Keep an eye on polling behaviour in production and consider server-side rate limits or a push-based mechanism if load grows.
+- `src/client/common/helpers/chat-helpers.js` — DOM helpers and network helpers for the chat enhancement (e.g. `showLoadingIndicator`, helper to `fetch('/api/chat')`, find/append message wrappers).
+- `src/client/stylesheets/components/conversation/_conversation.scss` — styles for `.app-conversation-container` and `.app-user-question-wrapper` used by both server and client-rendered states.
+- `tests/unit/client/javascripts/chat.test.js` and `tests/integration/server/start/controller.test.js` — tests covering the client hooks and server JSON endpoints.
 
 To see the the mermaid diagram showing the 2 flows use: 
 `
 npx @mermaid-js/mermaid-cli -i PROGRESSIVE_ENHANCEMENT.mmd -o PROGRESSIVE_ENHANCEMENT.svg
 `
+
+Areas of Improvement
+- Consider edge cases where a user goes from having js enabled to disabling it while in a conversation flow and visa-versa (currently the conversation history is lost during that transition)
+- polling time out is set to a maximum wait time of 28s this may need to be increased
