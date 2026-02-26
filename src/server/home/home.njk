@@ -1,0 +1,26 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <h1 class="govuk-heading-xl">AI Assistant</h1>
+
+      <p class="govuk-body">
+        This AI Assistant is a test environment. The accuracy of AI-generated content is not guaranteed, and you should be aware that the security and privacy of any data you enter cannot be assured.
+      </p>
+
+      <p class="govuk-body">
+        Do not enter sensitive or personal data, and always check AI-generated content for errors or bias before relying on it. By using this service, you accept these limitations and agree to use it responsibly. Please refer to the Defra group GenAI Usage Guidelines and ICT Acceptable Use Policy for guidance on using AI tools safely and responsibly.
+      </p>
+
+      {{ govukButton({
+        text: "Start Chat",
+        href: "/start"
+      }) }}
+
+    </div>
+  </div>
+{% endblock %}

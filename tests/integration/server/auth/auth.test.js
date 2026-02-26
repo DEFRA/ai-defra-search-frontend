@@ -83,7 +83,7 @@ describe('OIDC Callback', () => {
     expect(protectedRes.headers.location).toBe('/auth/callback')
   })
 
-  test('GET /auth/callback with code should set session cookie and redirect to /start', async () => {
+  test('redirects to the homepage after successful authentication', async () => {
     vitest.setSystemTime(new Date('2025-11-24T00:00:00Z'))
 
     mockCredentialsData.token = generateEntraJwt()
@@ -94,7 +94,7 @@ describe('OIDC Callback', () => {
     })
 
     expect(res.statusCode).toBe(302)
-    expect(res.headers.location).toBe('/start')
+    expect(res.headers.location).toBe('/')
 
     const setCookieHeader = res.headers['set-cookie']
     expect(setCookieHeader).toBeDefined()
