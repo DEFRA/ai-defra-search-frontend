@@ -10,7 +10,7 @@ import {
   setupModelsApiMocks
 } from '../../../mocks/models-api-handlers.js'
 import { clearConversation } from '../../../../src/server/start/conversation-cache.js'
-import { clearModelsCache } from '../../../../src/server/start/models-api.js'
+import { clearModelsCache } from '../../../../src/server/services/models-service.js'
 
 describe('Start routes', () => {
   let server

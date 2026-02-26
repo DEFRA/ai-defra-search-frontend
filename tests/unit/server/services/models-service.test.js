@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest'
 import nock from 'nock'
 
-import { getModels, clearModelsCache } from '../../../../src/server/start/models-api.js'
+import { getModels, clearModelsCache } from '../../../../src/server/services/models-service.js'
 import { config } from '../../../../src/config/config.js'
 
 describe('models-api', () => {

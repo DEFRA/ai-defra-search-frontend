@@ -31,8 +31,8 @@ describe('OIDC Callback', () => {
       {
         method: 'GET',
         path: '/test-protected',
-        handler: (_request, h) => {
-          return h.response({ message: 'Protected content' }).code(200)
+        handler: (request, h) => {
+          return h.response({ message: 'Protected content', userId: request.auth.credentials.id }).code(200)
         }
       }
     ])
@@ -120,7 +120,7 @@ describe('OIDC Callback', () => {
     })
 
     expect(protectedRes.statusCode).toBe(200)
-    expect(protectedRes.result).toEqual({ message: 'Protected content' })
+    expect(protectedRes.result).toEqual({ message: 'Protected content', userId: mockCredentialsData.profile.id })
   })
 
   test('GET /test-protected after jwt expiry should redirect to OIDC flow', async () => {

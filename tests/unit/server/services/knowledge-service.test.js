@@ -11,7 +11,7 @@ import {
   removeSourceFromGroup,
   activateSnapshot,
   querySnapshot
-} from '../../../../src/server/knowledge/knowledge-api.js'
+} from '../../../../src/server/services/knowledge-service.js'
 import { config } from '../../../../src/config/config.js'
 
 describe('knowledge-api', () => {

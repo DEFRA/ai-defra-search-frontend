@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest'
 import nock from 'nock'
 
-import { sendQuestion, getConversation } from '../../../../src/server/start/chat-api.js'
+import { sendQuestion, getConversation } from '../../../../src/server/services/chat-service.js'
 import { config } from '../../../../src/config/config.js'
 
 describe('chat-api', () => {

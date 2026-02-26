@@ -1,6 +1,6 @@
 import { createServer } from '../../server.js'
 import { config } from '../../../config/config.js'
-import { getModels } from '../../start/models-api.js'
+import { getModels } from '../../services/models-service.js'
 
 async function startServer () {
   const server = await createServer()

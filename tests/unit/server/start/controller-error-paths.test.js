@@ -2,8 +2,8 @@ import { describe, test, expect, beforeEach, vi } from 'vitest'
 import statusCodes from 'http-status-codes'
 
 // Mock all dependencies before importing controller
-vi.mock('../../../../src/server/start/chat-api.js')
-vi.mock('../../../../src/server/start/models-api.js')
+vi.mock('../../../../src/server/services/chat-service.js')
+vi.mock('../../../../src/server/services/models-service.js')
 vi.mock('../../../../src/server/start/conversation-cache.js')
 vi.mock('../../../../src/server/start/chat-view-models.js')
 vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
@@ -13,8 +13,8 @@ vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   })
 }))
 
-const chatApi = await import('../../../../src/server/start/chat-api.js')
-const modelsApi = await import('../../../../src/server/start/models-api.js')
+const chatApi = await import('../../../../src/server/services/chat-service.js')
+const modelsApi = await import('../../../../src/server/services/models-service.js')
 const conversationCache = await import('../../../../src/server/start/conversation-cache.js')
 const chatViewModels = await import('../../../../src/server/start/chat-view-models.js')
 const { startGetController, startPostController } = await import('../../../../src/server/start/controller.js')

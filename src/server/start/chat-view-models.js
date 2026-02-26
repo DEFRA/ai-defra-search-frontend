@@ -1,4 +1,4 @@
-import { getModels } from './models-api.js'
+import { getModels } from '../services/models-service.js'
 import { getConversation } from './conversation-cache.js'
 import { getErrorDetails } from './error-mapping.js'
 import { marked } from 'marked'

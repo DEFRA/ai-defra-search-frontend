@@ -1,12 +1,12 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest'
 import statusCodes from 'http-status-codes'
 
-vi.mock('../../../../src/server/knowledge/knowledge-api.js')
+vi.mock('../../../../src/server/services/knowledge-service.js')
 vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   createLogger: () => ({ info: vi.fn(), error: vi.fn() })
 }))
 
-const knowledgeApi = await import('../../../../src/server/knowledge/knowledge-api.js')
+const knowledgeApi = await import('../../../../src/server/services/knowledge-service.js')
 const {
   knowledgeListController,
   knowledgeGroupController,

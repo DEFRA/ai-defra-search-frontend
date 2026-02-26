@@ -1,6 +1,6 @@
 import statusCodes from 'http-status-codes'
 
-import { submitFeedback } from './feedback-api.js'
+import { submitFeedback } from '../services/feedback-service.js'
 import { feedbackPostSchema } from './feedback-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 import {

@@ -14,7 +14,7 @@ describe('#startServer', () => {
     vi.stubEnv('PORT', '3097')
 
     createServerImport = await import('../../../../../src/server/server.js')
-    modelsApiImport = await import('../../../../../src/server/start/models-api.js')
+    modelsApiImport = await import('../../../../../src/server/services/models-service.js')
     startServerImport = await import('../../../../../src/server/common/helpers/start-server.js')
 
     createServerSpy = vi.spyOn(createServerImport, 'createServer')

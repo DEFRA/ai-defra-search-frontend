@@ -12,7 +12,7 @@ import {
   removeSourceFromGroup,
   activateSnapshot,
   querySnapshot
-} from './knowledge-api.js'
+} from '../services/knowledge-service.js'
 
 const logger = createLogger()
 
