@@ -1,6 +1,7 @@
 import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
+import { getUserId } from '../common/helpers/user-context.js'
 
 const dataApiUrl = () => config.get('dataApiUrl')
 const HTTP_NO_CONTENT = 204
@@ -13,8 +14,10 @@ async function request (path, options = {}) {
     throw err
   }
   const url = `${base}/${path.replace(/^\//, '')}`
+  const userId = getUserId()
+  const userIdHeader = userId ? { 'user-id': userId } : {}
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: { 'Content-Type': 'application/json', ...userIdHeader, ...options.headers },
     ...options
   })
   if (!response.ok) {

@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, afterEach } from 'vitest'
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'
 import nock from 'nock'
-
+import { getUserId } from '../../../../src/server/common/helpers/user-context.js'
 import {
   listGroups,
   getGroup,
@@ -14,11 +14,16 @@ import {
 } from '../../../../src/server/services/knowledge-service.js'
 import { config } from '../../../../src/config/config.js'
 
+vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({
+  getUserId: vi.fn().mockReturnValue(null)
+}))
+
 describe('knowledge-api', () => {
   const dataApiUrl = config.get('dataApiUrl')
 
   beforeEach(() => {
     nock.cleanAll()
+    getUserId.mockReturnValue(null)
   })
 
   afterEach(() => {
@@ -227,6 +232,40 @@ describe('knowledge-api', () => {
         .replyWithError('ECONNREFUSED')
 
       await expect(listGroups()).rejects.toThrow()
+    })
+  })
+
+  describe('request headers', () => {
+    test('includes user-id header on all requests when a user context is active', async () => {
+      getUserId.mockReturnValue('test-oid-xyz789')
+
+      let capturedHeaders
+      nock(dataApiUrl)
+        .get('/knowledge/groups')
+        .reply(function () {
+          capturedHeaders = this.req.headers
+          return [200, []]
+        })
+
+      await listGroups()
+
+      expect(capturedHeaders['user-id']).toBe('test-oid-xyz789')
+    })
+
+    test('omits user-id header when no user context is active', async () => {
+      getUserId.mockReturnValue(null)
+
+      let capturedHeaders
+      nock(dataApiUrl)
+        .get('/knowledge/groups')
+        .reply(function () {
+          capturedHeaders = this.req.headers
+          return [200, []]
+        })
+
+      await listGroups()
+
+      expect(capturedHeaders['user-id']).toBeUndefined()
     })
   })
 })
