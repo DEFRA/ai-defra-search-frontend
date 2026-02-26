@@ -1,0 +1,59 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <h1 class="govuk-heading-xl">Upload</h1>
+
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: errorMessage,
+              href: "#knowledge-group"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      <form method="post" action="/upload" novalidate>
+        {{ govukSelect({
+          id: "knowledge-group",
+          name: "knowledge-group",
+          value: selectedKnowledgeGroup,
+          label: {
+            text: "Knowledge group",
+            classes: "govuk-label--m"
+          },
+          hint: {
+            text: "Select the knowledge group to upload to"
+          },
+          errorMessage: errorMessage and { text: errorMessage },
+          items: knowledgeGroupSelectItems | default([])
+        }) }}
+
+        {{ govukFileUpload({
+          id: "file-upload",
+          name: "file-upload",
+          label: {
+            text: "Choose a file",
+            classes: "govuk-label--m"
+          },
+          formGroup: {}
+        }) }}
+
+        {{ govukButton({
+          text: "Upload"
+        }) }}
+      </form>
+
+    </div>
+  </div>
+{% endblock %}

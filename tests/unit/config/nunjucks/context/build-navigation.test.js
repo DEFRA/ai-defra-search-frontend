@@ -16,6 +16,11 @@ describe('#buildNavigation', () => {
       },
       {
         current: false,
+        text: 'Upload',
+        href: '/upload'
+      },
+      {
+        current: false,
         text: 'About',
         href: '/about'
       }
@@ -28,6 +33,31 @@ describe('#buildNavigation', () => {
         current: true,
         text: 'Home',
         href: '/'
+      },
+      {
+        current: false,
+        text: 'Upload',
+        href: '/upload'
+      },
+      {
+        current: false,
+        text: 'About',
+        href: '/about'
+      }
+    ])
+  })
+
+  test('Should highlight Upload when on upload path', () => {
+    expect(buildNavigation(mockRequest({ path: '/upload' }))).toEqual([
+      {
+        current: false,
+        text: 'Home',
+        href: '/'
+      },
+      {
+        current: true,
+        text: 'Upload',
+        href: '/upload'
       },
       {
         current: false,
