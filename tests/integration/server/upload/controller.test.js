@@ -1,17 +1,28 @@
 import statusCodes from 'http-status-codes'
 import { JSDOM } from 'jsdom'
+import nock from 'nock'
 
 import { createServer } from '../../../../src/server/server.js'
+import { config } from '../../../../src/config/config.js'
 
 describe('Upload page (GET /upload)', () => {
   let server
 
   beforeAll(async () => {
+    const base = config.get('knowledgeApiUrl')?.replace(/\/$/, '') ?? ''
+    if (base) {
+      nock(base)
+        .get('/knowledge-groups')
+        .matchHeader('user-id', /.*/)
+        .reply(200, [])
+        .persist()
+    }
     server = await createServer()
     await server.initialize()
   })
 
   afterAll(async () => {
+    nock.cleanAll()
     await server.stop({ timeout: 0 })
   })
 
