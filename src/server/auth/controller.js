@@ -8,6 +8,9 @@ export const authController = {
 
     const { profile, token } = request.auth.credentials
 
+    request.server.logger.info('Signed in')
+    request.server.logger.info({ profile }, 'Entra auth profile - checking OID field')
+
     const sessionId = uuidv4()
 
     await request.server.app.cache.set(sessionId, {
