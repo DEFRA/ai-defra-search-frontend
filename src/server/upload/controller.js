@@ -7,14 +7,14 @@ import { config } from '../../config/config.js'
 const logger = createLogger()
 const UPLOAD_VIEW_PATH = 'upload/upload'
 const CREATE_GROUP_VIEW_PATH = 'upload/create-group'
-const DEMO_USER_ID = '12345678-aaaa-bbbb-cccc-000000000001'
+const DEV_USER_ID = '12345678-aaaa-bbbb-cccc-000000000001'
 const KNOWLEDGE_GROUP_REQUIRED = 'Select a knowledge group'
 
 async function buildUploadViewState (request, overrides = {}) {
   let knowledgeGroups = []
   const userId = config.get('auth.enabled')
     ? request.auth?.credentials?.id
-    : DEMO_USER_ID
+    : DEV_USER_ID
   try {
     knowledgeGroups = await listKnowledgeGroups(userId) ?? []
   } catch (err) {
@@ -55,7 +55,7 @@ export const uploadPostController = {
 function getUserId (request) {
   return config.get('auth.enabled')
     ? request.auth?.credentials?.id
-    : DEMO_USER_ID
+    : DEV_USER_ID
 }
 
 export const uploadCreateGroupGetController = {
