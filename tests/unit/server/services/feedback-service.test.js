@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest'
 import nock from 'nock'
 
-import { submitFeedback } from '../../../../src/server/feedback/feedback-api.js'
+import { submitFeedback } from '../../../../src/server/services/feedback-service.js'
 import { config } from '../../../../src/config/config.js'
 
 describe('submitFeedback', () => {

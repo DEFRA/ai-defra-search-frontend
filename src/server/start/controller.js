@@ -1,6 +1,6 @@
 import statusCodes from 'http-status-codes'
-import { sendQuestion, getConversation as getConversationApi } from './chat-api.js'
-import { getModels } from './models-api.js'
+import { sendQuestion, getConversation as getConversationApi } from '../services/chat-service.js'
+import { getModels } from '../services/models-service.js'
 import { startPostSchema, startParamsSchema } from './chat-schema.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 import { getConversation as getCachedConversation, storeConversation, clearConversation } from './conversation-cache.js'
