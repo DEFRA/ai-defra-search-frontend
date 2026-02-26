@@ -2,6 +2,7 @@ import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
 import { marked } from 'marked'
+import { getUserId } from '../common/helpers/user-context.js'
 
 /**
  * Send a question to the backend chat API. The backend queues the request and
@@ -20,11 +21,13 @@ async function sendQuestion (question, modelId, conversationId) {
   const url = `${chatApiUrl}/chat`
 
   try {
+    const userId = getUserId()
+    const headers = { 'Content-Type': 'application/json' }
+    if (userId) headers['user-id'] = userId
+
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify({
         question,
         conversation_id: conversationId || null,
@@ -71,7 +74,9 @@ async function getConversation (conversationId, timeoutMs = 2000) {
 
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
-  const response = await fetch(url, { signal: controller.signal })
+  const userId = getUserId()
+  const headers = userId ? { 'user-id': userId } : {}
+  const response = await fetch(url, { signal: controller.signal, headers })
   clearTimeout(timeout)
   if (!response.ok) {
     const error = new Error(`Chat API returned ${response.status}`)

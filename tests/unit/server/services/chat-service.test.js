@@ -1,14 +1,19 @@
-import { describe, test, expect, beforeEach, afterEach } from 'vitest'
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'
 import nock from 'nock'
-
+import { getUserId } from '../../../../src/server/common/helpers/user-context.js'
 import { sendQuestion, getConversation } from '../../../../src/server/services/chat-service.js'
 import { config } from '../../../../src/config/config.js'
+
+vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({
+  getUserId: vi.fn().mockReturnValue(null)
+}))
 
 describe('chat-api', () => {
   const chatApiUrl = config.get('chatApiUrl')
 
   beforeEach(() => {
     nock.cleanAll()
+    getUserId.mockReturnValue(null)
   })
 
   afterEach(() => {
@@ -290,6 +295,40 @@ describe('chat-api', () => {
       expect(result.messages[0].role).toBe('user')
       expect(result.messages[0].timestamp).toBe('2026-02-10T12:00:00Z')
       expect(result.messages[0].message_id).toBe('msg-1')
+    })
+  })
+
+  describe('request headers', () => {
+    test('includes user-id header when a user context is active', async () => {
+      getUserId.mockReturnValue('test-oid-abc123')
+
+      let capturedHeaders
+      nock(chatApiUrl)
+        .post('/chat')
+        .reply(function (uri, body) {
+          capturedHeaders = this.req.headers
+          return [200, { conversation_id: 'c1', message_id: 'm1', status: 'queued' }]
+        })
+
+      await sendQuestion('q', 'model', null)
+
+      expect(capturedHeaders['user-id']).toBe('test-oid-abc123')
+    })
+
+    test('omits user-id header when no user context is active', async () => {
+      getUserId.mockReturnValue(null)
+
+      let capturedHeaders
+      nock(chatApiUrl)
+        .post('/chat')
+        .reply(function (uri, body) {
+          capturedHeaders = this.req.headers
+          return [200, { conversation_id: 'c1', message_id: 'm1', status: 'queued' }]
+        })
+
+      await sendQuestion('q', 'model', null)
+
+      expect(capturedHeaders['user-id']).toBeUndefined()
     })
   })
 })

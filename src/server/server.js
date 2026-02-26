@@ -4,6 +4,7 @@ import cookie from '@hapi/cookie'
 import Scooter from '@hapi/scooter'
 
 import { auth } from './common/helpers/auth.js'
+import { userContext } from './common/helpers/user-context.js'
 import { router } from './router.js'
 import { config } from '../config/config.js'
 import { pulse } from './common/helpers/pulse.js'
@@ -70,6 +71,7 @@ export async function createServer () {
     Scooter,
     contentSecurityPolicy,
     auth,
+    userContext,
     router
   ])
 
