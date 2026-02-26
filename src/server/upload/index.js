@@ -1,4 +1,9 @@
-import { uploadGetController, uploadPostController } from './controller.js'
+import {
+  uploadGetController,
+  uploadPostController,
+  uploadCreateGroupGetController,
+  uploadCreateGroupPostController
+} from './controller.js'
 
 export const upload = {
   plugin: {
@@ -14,6 +19,16 @@ export const upload = {
           method: 'POST',
           path: '/upload',
           ...uploadPostController
+        },
+        {
+          method: 'GET',
+          path: '/upload/create-group',
+          ...uploadCreateGroupGetController
+        },
+        {
+          method: 'POST',
+          path: '/upload/create-group',
+          ...uploadCreateGroupPostController
         }
       ])
     }

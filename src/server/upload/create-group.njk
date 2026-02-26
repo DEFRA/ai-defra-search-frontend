@@ -1,0 +1,64 @@
+{% extends "layouts/page.njk" %}
+
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+{% block content %}
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      <h1 class="govuk-heading-xl">Create a knowledge group</h1>
+
+      {% if errorMessage %}
+        {{ govukErrorSummary({
+          titleText: "There is a problem",
+          errorList: [
+            {
+              text: errorMessage,
+              href: "#name"
+            }
+          ]
+        }) }}
+      {% endif %}
+
+      <form method="post" action="/upload/create-group" novalidate>
+        {{ govukInput({
+          id: "name",
+          name: "name",
+          value: values.name if values else "",
+          label: {
+            text: "Name",
+            classes: "govuk-label--m"
+          },
+          hint: {
+            text: "A short name for the knowledge group"
+          },
+          errorMessage: errorMessage and { text: errorMessage },
+          autocomplete: "off"
+        }) }}
+
+        {{ govukTextarea({
+          id: "description",
+          name: "description",
+          value: values.description if values else "",
+          label: {
+            text: "Description (optional)",
+            classes: "govuk-label--m"
+          },
+          rows: 3
+        }) }}
+
+        {{ govukButton({
+          text: "Create knowledge group"
+        }) }}
+      </form>
+
+      <p class="govuk-body govuk-!-margin-top-6">
+        <a href="/upload" class="govuk-link">Back to upload</a>
+      </p>
+
+    </div>
+  </div>
+{% endblock %}

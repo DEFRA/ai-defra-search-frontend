@@ -33,7 +33,7 @@
             classes: "govuk-label--m"
           },
           hint: {
-            text: "Select the knowledge group to upload to"
+            html: 'Select the knowledge group to upload to. <a href="/upload/create-group" class="govuk-link">Create a new knowledge group</a>'
           },
           errorMessage: errorMessage and { text: errorMessage },
           items: knowledgeGroupSelectItems | default([])
