@@ -9,7 +9,7 @@ export const authController = {
     const { profile, token } = request.auth.credentials
 
     request.server.logger.info('Signed in')
-    request.server.logger.info({ profile }, 'Entra auth profile - checking OID field')
+    request.server.logger.info(`Entra auth profile - checking OID field: ${JSON.stringify(profile)}`)
 
     const sessionId = uuidv4()
 
