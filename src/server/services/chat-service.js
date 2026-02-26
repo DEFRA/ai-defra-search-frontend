@@ -23,7 +23,9 @@ async function sendQuestion (question, modelId, conversationId) {
   try {
     const userId = getUserId()
     const headers = { 'Content-Type': 'application/json' }
-    if (userId) headers['user-id'] = userId
+    if (userId) {
+      headers['user-id'] = userId
+    }
 
     const response = await fetch(url, {
       method: 'POST',
