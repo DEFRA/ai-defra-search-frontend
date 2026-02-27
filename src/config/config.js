@@ -252,6 +252,13 @@ export const config = convict({
     default: null,
     env: 'DATA_API_URL'
   },
+  knowledgeApiUrl: {
+    doc: 'Knowledge API base URL (ai-defra-search-knowledge /knowledge-groups)',
+    format: String,
+    nullable: true,
+    default: null,
+    env: 'KNOWLEDGE_API_URL'
+  },
   auth: {
     enabled: {
       doc: 'Enable MS Entra authentication - Should only be disabled for local development purposes',

@@ -1,16 +1,30 @@
-import { startServer } from '../../../../../src/server/common/helpers/start-server.js'
+import { vi } from 'vitest'
+
 import { statusCodes } from '../../../../../src/server/common/constants/status-codes.js'
 
 describe('#serveStaticFiles', () => {
   let server
+  let startServerImport
+
+  beforeAll(async () => {
+    vi.stubEnv('PORT', '3098')
+    startServerImport = await import('../../../../../src/server/common/helpers/start-server.js')
+  })
+
+  afterAll(() => {
+    vi.unstubAllEnvs()
+  })
 
   describe('When secure context is disabled', () => {
     beforeEach(async () => {
-      server = await startServer()
+      server = await startServerImport.startServer()
     })
 
     afterEach(async () => {
-      await server.stop({ timeout: 0 })
+      if (server) {
+        await server.stop({ timeout: 0 })
+        server = null
+      }
     })
 
     test('Should serve favicon as expected', async () => {

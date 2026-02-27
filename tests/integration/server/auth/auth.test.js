@@ -1,4 +1,5 @@
 import Bell from '@hapi/bell'
+import { vi } from 'vitest'
 
 import { generateEntraJwt } from '../../../utils/oidc.js'
 
@@ -17,9 +18,10 @@ describe('OIDC Callback', () => {
   }
 
   beforeAll(async () => {
-    vitest.stubEnv('AUTH_ENABLED', 'true')
+    vi.stubEnv('AUTH_ENABLED', 'true')
+    vi.stubEnv('PORT', '3099')
 
-    vitest.useFakeTimers()
+    vi.useFakeTimers()
 
     Bell.simulate((_request) => mockCredentialsData)
 
@@ -43,11 +45,11 @@ describe('OIDC Callback', () => {
   afterAll(async () => {
     await server.stop({ timeout: 0 })
 
-    vitest.useRealTimers()
+    vi.useRealTimers()
 
     Bell.simulate(false)
 
-    vitest.unstubAllEnvs()
+    vi.unstubAllEnvs()
   })
 
   beforeEach(async () => {
@@ -84,7 +86,7 @@ describe('OIDC Callback', () => {
   })
 
   test('redirects to the homepage after successful authentication', async () => {
-    vitest.setSystemTime(new Date('2025-11-24T00:00:00Z'))
+    vi.setSystemTime(new Date('2025-11-24T00:00:00Z'))
 
     mockCredentialsData.token = generateEntraJwt()
 
@@ -102,7 +104,7 @@ describe('OIDC Callback', () => {
   })
 
   test('GET /test-protected with valid jwt token in session should return protected content', async () => {
-    vitest.setSystemTime(new Date('2025-11-24T00:00:00Z'))
+    vi.setSystemTime(new Date('2025-11-24T00:00:00Z'))
 
     mockCredentialsData.token = generateEntraJwt()
 
@@ -124,7 +126,7 @@ describe('OIDC Callback', () => {
   })
 
   test('GET /test-protected after jwt expiry should redirect to OIDC flow', async () => {
-    vitest.setSystemTime(new Date('2025-11-24T00:00:00Z'))
+    vi.setSystemTime(new Date('2025-11-24T00:00:00Z'))
 
     mockCredentialsData.token = generateEntraJwt()
 
@@ -133,7 +135,7 @@ describe('OIDC Callback', () => {
       url: '/auth/callback?code=dummy-auth-code',
     })
 
-    vitest.setSystemTime(new Date('2025-11-24T00:31:00Z'))
+    vi.setSystemTime(new Date('2025-11-24T00:31:00Z'))
 
     const protectedRes = await server.inject({
       method: 'GET',
