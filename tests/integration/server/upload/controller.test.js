@@ -1,48 +1,28 @@
 import statusCodes from 'http-status-codes'
 import { JSDOM } from 'jsdom'
-import nock from 'nock'
+import { vi } from 'vitest'
 
 import { createServer } from '../../../../src/server/server.js'
-import { config } from '../../../../src/config/config.js'
+import { listKnowledgeGroups, createKnowledgeGroup } from '../../../../src/server/services/knowledge-groups-service.js'
 
-function setupKnowledgeGroupsMock (groups = []) {
-  const base = config.get('knowledgeApiUrl')?.replace(/\/$/, '') ?? ''
-  if (base) {
-    nock(base)
-      .get('/knowledge-groups')
-      .matchHeader('user-id', /.*/)
-      .reply(200, groups)
-      .persist()
-  }
-}
-
-function setupCreateGroupMock (status = 201, body = { id: 'new-id', name: 'Test', description: null }) {
-  const base = config.get('knowledgeApiUrl')?.replace(/\/$/, '') ?? ''
-  if (base) {
-    return nock(base)
-      .post('/knowledge-group', () => true)
-      .matchHeader('user-id', /.*/)
-      .reply(status, body)
-  }
-  return null
-}
+vi.mock('../../../../src/server/services/knowledge-groups-service.js')
 
 describe('Upload page', () => {
   let server
 
   beforeAll(async () => {
-    setupKnowledgeGroupsMock([])
+    vi.mocked(listKnowledgeGroups).mockResolvedValue([])
+    vi.mocked(createKnowledgeGroup).mockResolvedValue({ id: 'new-id', name: 'Test', description: null })
     server = await createServer()
     await server.initialize()
   })
 
   beforeEach(() => {
-    nock.cleanAll()
-    setupKnowledgeGroupsMock([])
+    vi.mocked(listKnowledgeGroups).mockResolvedValue([])
+    vi.mocked(createKnowledgeGroup).mockResolvedValue({ id: 'new-id', name: 'Test', description: null })
   })
 
   afterAll(async () => {
-    nock.cleanAll()
     await server.stop({ timeout: 0 })
   })
 
@@ -67,8 +47,14 @@ describe('Upload page', () => {
     })
 
     test('populates knowledge group dropdown when API returns groups', async () => {
+<<<<<<< Updated upstream
       nock.cleanAll()
       setupKnowledgeGroupsMock([
+||||||| Stash base
+      setupKnowledgeGroupsMock([
+=======
+      vi.mocked(listKnowledgeGroups).mockResolvedValue([
+>>>>>>> Stashed changes
         { id: 'g1', name: 'Group Alpha' },
         { id: 'g2', name: 'Group Beta' }
       ])
@@ -83,19 +69,17 @@ describe('Upload page', () => {
       const { window } = new JSDOM(response.result)
       const page = window.document
       const select = page.querySelector('select#knowledge-group')
+      const opt1 = select?.querySelector('option[value="g1"]')
+      const opt2 = select?.querySelector('option[value="g2"]')
 
-      expect(select.querySelector('option[value="g1"]')?.textContent).toContain('Group Alpha')
-      expect(select.querySelector('option[value="g2"]')?.textContent).toContain('Group Beta')
+      expect(opt1).toBeTruthy()
+      expect(opt2).toBeTruthy()
+      expect(opt1.textContent).toContain('Group Alpha')
+      expect(opt2.textContent).toContain('Group Beta')
     })
 
     test('shows empty select when listKnowledgeGroups fails', async () => {
-      nock.cleanAll()
-      const base = config.get('knowledgeApiUrl')?.replace(/\/$/, '') ?? ''
-      if (base) {
-        nock(base)
-          .get('/knowledge-groups')
-          .reply(500, 'API error')
-      }
+      vi.mocked(listKnowledgeGroups).mockRejectedValue(new Error('API error'))
 
       const response = await server.inject({
         method: 'GET',
@@ -177,7 +161,7 @@ describe('Upload page', () => {
     })
 
     test('redirects to /upload on success', async () => {
-      setupCreateGroupMock(201, { id: 'created-id', name: 'New Group', description: 'Desc' })
+      vi.mocked(createKnowledgeGroup).mockResolvedValue({ id: 'created-id', name: 'New Group', description: 'Desc' })
 
       const response = await server.inject({
         method: 'POST',
@@ -190,7 +174,10 @@ describe('Upload page', () => {
     })
 
     test('shows API error detail when create fails with string detail', async () => {
-      setupCreateGroupMock(400, { detail: 'Group name already exists' })
+      const err = new Error('Group name already exists')
+      err.status = 400
+      err.detail = 'Group name already exists'
+      vi.mocked(createKnowledgeGroup).mockRejectedValue(err)
 
       const response = await server.inject({
         method: 'POST',
@@ -206,7 +193,10 @@ describe('Upload page', () => {
     })
 
     test('shows generic error when create fails without string detail', async () => {
-      setupCreateGroupMock(500, { detail: { code: 'ERR' } })
+      const err = new Error('API error')
+      err.status = 500
+      err.detail = { code: 'ERR' }
+      vi.mocked(createKnowledgeGroup).mockRejectedValue(err)
 
       const response = await server.inject({
         method: 'POST',
