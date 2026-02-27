@@ -15,9 +15,12 @@ async function request (path, options = {}) {
   }
   const url = `${base}/${path.replace(/^\//, '')}`
   const userId = getUserId()
-  const userIdHeader = userId ? { 'user-id': userId } : {}
+  const headers = { 'Content-Type': 'application/json', ...options.headers }
+  if (userId) {
+    headers['user-id'] = userId
+  }
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...userIdHeader, ...options.headers },
+    headers,
     ...options
   })
   if (!response.ok) {

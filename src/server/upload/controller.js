@@ -2,23 +2,18 @@ import statusCodes from 'http-status-codes'
 
 import { createLogger } from '../common/helpers/logging/logger.js'
 import { listKnowledgeGroups, createKnowledgeGroup } from '../services/knowledge-groups-service.js'
-import { config } from '../../config/config.js'
 
 const logger = createLogger()
 const UPLOAD_VIEW_PATH = 'upload/upload'
 const CREATE_GROUP_VIEW_PATH = 'upload/create-group'
-const DEV_USER_ID = '12345678-aaaa-bbbb-cccc-000000000001'
 const KNOWLEDGE_GROUP_REQUIRED = 'Select a knowledge group'
 
 async function buildUploadViewState (request, overrides = {}) {
   let knowledgeGroups = []
-  const userId = config.get('auth.enabled')
-    ? request.auth?.credentials?.id
-    : DEV_USER_ID
   try {
-    knowledgeGroups = await listKnowledgeGroups(userId) ?? []
+    knowledgeGroups = await listKnowledgeGroups() ?? []
   } catch (err) {
-    logger.warn({ err, userId }, 'Failed to fetch knowledge groups for upload page')
+    logger.warn({ err }, 'Failed to fetch knowledge groups for upload page')
   }
   const knowledgeGroupSelectItems = [
     { value: '', text: 'Select a group' },
@@ -52,12 +47,6 @@ export const uploadPostController = {
   }
 }
 
-function getUserId (request) {
-  return config.get('auth.enabled')
-    ? request.auth?.credentials?.id
-    : DEV_USER_ID
-}
-
 export const uploadCreateGroupGetController = {
   async handler (request, h) {
     return h.view(CREATE_GROUP_VIEW_PATH, {
@@ -70,7 +59,6 @@ export const uploadCreateGroupGetController = {
 export const uploadCreateGroupPostController = {
   async handler (request, h) {
     const { name, description } = request.payload ?? {}
-    const userId = getUserId(request)
     const values = { name: name?.trim?.() ?? '', description: description?.trim?.() ?? '' }
 
     if (!values.name) {
@@ -81,10 +69,10 @@ export const uploadCreateGroupPostController = {
     }
 
     try {
-      await createKnowledgeGroup(userId, { name: values.name, description: values.description || null })
+      await createKnowledgeGroup({ name: values.name, description: values.description || null })
       return h.redirect('/upload')
     } catch (err) {
-      logger.warn({ err, userId }, 'Failed to create knowledge group')
+      logger.warn({ err }, 'Failed to create knowledge group')
       const errorMessage = typeof err.detail === 'string' ? err.detail : 'Failed to create knowledge group'
       return h.view(CREATE_GROUP_VIEW_PATH, {
         errorMessage,

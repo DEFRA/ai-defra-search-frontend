@@ -67,6 +67,7 @@ describe('Upload page', () => {
     })
 
     test('populates knowledge group dropdown when API returns groups', async () => {
+      nock.cleanAll()
       setupKnowledgeGroupsMock([
         { id: 'g1', name: 'Group Alpha' },
         { id: 'g2', name: 'Group Beta' }

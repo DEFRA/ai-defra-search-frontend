@@ -1,39 +1,38 @@
 import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
+import { getUserId } from '../common/helpers/user-context.js'
 
 const knowledgeApiUrl = () => config.get('knowledgeApiUrl')
 
-export async function listKnowledgeGroups (userId) {
+export async function listKnowledgeGroups () {
   const base = knowledgeApiUrl()
+  const userId = getUserId()
   if (!base || !userId) {
     return []
   }
   const url = `${base.replace(/\/$/, '')}/knowledge-groups`
-  const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      'user-id': userId
-    }
-  })
+  const headers = { 'Content-Type': 'application/json' }
+  if (userId) { headers['user-id'] = userId }
+  const response = await fetch(url, { headers })
   if (!response.ok) {
     throw new Error(`Knowledge API ${response.status}: ${await response.text()}`)
   }
   return response.json()
 }
 
-export async function createKnowledgeGroup (userId, { name, description }) {
+export async function createKnowledgeGroup ({ name, description }) {
   const base = knowledgeApiUrl()
+  const userId = getUserId()
   if (!base || !userId) {
     throw new Error('Knowledge API or user not configured')
   }
   const url = `${base.replace(/\/$/, '')}/knowledge-group`
+  const headers = { 'Content-Type': 'application/json' }
+  if (userId) { headers['user-id'] = userId }
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'user-id': userId
-    },
+    headers,
     body: JSON.stringify({ name, description: description || null })
   })
   if (!response.ok) {

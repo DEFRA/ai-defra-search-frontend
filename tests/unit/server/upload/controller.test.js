@@ -2,13 +2,11 @@ import { describe, test, expect, beforeEach, vi } from 'vitest'
 import statusCodes from 'http-status-codes'
 
 vi.mock('../../../../src/server/services/knowledge-groups-service.js')
-vi.mock('../../../../src/config/config.js')
 vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   createLogger: () => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn() })
 }))
 
 const knowledgeGroupsService = await import('../../../../src/server/services/knowledge-groups-service.js')
-const { config } = await import('../../../../src/config/config.js')
 const {
   uploadGetController,
   uploadPostController,
@@ -21,10 +19,6 @@ describe('upload controller', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    config.get.mockImplementation((key) => {
-      if (key === 'auth.enabled') return false
-      return null
-    })
     mockH = {
       view: vi.fn().mockReturnThis(),
       code: vi.fn().mockReturnThis(),
@@ -191,7 +185,6 @@ describe('upload controller', () => {
       )
 
       expect(knowledgeGroupsService.createKnowledgeGroup).toHaveBeenCalledWith(
-        '12345678-aaaa-bbbb-cccc-000000000001',
         { name: 'My Group', description: 'A desc' }
       )
       expect(mockH.redirect).toHaveBeenCalledWith('/upload')

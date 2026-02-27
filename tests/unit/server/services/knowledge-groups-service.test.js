@@ -6,18 +6,23 @@ import {
   createKnowledgeGroup
 } from '../../../../src/server/services/knowledge-groups-service.js'
 import { config } from '../../../../src/config/config.js'
-
-const baseUrl = 'http://localhost:9999'
+import { getUserId } from '../../../../src/server/common/helpers/user-context.js'
 
 vi.mock('../../../../src/config/config.js', () => ({
   config: {
     get: vi.fn((key) => (key === 'knowledgeApiUrl' ? baseUrl : null))
   }
 }))
+vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({
+  getUserId: vi.fn()
+}))
+
+const baseUrl = 'http://localhost:9999'
 
 describe('knowledge-groups-service', () => {
   beforeEach(() => {
     nock.cleanAll()
+    getUserId.mockReturnValue('user-1')
   })
 
   afterEach(() => {
@@ -28,30 +33,27 @@ describe('knowledge-groups-service', () => {
     test('returns [] when knowledgeApiUrl is not configured', async () => {
       config.get.mockReturnValueOnce(null)
 
-      const result = await listKnowledgeGroups('user-1')
+      const result = await listKnowledgeGroups()
 
       expect(result).toEqual([])
     })
 
-    test('returns [] when userId is falsy', async () => {
-      const result = await listKnowledgeGroups(null)
+    test('returns [] when user context has no ID', async () => {
+      getUserId.mockReturnValue(null)
 
-      expect(result).toEqual([])
-    })
-
-    test('returns [] when userId is empty string', async () => {
-      const result = await listKnowledgeGroups('')
+      const result = await listKnowledgeGroups()
 
       expect(result).toEqual([])
     })
 
     test('returns groups from API', async () => {
+      getUserId.mockReturnValue('user-123')
       nock(baseUrl)
         .get('/knowledge-groups')
         .matchHeader('user-id', 'user-123')
         .reply(200, [{ id: 'g1', name: 'Group 1' }, { id: 'g2', name: 'Group 2' }])
 
-      const result = await listKnowledgeGroups('user-123')
+      const result = await listKnowledgeGroups()
 
       expect(result).toHaveLength(2)
       expect(result[0]).toEqual({ id: 'g1', name: 'Group 1' })
@@ -65,7 +67,7 @@ describe('knowledge-groups-service', () => {
         .get('/knowledge-groups')
         .reply(200, [])
 
-      await listKnowledgeGroups('user-1')
+      await listKnowledgeGroups()
 
       expect(nock.isDone()).toBe(true)
     })
@@ -75,7 +77,7 @@ describe('knowledge-groups-service', () => {
         .get('/knowledge-groups')
         .reply(500, 'Internal Server Error')
 
-      await expect(listKnowledgeGroups('user-1')).rejects.toThrow(
+      await expect(listKnowledgeGroups()).rejects.toThrow(
         /Knowledge API 500: Internal Server Error/
       )
     })
@@ -86,19 +88,20 @@ describe('knowledge-groups-service', () => {
       config.get.mockReturnValueOnce(null)
 
       await expect(
-        createKnowledgeGroup('user-1', { name: 'Test', description: 'Desc' })
+        createKnowledgeGroup({ name: 'Test', description: 'Desc' })
       ).rejects.toThrow('Knowledge API or user not configured')
     })
 
-    test('throws when userId is falsy', async () => {
-      config.get.mockReturnValueOnce(baseUrl)
+    test('throws when user context has no ID', async () => {
+      getUserId.mockReturnValue(null)
 
       await expect(
-        createKnowledgeGroup(null, { name: 'Test', description: 'Desc' })
+        createKnowledgeGroup({ name: 'Test', description: 'Desc' })
       ).rejects.toThrow('Knowledge API or user not configured')
     })
 
     test('POSTs group and returns created group', async () => {
+      getUserId.mockReturnValue('user-xyz')
       let capturedBody
       nock(baseUrl)
         .post('/knowledge-group', (body) => {
@@ -108,7 +111,7 @@ describe('knowledge-groups-service', () => {
         .matchHeader('user-id', 'user-xyz')
         .reply(201, { id: 'new-id', name: 'My Group', description: 'A desc' })
 
-      const result = await createKnowledgeGroup('user-xyz', {
+      const result = await createKnowledgeGroup({
         name: 'My Group',
         description: 'A desc'
       })
@@ -126,7 +129,7 @@ describe('knowledge-groups-service', () => {
         })
         .reply(201, { id: 'g1', name: 'No Desc' })
 
-      await createKnowledgeGroup('user-1', { name: 'No Desc' })
+      await createKnowledgeGroup({ name: 'No Desc' })
 
       expect(capturedBody).toEqual({ name: 'No Desc', description: null })
     })
@@ -138,7 +141,7 @@ describe('knowledge-groups-service', () => {
         .post('/knowledge-group')
         .reply(201, { id: 'g1', name: 'Test' })
 
-      await createKnowledgeGroup('user-1', { name: 'Test' })
+      await createKnowledgeGroup({ name: 'Test' })
 
       expect(nock.isDone()).toBe(true)
     })
@@ -148,7 +151,7 @@ describe('knowledge-groups-service', () => {
         .post('/knowledge-group')
         .reply(400, { detail: 'Group name already exists' })
 
-      const err = await createKnowledgeGroup('user-1', { name: 'Dup' }).catch((e) => e)
+      const err = await createKnowledgeGroup({ name: 'Dup' }).catch((e) => e)
 
       expect(err.status).toBe(400)
       expect(err.detail).toBe('Group name already exists')
@@ -160,7 +163,7 @@ describe('knowledge-groups-service', () => {
         .post('/knowledge-group')
         .reply(500, 'plain text error')
 
-      const err = await createKnowledgeGroup('user-1', { name: 'Test' }).catch((e) => e)
+      const err = await createKnowledgeGroup({ name: 'Test' }).catch((e) => e)
 
       expect(err.detail).toBe('plain text error')
     })
@@ -170,7 +173,7 @@ describe('knowledge-groups-service', () => {
         .post('/knowledge-group')
         .reply(400, { detail: { code: 'ERR', message: 'Invalid' } })
 
-      const err = await createKnowledgeGroup('user-1', { name: 'Test' }).catch((e) => e)
+      const err = await createKnowledgeGroup({ name: 'Test' }).catch((e) => e)
 
       expect(err.detail).toEqual({ code: 'ERR', message: 'Invalid' })
       expect(err.message).toContain('{"code":"ERR","message":"Invalid"}')
