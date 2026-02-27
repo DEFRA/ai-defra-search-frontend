@@ -47,14 +47,7 @@ describe('Upload page', () => {
     })
 
     test('populates knowledge group dropdown when API returns groups', async () => {
-<<<<<<< Updated upstream
-      nock.cleanAll()
-      setupKnowledgeGroupsMock([
-||||||| Stash base
-      setupKnowledgeGroupsMock([
-=======
       vi.mocked(listKnowledgeGroups).mockResolvedValue([
->>>>>>> Stashed changes
         { id: 'g1', name: 'Group Alpha' },
         { id: 'g2', name: 'Group Beta' }
       ])

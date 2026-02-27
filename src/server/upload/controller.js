@@ -8,18 +8,8 @@ const UPLOAD_VIEW_PATH = 'upload/upload'
 const CREATE_GROUP_VIEW_PATH = 'upload/create-group'
 const KNOWLEDGE_GROUP_REQUIRED = 'Select a knowledge group'
 
-async function buildUploadViewState (_request, overrides = {}) {
+async function buildUploadViewState (overrides = {}) {
   let knowledgeGroups = []
-<<<<<<< Updated upstream
-||||||| Stash base
-  const userId = config.get('auth.enabled')
-    ? request.auth?.credentials?.id
-    : DEV_USER_ID
-=======
-  const userId = config.get('auth.enabled')
-    ? _request.auth?.credentials?.id
-    : DEV_USER_ID
->>>>>>> Stashed changes
   try {
     knowledgeGroups = await listKnowledgeGroups() ?? []
   } catch (err) {
@@ -33,8 +23,8 @@ async function buildUploadViewState (_request, overrides = {}) {
 }
 
 export const uploadGetController = {
-  async handler (request, h) {
-    const viewState = await buildUploadViewState(request)
+  async handler (_request, h) {
+    const viewState = await buildUploadViewState()
     return h.view(UPLOAD_VIEW_PATH, viewState)
   }
 }
@@ -44,7 +34,7 @@ export const uploadPostController = {
     const knowledgeGroupId = request.payload?.['knowledge-group']?.trim?.() ?? ''
     const errorMessage = !knowledgeGroupId ? KNOWLEDGE_GROUP_REQUIRED : null
 
-    const viewState = await buildUploadViewState(request, {
+    const viewState = await buildUploadViewState({
       errorMessage,
       selectedKnowledgeGroup: knowledgeGroupId
     })
