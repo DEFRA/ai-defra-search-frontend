@@ -72,6 +72,19 @@ describe('upload controller', () => {
         })
       )
     })
+
+    test('renders with empty select when listKnowledgeGroups returns null', async () => {
+      knowledgeGroupsService.listKnowledgeGroups.mockResolvedValue(null)
+
+      await uploadGetController.handler({}, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith(
+        'upload/upload',
+        expect.objectContaining({
+          knowledgeGroupSelectItems: [{ value: '', text: 'Select a group' }]
+        })
+      )
+    })
   })
 
   describe('uploadPostController', () => {
@@ -129,6 +142,36 @@ describe('upload controller', () => {
       )
       expect(mockH.code).not.toHaveBeenCalled()
     })
+
+    test('returns 400 when payload is missing', async () => {
+      knowledgeGroupsService.listKnowledgeGroups.mockResolvedValue([])
+
+      await uploadPostController.handler({}, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith(
+        'upload/upload',
+        expect.objectContaining({
+          errorMessage: 'Select a knowledge group',
+          selectedKnowledgeGroup: ''
+        })
+      )
+      expect(mockH.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
+    })
+
+    test('returns 400 when knowledge-group key is missing from payload', async () => {
+      knowledgeGroupsService.listKnowledgeGroups.mockResolvedValue([])
+
+      await uploadPostController.handler({ payload: {} }, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith(
+        'upload/upload',
+        expect.objectContaining({
+          errorMessage: 'Select a knowledge group',
+          selectedKnowledgeGroup: ''
+        })
+      )
+      expect(mockH.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
+    })
   })
 
   describe('uploadCreateGroupGetController', () => {
@@ -143,6 +186,17 @@ describe('upload controller', () => {
   })
 
   describe('uploadCreateGroupPostController', () => {
+    test('returns 400 when payload is missing', async () => {
+      await uploadCreateGroupPostController.handler({}, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith('upload/create-group', {
+        errorMessage: 'Enter a name for the knowledge group',
+        values: { name: '', description: '', 'information-asset-owner': '' }
+      })
+      expect(mockH.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
+      expect(knowledgeGroupsService.createKnowledgeGroup).not.toHaveBeenCalled()
+    })
+
     test('returns 400 when name is empty', async () => {
       await uploadCreateGroupPostController.handler(
         { payload: { name: '', description: 'Desc' } },
