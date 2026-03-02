@@ -151,7 +151,7 @@ describe('upload controller', () => {
 
       expect(mockH.view).toHaveBeenCalledWith('upload/create-group', {
         errorMessage: 'Enter a name for the knowledge group',
-        values: { name: '', description: 'Desc' }
+        values: { name: '', description: 'Desc', 'information-asset-owner': '' }
       })
       expect(mockH.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
       expect(knowledgeGroupsService.createKnowledgeGroup).not.toHaveBeenCalled()
@@ -165,7 +165,7 @@ describe('upload controller', () => {
 
       expect(mockH.view).toHaveBeenCalledWith('upload/create-group', {
         errorMessage: 'Enter a name for the knowledge group',
-        values: { name: '', description: '' }
+        values: { name: '', description: '', 'information-asset-owner': '' }
       })
       expect(mockH.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
     })
@@ -185,10 +185,31 @@ describe('upload controller', () => {
       )
 
       expect(knowledgeGroupsService.createKnowledgeGroup).toHaveBeenCalledWith(
-        { name: 'My Group', description: 'A desc' }
+        { name: 'My Group', description: 'A desc', informationAssetOwner: null }
       )
       expect(mockH.redirect).toHaveBeenCalledWith('/upload')
       expect(mockH.view).not.toHaveBeenCalled()
+    })
+
+    test('passes information asset owner when provided', async () => {
+      knowledgeGroupsService.createKnowledgeGroup.mockResolvedValue({ id: 'new-id' })
+
+      await uploadCreateGroupPostController.handler(
+        {
+          payload: {
+            name: 'My Group',
+            description: '',
+            'information-asset-owner': 'Jane Smith'
+          }
+        },
+        mockH
+      )
+
+      expect(knowledgeGroupsService.createKnowledgeGroup).toHaveBeenCalledWith({
+        name: 'My Group',
+        description: null,
+        informationAssetOwner: 'Jane Smith'
+      })
     })
 
     test('shows err.detail when create fails with string detail', async () => {
@@ -204,7 +225,7 @@ describe('upload controller', () => {
 
       expect(mockH.view).toHaveBeenCalledWith('upload/create-group', {
         errorMessage: 'Group name already exists',
-        values: { name: 'Dup', description: '' }
+        values: { name: 'Dup', description: '', 'information-asset-owner': '' }
       })
       expect(mockH.code).toHaveBeenCalledWith(400)
     })
@@ -222,7 +243,7 @@ describe('upload controller', () => {
 
       expect(mockH.view).toHaveBeenCalledWith('upload/create-group', {
         errorMessage: 'Failed to create knowledge group',
-        values: { name: 'Test', description: '' }
+        values: { name: 'Test', description: '', 'information-asset-owner': '' }
       })
       expect(mockH.code).toHaveBeenCalledWith(500)
     })

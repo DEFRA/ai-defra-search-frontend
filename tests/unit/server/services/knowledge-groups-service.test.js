@@ -116,7 +116,7 @@ describe('knowledge-groups-service', () => {
         description: 'A desc'
       })
 
-      expect(capturedBody).toEqual({ name: 'My Group', description: 'A desc' })
+      expect(capturedBody).toEqual({ name: 'My Group', description: 'A desc', information_asset_owner: null })
       expect(result).toEqual({ id: 'new-id', name: 'My Group', description: 'A desc' })
     })
 
@@ -131,7 +131,7 @@ describe('knowledge-groups-service', () => {
 
       await createKnowledgeGroup({ name: 'No Desc' })
 
-      expect(capturedBody).toEqual({ name: 'No Desc', description: null })
+      expect(capturedBody).toEqual({ name: 'No Desc', description: null, information_asset_owner: null })
     })
 
     test('strips trailing slash from base URL', async () => {
