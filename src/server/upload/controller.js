@@ -58,8 +58,12 @@ export const uploadCreateGroupGetController = {
 
 export const uploadCreateGroupPostController = {
   async handler (request, h) {
-    const { name, description } = request.payload ?? {}
-    const values = { name: name?.trim?.() ?? '', description: description?.trim?.() ?? '' }
+    const { name, description, 'information-asset-owner': informationAssetOwner } = request.payload ?? {}
+    const values = {
+      name: name?.trim?.() ?? '',
+      description: description?.trim?.() ?? '',
+      'information-asset-owner': informationAssetOwner?.trim?.() ?? ''
+    }
 
     if (!values.name) {
       return h.view(CREATE_GROUP_VIEW_PATH, {
@@ -69,7 +73,11 @@ export const uploadCreateGroupPostController = {
     }
 
     try {
-      await createKnowledgeGroup({ name: values.name, description: values.description || null })
+      await createKnowledgeGroup({
+        name: values.name,
+        description: values.description || null,
+        informationAssetOwner: values['information-asset-owner'] || null
+      })
       return h.redirect('/upload')
     } catch (err) {
       logger.warn({ err }, 'Failed to create knowledge group')
