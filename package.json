@@ -32,6 +32,7 @@
   "author": "Defra DDTS",
   "license": "OGL-UK-3.0",
   "overrides": {
+    "serialize-javascript": "7.0.3",
     "useragent": {
       "tmp": "^0.2.4"
     },

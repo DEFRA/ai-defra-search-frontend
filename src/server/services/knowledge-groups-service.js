@@ -21,7 +21,7 @@ export async function listKnowledgeGroups () {
   return response.json()
 }
 
-export async function createKnowledgeGroup ({ name, description }) {
+export async function createKnowledgeGroup ({ name, description, informationAssetOwner }) {
   const base = knowledgeApiUrl()
   const userId = getUserId()
   if (!base || !userId) {
@@ -33,7 +33,11 @@ export async function createKnowledgeGroup ({ name, description }) {
   const response = await fetch(url, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ name, description: description || null })
+    body: JSON.stringify({
+      name,
+      description: description || null,
+      information_asset_owner: informationAssetOwner || null
+    })
   })
   if (!response.ok) {
     const body = await response.text()

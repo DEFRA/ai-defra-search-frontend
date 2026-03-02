@@ -6,7 +6,7 @@ import { createLogger } from './logging/logger.js'
 const asyncLocalStorage = new AsyncLocalStorage()
 const logger = createLogger()
 
-const DEV_USER_ID = 'local-dev-user'
+const DEV_USER_ID = 'local-dev-test'
 
 export const getUserId = () => asyncLocalStorage.getStore()?.get('userId') ?? null
 

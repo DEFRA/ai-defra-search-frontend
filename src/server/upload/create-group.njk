@@ -50,6 +50,17 @@
           rows: 3
         }) }}
 
+        {{ govukInput({
+          id: "information-asset-owner",
+          name: "information-asset-owner",
+          value: values["information-asset-owner"] if values else "",
+          label: {
+            text: "Information Asset Owner (optional)",
+            classes: "govuk-label--m"
+          },
+          autocomplete: "off"
+        }) }}
+
         {{ govukButton({
           text: "Create knowledge group"
         }) }}
