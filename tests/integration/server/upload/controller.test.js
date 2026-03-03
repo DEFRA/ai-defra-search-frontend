@@ -4,8 +4,10 @@ import { vi } from 'vitest'
 
 import { createServer } from '../../../../src/server/server.js'
 import { listKnowledgeGroups, createKnowledgeGroup } from '../../../../src/server/services/knowledge-groups-service.js'
+import { initiateUpload } from '../../../../src/server/services/cdp-uploader-service.js'
 
 vi.mock('../../../../src/server/services/knowledge-groups-service.js')
+vi.mock('../../../../src/server/services/cdp-uploader-service.js')
 
 describe('Upload page', () => {
   let server
@@ -13,6 +15,11 @@ describe('Upload page', () => {
   beforeAll(async () => {
     vi.mocked(listKnowledgeGroups).mockResolvedValue([])
     vi.mocked(createKnowledgeGroup).mockResolvedValue({ id: 'new-id', name: 'Test', description: null })
+    vi.mocked(initiateUpload).mockResolvedValue({
+      uploadId: 'test-upload-id',
+      uploadUrl: '/upload-and-scan/test-upload-id',
+      statusUrl: '/status/test-upload-id'
+    })
     server = await createServer()
     await server.initialize()
   })
@@ -20,6 +27,11 @@ describe('Upload page', () => {
   beforeEach(() => {
     vi.mocked(listKnowledgeGroups).mockResolvedValue([])
     vi.mocked(createKnowledgeGroup).mockResolvedValue({ id: 'new-id', name: 'Test', description: null })
+    vi.mocked(initiateUpload).mockResolvedValue({
+      uploadId: 'test-upload-id',
+      uploadUrl: '/upload-and-scan/test-upload-id',
+      statusUrl: '/status/test-upload-id'
+    })
   })
 
   afterAll(async () => {
@@ -107,15 +119,37 @@ describe('Upload page', () => {
       expect(page.querySelector('a[href="#knowledge-group"]')).not.toBeNull()
     })
 
-    test('accepts valid submission with knowledge group selected', async () => {
+    test('renders file upload page with CDP upload form when group is selected', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload',
         payload: { 'knowledge-group': 'some-group-id' }
       })
 
-      expect(response.statusCode).toBe(200)
-      expect(response.result).not.toContain('There is a problem')
+      expect(response.statusCode).toBe(statusCodes.OK)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+      const form = page.querySelector('form#file-upload-form')
+
+      expect(form).not.toBeNull()
+      expect(form.getAttribute('action')).toContain('/upload-and-scan/')
+    })
+
+    test('returns 500 and shows error when initiateUpload throws', async () => {
+      vi.mocked(initiateUpload).mockRejectedValue(new Error('CDP unavailable'))
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/upload',
+        payload: { 'knowledge-group': 'some-group-id' }
+      })
+
+      expect(response.statusCode).toBe(500)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+      expect(page.body.textContent).toContain('Failed to start upload')
     })
   })
 
