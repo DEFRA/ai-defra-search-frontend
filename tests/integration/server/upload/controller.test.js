@@ -39,7 +39,7 @@ describe('Upload page', () => {
   })
 
   describe('GET /upload', () => {
-    test('displays the upload page with file input and upload button', async () => {
+    test('displays the knowledge group selection step with a continue button', async () => {
       const response = await server.inject({
         method: 'GET',
         url: '/upload'
@@ -53,8 +53,6 @@ describe('Upload page', () => {
       expect(page.body.textContent).toContain('Upload')
       expect(page.body.textContent).toContain('Knowledge group')
       expect(page.querySelector('select#knowledge-group')).not.toBeNull()
-      expect(page.body.textContent).toContain('Choose a file')
-      expect(page.querySelector('input[type="file"]')).not.toBeNull()
       expect(page.querySelector('button[type="submit"]')).not.toBeNull()
     })
 
@@ -180,6 +178,7 @@ describe('Upload page', () => {
       expect(page.body.textContent).toMatch(/create|knowledge group/i)
       expect(page.querySelector('input[name="name"]')).not.toBeNull()
       expect(page.querySelector('textarea[name="description"]')).not.toBeNull()
+      expect(page.querySelector('input[name="information-asset-owner"]')).not.toBeNull()
       expect(page.querySelector('form[action="/upload/create-group"]')).not.toBeNull()
     })
   })
@@ -189,7 +188,7 @@ describe('Upload page', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload/create-group',
-        payload: { name: '   ', description: 'A desc' }
+        payload: { name: '   ', description: 'A desc', 'information-asset-owner': '' }
       })
 
       expect(response.statusCode).toBe(400)
@@ -205,7 +204,7 @@ describe('Upload page', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload/create-group',
-        payload: { name: 'New Group', description: 'Desc' }
+        payload: { name: 'New Group', description: 'Desc', 'information-asset-owner': 'owner@example.com' }
       })
 
       expect(response.statusCode).toBe(302)
@@ -221,7 +220,7 @@ describe('Upload page', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload/create-group',
-        payload: { name: 'Dup', description: '' }
+        payload: { name: 'Dup', description: '', 'information-asset-owner': '' }
       })
 
       expect(response.statusCode).toBe(400)
@@ -240,7 +239,7 @@ describe('Upload page', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload/create-group',
-        payload: { name: 'Test', description: '' }
+        payload: { name: 'Test', description: '', 'information-asset-owner': '' }
       })
 
       expect(response.statusCode).toBe(500)
