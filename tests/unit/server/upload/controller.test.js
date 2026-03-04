@@ -2,11 +2,13 @@ import { describe, test, expect, beforeEach, vi } from 'vitest'
 import statusCodes from 'http-status-codes'
 
 vi.mock('../../../../src/server/services/knowledge-groups-service.js')
+vi.mock('../../../../src/server/services/cdp-uploader-service.js')
 vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   createLogger: () => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn() })
 }))
 
 const knowledgeGroupsService = await import('../../../../src/server/services/knowledge-groups-service.js')
+const cdpUploaderService = await import('../../../../src/server/services/cdp-uploader-service.js')
 const {
   uploadGetController,
   uploadPostController,
@@ -123,26 +125,6 @@ describe('upload controller', () => {
       expect(mockH.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
     })
 
-    test('renders view without error when knowledge-group is selected', async () => {
-      knowledgeGroupsService.listKnowledgeGroups.mockResolvedValue([
-        { id: 'g1', name: 'Group 1' }
-      ])
-
-      await uploadPostController.handler(
-        { payload: { 'knowledge-group': 'g1' } },
-        mockH
-      )
-
-      expect(mockH.view).toHaveBeenCalledWith(
-        'upload/upload',
-        expect.objectContaining({
-          errorMessage: null,
-          selectedKnowledgeGroup: 'g1'
-        })
-      )
-      expect(mockH.code).not.toHaveBeenCalled()
-    })
-
     test('returns 400 when payload is missing', async () => {
       knowledgeGroupsService.listKnowledgeGroups.mockResolvedValue([])
 
@@ -171,6 +153,55 @@ describe('upload controller', () => {
         })
       )
       expect(mockH.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
+    })
+
+    test('calls initiateUpload with knowledgeGroupId', async () => {
+      cdpUploaderService.initiateUpload.mockResolvedValue({
+        uploadId: 'abc123',
+        uploadUrl: '/upload-and-scan/abc123',
+        statusUrl: '/status/abc123'
+      })
+
+      await uploadPostController.handler(
+        { payload: { 'knowledge-group': 'g1' } },
+        mockH
+      )
+
+      expect(cdpUploaderService.initiateUpload).toHaveBeenCalledWith({ knowledgeGroupId: 'g1' })
+    })
+
+    test('redirects to /upload/files/{uploadId} on initiate success', async () => {
+      cdpUploaderService.initiateUpload.mockResolvedValue({
+        uploadId: 'abc123',
+        uploadUrl: '/upload-and-scan/abc123',
+        statusUrl: '/status/abc123'
+      })
+
+      await uploadPostController.handler(
+        { payload: { 'knowledge-group': 'g1' } },
+        mockH
+      )
+
+      expect(mockH.redirect).toHaveBeenCalledWith('/upload/files/abc123')
+      expect(mockH.view).not.toHaveBeenCalled()
+    })
+
+    test('re-renders upload/upload with 500 when initiateUpload throws', async () => {
+      knowledgeGroupsService.listKnowledgeGroups.mockResolvedValue([])
+      cdpUploaderService.initiateUpload.mockRejectedValue(new Error('CDP unavailable'))
+
+      await uploadPostController.handler(
+        { payload: { 'knowledge-group': 'g1' } },
+        mockH
+      )
+
+      expect(mockH.view).toHaveBeenCalledWith(
+        'upload/upload',
+        expect.objectContaining({
+          errorMessage: 'Failed to start upload. Please try again.'
+        })
+      )
+      expect(mockH.code).toHaveBeenCalledWith(statusCodes.INTERNAL_SERVER_ERROR)
     })
   })
 

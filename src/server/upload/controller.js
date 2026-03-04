@@ -2,9 +2,11 @@ import statusCodes from 'http-status-codes'
 
 import { createLogger } from '../common/helpers/logging/logger.js'
 import { listKnowledgeGroups, createKnowledgeGroup } from '../services/knowledge-groups-service.js'
+import { initiateUpload } from '../services/cdp-uploader-service.js'
 
 const logger = createLogger()
 const UPLOAD_VIEW_PATH = 'upload/upload'
+const FILE_UPLOAD_VIEW_PATH = 'upload/file-upload'
 const CREATE_GROUP_VIEW_PATH = 'upload/create-group'
 const KNOWLEDGE_GROUP_REQUIRED = 'Select a knowledge group'
 
@@ -31,19 +33,35 @@ export const uploadGetController = {
 
 export const uploadPostController = {
   async handler (request, h) {
-    const knowledgeGroupId = request.payload?.['knowledge-group']?.trim?.() ?? ''
-    const errorMessage = !knowledgeGroupId ? KNOWLEDGE_GROUP_REQUIRED : null
+    const knowledgeGroupId = request.payload?.['knowledge-group']?.trim() ?? ''
 
-    const viewState = await buildUploadViewState({
-      errorMessage,
-      selectedKnowledgeGroup: knowledgeGroupId
-    })
-
-    if (errorMessage) {
+    if (!knowledgeGroupId) {
+      const viewState = await buildUploadViewState({
+        errorMessage: KNOWLEDGE_GROUP_REQUIRED,
+        selectedKnowledgeGroup: knowledgeGroupId
+      })
       return h.view(UPLOAD_VIEW_PATH, viewState).code(statusCodes.BAD_REQUEST)
     }
 
-    return h.view(UPLOAD_VIEW_PATH, viewState)
+    try {
+      const { uploadId } = await initiateUpload({ knowledgeGroupId })
+      return h.redirect(`/upload/files/${uploadId}`)
+    } catch (err) {
+      logger.warn({ err }, 'Failed to initiate upload session')
+      const viewState = await buildUploadViewState({
+        errorMessage: 'Failed to start upload. Please try again.',
+        selectedKnowledgeGroup: knowledgeGroupId
+      })
+      return h.view(UPLOAD_VIEW_PATH, viewState).code(statusCodes.INTERNAL_SERVER_ERROR)
+    }
+  }
+}
+
+export const uploadFileGetController = {
+  async handler (request, h) {
+    const { uploadId } = request.params
+    const uploadUrl = `/upload-and-scan/${uploadId}`
+    return h.view(FILE_UPLOAD_VIEW_PATH, { uploadUrl })
   }
 }
 

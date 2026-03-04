@@ -4,8 +4,10 @@ import { vi } from 'vitest'
 
 import { createServer } from '../../../../src/server/server.js'
 import { listKnowledgeGroups, createKnowledgeGroup } from '../../../../src/server/services/knowledge-groups-service.js'
+import { initiateUpload } from '../../../../src/server/services/cdp-uploader-service.js'
 
 vi.mock('../../../../src/server/services/knowledge-groups-service.js')
+vi.mock('../../../../src/server/services/cdp-uploader-service.js')
 
 describe('Upload page', () => {
   let server
@@ -13,6 +15,11 @@ describe('Upload page', () => {
   beforeAll(async () => {
     vi.mocked(listKnowledgeGroups).mockResolvedValue([])
     vi.mocked(createKnowledgeGroup).mockResolvedValue({ id: 'new-id', name: 'Test', description: null })
+    vi.mocked(initiateUpload).mockResolvedValue({
+      uploadId: 'test-upload-id',
+      uploadUrl: '/upload-and-scan/test-upload-id',
+      statusUrl: '/status/test-upload-id'
+    })
     server = await createServer()
     await server.initialize()
   })
@@ -20,6 +27,11 @@ describe('Upload page', () => {
   beforeEach(() => {
     vi.mocked(listKnowledgeGroups).mockResolvedValue([])
     vi.mocked(createKnowledgeGroup).mockResolvedValue({ id: 'new-id', name: 'Test', description: null })
+    vi.mocked(initiateUpload).mockResolvedValue({
+      uploadId: 'test-upload-id',
+      uploadUrl: '/upload-and-scan/test-upload-id',
+      statusUrl: '/status/test-upload-id'
+    })
   })
 
   afterAll(async () => {
@@ -27,7 +39,7 @@ describe('Upload page', () => {
   })
 
   describe('GET /upload', () => {
-    test('displays the upload page with file input and upload button', async () => {
+    test('displays the knowledge group selection step with a continue button', async () => {
       const response = await server.inject({
         method: 'GET',
         url: '/upload'
@@ -41,8 +53,6 @@ describe('Upload page', () => {
       expect(page.body.textContent).toContain('Upload')
       expect(page.body.textContent).toContain('Knowledge group')
       expect(page.querySelector('select#knowledge-group')).not.toBeNull()
-      expect(page.body.textContent).toContain('Choose a file')
-      expect(page.querySelector('input[type="file"]')).not.toBeNull()
       expect(page.querySelector('button[type="submit"]')).not.toBeNull()
     })
 
@@ -107,15 +117,49 @@ describe('Upload page', () => {
       expect(page.querySelector('a[href="#knowledge-group"]')).not.toBeNull()
     })
 
-    test('accepts valid submission with knowledge group selected', async () => {
+    test('redirects to /upload/files/{uploadId} when group is selected', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload',
         payload: { 'knowledge-group': 'some-group-id' }
       })
 
-      expect(response.statusCode).toBe(200)
-      expect(response.result).not.toContain('There is a problem')
+      expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+      expect(response.headers.location).toBe('/upload/files/test-upload-id')
+    })
+
+    test('returns 500 and shows error when initiateUpload throws', async () => {
+      vi.mocked(initiateUpload).mockRejectedValue(new Error('CDP unavailable'))
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/upload',
+        payload: { 'knowledge-group': 'some-group-id' }
+      })
+
+      expect(response.statusCode).toBe(500)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+      expect(page.body.textContent).toContain('Failed to start upload')
+    })
+  })
+
+  describe('GET /upload/files/{uploadId}', () => {
+    test('renders file upload page with CDP upload form', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: '/upload/files/test-upload-id'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+      const form = page.querySelector('form#file-upload-form')
+
+      expect(form).not.toBeNull()
+      expect(form.getAttribute('action')).toContain('/upload-and-scan/')
     })
   })
 
@@ -134,6 +178,7 @@ describe('Upload page', () => {
       expect(page.body.textContent).toMatch(/create|knowledge group/i)
       expect(page.querySelector('input[name="name"]')).not.toBeNull()
       expect(page.querySelector('textarea[name="description"]')).not.toBeNull()
+      expect(page.querySelector('input[name="information-asset-owner"]')).not.toBeNull()
       expect(page.querySelector('form[action="/upload/create-group"]')).not.toBeNull()
     })
   })
@@ -143,7 +188,7 @@ describe('Upload page', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload/create-group',
-        payload: { name: '   ', description: 'A desc' }
+        payload: { name: '   ', description: 'A desc', 'information-asset-owner': '' }
       })
 
       expect(response.statusCode).toBe(400)
@@ -159,7 +204,7 @@ describe('Upload page', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload/create-group',
-        payload: { name: 'New Group', description: 'Desc' }
+        payload: { name: 'New Group', description: 'Desc', 'information-asset-owner': 'owner@example.com' }
       })
 
       expect(response.statusCode).toBe(302)
@@ -175,7 +220,7 @@ describe('Upload page', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload/create-group',
-        payload: { name: 'Dup', description: '' }
+        payload: { name: 'Dup', description: '', 'information-asset-owner': '' }
       })
 
       expect(response.statusCode).toBe(400)
@@ -194,7 +239,7 @@ describe('Upload page', () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload/create-group',
-        payload: { name: 'Test', description: '' }
+        payload: { name: 'Test', description: '', 'information-asset-owner': '' }
       })
 
       expect(response.statusCode).toBe(500)

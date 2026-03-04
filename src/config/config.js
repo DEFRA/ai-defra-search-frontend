@@ -259,6 +259,20 @@ export const config = convict({
     default: null,
     env: 'KNOWLEDGE_API_URL'
   },
+  cdpUploaderUrl: {
+    doc: 'CDP Uploader service base URL',
+    format: String,
+    nullable: true,
+    default: null,
+    env: 'CDP_UPLOADER_URL'
+  },
+  uploadBucketName: {
+    doc: 'S3 bucket name for uploaded files',
+    format: String,
+    nullable: true,
+    default: null,
+    env: 'UPLOAD_BUCKET_NAME'
+  },
   auth: {
     enabled: {
       doc: 'Enable MS Entra authentication - Should only be disabled for local development purposes',
