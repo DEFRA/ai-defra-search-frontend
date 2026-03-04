@@ -43,9 +43,12 @@ if (fileUploadForm) {
         body: new FormData(fileUploadForm),
         redirect: 'manual'
       })
-      if (res.type === 'opaqueredirect' || res.status === 302) {
+      const HTTP_FOUND = 302
+      const redirected = res.type === 'opaqueredirect' || res.status === HTTP_FOUND
+      if (redirected) {
         window.location.href = '/'
-      } else if (!res.ok) {
+      }
+      if (!redirected && !res.ok) {
         console.error('Upload failed', res.status)
       }
     } catch (err) {
