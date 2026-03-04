@@ -9,13 +9,6 @@ export async function initiateUpload ({ knowledgeGroupId }) {
   const cdpUploaderUrl = config.get('cdpUploaderUrl')
   const uploadBucketName = config.get('uploadBucketName')
 
-  if (!cdpUploaderUrl) {
-    throw new Error('CDP Uploader URL not configured')
-  }
-  if (!uploadBucketName) {
-    throw new Error('Upload bucket name not configured')
-  }
-
   const url = `${cdpUploaderUrl}/initiate`
   const body = {
     redirect: '/',

@@ -44,5 +44,13 @@ describe('cdp-uploader-service', () => {
         /CDP Uploader initiate failed with status 500/
       )
     })
+
+    test('throws when the HTTP request fails with a network error', () => {
+      nock(cdpUploaderUrl)
+        .post('/initiate')
+        .replyWithError('ECONNREFUSED')
+
+      return expect(initiateUpload({ knowledgeGroupId: 'group-1' })).rejects.toThrow('ECONNREFUSED')
+    })
   })
 })
