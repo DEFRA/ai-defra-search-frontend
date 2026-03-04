@@ -2,6 +2,7 @@ import {
   uploadGetController,
   uploadPostController,
   uploadFileGetController,
+  uploadCallbackController,
   uploadCreateGroupGetController,
   uploadCreateGroupPostController
 } from './controller.js'
@@ -25,6 +26,11 @@ export const upload = {
           method: 'GET',
           path: '/upload/files/{uploadId}',
           ...uploadFileGetController
+        },
+        {
+          method: 'POST',
+          path: '/upload/callback/{uploadReference}',
+          ...uploadCallbackController
         },
         {
           method: 'GET',

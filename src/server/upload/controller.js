@@ -1,7 +1,7 @@
 import statusCodes from 'http-status-codes'
 
 import { createLogger } from '../common/helpers/logging/logger.js'
-import { listKnowledgeGroups, createKnowledgeGroup } from '../services/knowledge-groups-service.js'
+import { listKnowledgeGroups, createKnowledgeGroup, createDocuments } from '../services/knowledge-groups-service.js'
 import { initiateUpload } from '../services/cdp-uploader-service.js'
 
 const logger = createLogger()
@@ -62,6 +62,48 @@ export const uploadFileGetController = {
     const { uploadId } = request.params
     const uploadUrl = `/upload-and-scan/${uploadId}`
     return h.view(FILE_UPLOAD_VIEW_PATH, { uploadUrl })
+  }
+}
+
+export const uploadCallbackController = {
+  options: {
+    auth: false
+  },
+  async handler (request, h) {
+    const { uploadReference } = request.params
+    const { metadata, form } = request.payload
+
+    const formEntries = Object.entries(form)
+
+    const completeFiles = formEntries
+      .filter(([, value]) => typeof value === 'object' && value !== null && value.fileStatus === 'complete')
+      .map(([, value]) => value)
+
+    const rejectedFiles = formEntries
+      .filter(([, value]) => typeof value === 'object' && value !== null && value.fileStatus === 'rejected')
+      .map(([, value]) => value)
+
+    if (rejectedFiles.length > 0) {
+      logger.warn({ uploadReference, rejectedFiles }, 'Files rejected during upload scan')
+    }
+
+    if (completeFiles.length > 0) {
+      const documents = completeFiles.map(file => ({
+        file_name: file.filename,
+        knowledge_group_id: metadata.knowledgeGroupId,
+        cdp_upload_id: uploadReference,
+        status: 'uploaded',
+        s3_key: file.s3Key
+      }))
+
+      try {
+        await createDocuments(documents)
+      } catch (err) {
+        logger.warn({ err, uploadReference }, 'Failed to create documents in knowledge service')
+      }
+    }
+
+    return h.response().code(200)
   }
 }
 

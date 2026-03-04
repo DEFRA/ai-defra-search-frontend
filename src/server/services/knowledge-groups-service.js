@@ -21,6 +21,26 @@ export async function listKnowledgeGroups () {
   return response.json()
 }
 
+export async function createDocuments (documents) {
+  const base = knowledgeApiUrl()
+  if (!base) {
+    throw new Error('Knowledge API URL is not configured')
+  }
+  const userId = getUserId()
+  const url = `${base.replace(/\/$/, '')}/documents`
+  const headers = { 'Content-Type': 'application/json' }
+  if (userId) { headers['user-id'] = userId }
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(documents)
+  })
+  if (!response.ok) {
+    throw new Error(`Knowledge API ${response.status}: ${await response.text()}`)
+  }
+  return response.json()
+}
+
 export async function createKnowledgeGroup ({ name, description, informationAssetOwner }) {
   const base = knowledgeApiUrl()
   const userId = getUserId()

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
@@ -8,13 +9,17 @@ const logger = createLogger()
 export async function initiateUpload ({ knowledgeGroupId }) {
   const cdpUploaderUrl = config.get('cdpUploaderUrl')
   const uploadBucketName = config.get('uploadBucketName')
+  const cdpUploadCallbackUrl = config.get('cdpUploadCallbackUrl')
+
+  const uploadReference = randomUUID()
 
   const url = `${cdpUploaderUrl}/initiate`
   const body = {
     redirect: '/',
+    callback: `${cdpUploadCallbackUrl}/${uploadReference}`,
     s3Bucket: uploadBucketName,
     s3Path: `uploads/${knowledgeGroupId}`,
-    metadata: { knowledgeGroupId }
+    metadata: { knowledgeGroupId, uploadReference }
   }
 
   let response
@@ -35,6 +40,6 @@ export async function initiateUpload ({ knowledgeGroupId }) {
   }
 
   const data = await response.json()
-  logger.info({ status: response.status, uploadId: data.uploadId, uploadUrl: data.uploadUrl, statusUrl: data.statusUrl }, 'CDP Uploader initiated')
-  return data
+  logger.info({ status: response.status, uploadId: data.uploadId, uploadReference }, 'CDP Uploader initiated')
+  return { ...data, uploadReference }
 }
