@@ -103,7 +103,7 @@ export const uploadCallbackController = {
       }
     }
 
-    return h.response().code(200)
+    return h.response().code(statusCodes.OK)
   }
 }
 
