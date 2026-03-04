@@ -266,12 +266,12 @@ export const config = convict({
     default: null,
     env: 'CDP_UPLOADER_URL'
   },
-  uploadBucketUrl: {
+  uploadBucketName: {
     doc: 'S3 bucket name for uploaded files',
     format: String,
     nullable: true,
     default: null,
-    env: 'UPLOAD_BUCKET_URL'
+    env: 'UPLOAD_BUCKET_NAME'
   },
   auth: {
     enabled: {

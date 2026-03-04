@@ -9,7 +9,7 @@
       <form id="file-upload-form" method="post" action="{{ uploadUrl }}" enctype="multipart/form-data" novalidate>
         <input type="file" id="file-upload" name="file" multiple class="govuk-visually-hidden">
         <ul id="selected-files" class="govuk-list govuk-list--bullet"></ul>
-        {{ govukButton({ text: "Choose files", type: "button", classes: "govuk-button--secondary", attributes: { id: "choose-files-btn" } }) }}
+        {{ govukButton({ text: "Select files", type: "button", classes: "govuk-button--secondary", attributes: { id: "choose-files-btn" } }) }}
         {{ govukButton({ text: "Upload files" }) }}
       </form>
     </div>

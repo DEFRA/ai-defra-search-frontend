@@ -170,7 +170,7 @@ describe('upload controller', () => {
       expect(cdpUploaderService.initiateUpload).toHaveBeenCalledWith({ knowledgeGroupId: 'g1' })
     })
 
-    test('renders upload/file-upload with uploadUrl on initiate success', async () => {
+    test('redirects to /upload/files/{uploadId} on initiate success', async () => {
       cdpUploaderService.initiateUpload.mockResolvedValue({
         uploadId: 'abc123',
         uploadUrl: '/upload-and-scan/abc123',
@@ -182,10 +182,8 @@ describe('upload controller', () => {
         mockH
       )
 
-      expect(mockH.view).toHaveBeenCalledWith('upload/file-upload', {
-        uploadUrl: '/upload-and-scan/abc123'
-      })
-      expect(mockH.code).not.toHaveBeenCalled()
+      expect(mockH.redirect).toHaveBeenCalledWith('/upload/files/abc123')
+      expect(mockH.view).not.toHaveBeenCalled()
     })
 
     test('re-renders upload/upload with 500 when initiateUpload throws', async () => {

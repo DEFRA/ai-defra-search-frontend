@@ -1,6 +1,7 @@
 import {
   uploadGetController,
   uploadPostController,
+  uploadFileGetController,
   uploadCreateGroupGetController,
   uploadCreateGroupPostController
 } from './controller.js'
@@ -22,6 +23,11 @@ export const upload = {
         },
         {
           method: 'GET',
+          path: '/upload/files/{uploadId}',
+          ...uploadFileGetController
+        },
+        {
+          method: 'GET',
           path: '/upload/create-group',
           ...uploadCreateGroupGetController
         },
@@ -29,7 +35,7 @@ export const upload = {
           method: 'POST',
           path: '/upload/create-group',
           ...uploadCreateGroupPostController
-        }
+        },
       ])
     }
   }

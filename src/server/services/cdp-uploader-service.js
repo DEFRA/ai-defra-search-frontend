@@ -7,19 +7,19 @@ const logger = createLogger()
 
 export async function initiateUpload ({ knowledgeGroupId }) {
   const cdpUploaderUrl = config.get('cdpUploaderUrl')
-  const uploadBucketUrl = config.get('uploadBucketUrl')
+  const uploadBucketName = config.get('uploadBucketName')
 
   if (!cdpUploaderUrl) {
     throw new Error('CDP Uploader URL not configured')
   }
-  if (!uploadBucketUrl) {
-    throw new Error('Upload bucket URL not configured')
+  if (!uploadBucketName) {
+    throw new Error('Upload bucket name not configured')
   }
 
   const url = `${cdpUploaderUrl}/initiate`
   const body = {
     redirect: '/',
-    s3Bucket: uploadBucketUrl,
+    s3Bucket: uploadBucketName,
     s3Path: `uploads/${knowledgeGroupId}`,
     metadata: { knowledgeGroupId }
   }
@@ -36,13 +36,12 @@ export async function initiateUpload ({ knowledgeGroupId }) {
     throw err
   }
 
-  logger.info({ status: response.status }, 'CDP Uploader initiate response')
-
   if (!response.ok) {
-    const err = new Error(`CDP Uploader initiate failed with status ${response.status}`)
-    logger.warn({ err }, 'CDP Uploader initiate failed')
-    throw err
+    logger.warn({ status: response.status }, 'CDP Uploader initiate failed')
+    throw new Error(`CDP Uploader initiate failed with status ${response.status}`)
   }
 
-  return response.json()
+  const data = await response.json()
+  logger.info({ status: response.status, uploadId: data.uploadId, uploadUrl: data.uploadUrl, statusUrl: data.statusUrl }, 'CDP Uploader initiated')
+  return data
 }

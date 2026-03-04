@@ -37,13 +37,19 @@ const fileUploadForm = document.getElementById('file-upload-form')
 if (fileUploadForm) {
   fileUploadForm.addEventListener('submit', async function (event) {
     event.preventDefault()
-    const response = await fetch(fileUploadForm.action, {
-      method: 'POST',
-      body: new FormData(fileUploadForm),
-      redirect: 'manual'
-    })
-    if (response.type === 'opaqueredirect' || response.status === 0) {
-      window.location.href = '/'
+    try {
+      const res = await fetch(fileUploadForm.action, {
+        method: 'POST',
+        body: new FormData(fileUploadForm),
+        redirect: 'manual'
+      })
+      if (res.type === 'opaqueredirect' || res.status === 302) {
+        window.location.href = '/'
+      } else if (!res.ok) {
+        console.error('Upload failed', res.status)
+      }
+    } catch (err) {
+      console.error('Upload error', err)
     }
   })
 }

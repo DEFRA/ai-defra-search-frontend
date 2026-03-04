@@ -2,7 +2,6 @@
 
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
-{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% block content %}
@@ -39,18 +38,8 @@
           items: knowledgeGroupSelectItems | default([])
         }) }}
 
-        {{ govukFileUpload({
-          id: "file-upload",
-          name: "file-upload",
-          label: {
-            text: "Choose a file",
-            classes: "govuk-label--m"
-          },
-          formGroup: {}
-        }) }}
-
         {{ govukButton({
-          text: "Upload"
+          text: "Continue"
         }) }}
       </form>
 

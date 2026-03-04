@@ -119,21 +119,15 @@ describe('Upload page', () => {
       expect(page.querySelector('a[href="#knowledge-group"]')).not.toBeNull()
     })
 
-    test('renders file upload page with CDP upload form when group is selected', async () => {
+    test('redirects to /upload/files/{uploadId} when group is selected', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload',
         payload: { 'knowledge-group': 'some-group-id' }
       })
 
-      expect(response.statusCode).toBe(statusCodes.OK)
-
-      const { window } = new JSDOM(response.result)
-      const page = window.document
-      const form = page.querySelector('form#file-upload-form')
-
-      expect(form).not.toBeNull()
-      expect(form.getAttribute('action')).toContain('/upload-and-scan/')
+      expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
+      expect(response.headers.location).toBe('/upload/files/test-upload-id')
     })
 
     test('returns 500 and shows error when initiateUpload throws', async () => {
@@ -150,6 +144,24 @@ describe('Upload page', () => {
       const { window } = new JSDOM(response.result)
       const page = window.document
       expect(page.body.textContent).toContain('Failed to start upload')
+    })
+  })
+
+  describe('GET /upload/files/{uploadId}', () => {
+    test('renders file upload page with CDP upload form', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: '/upload/files/test-upload-id'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+      const form = page.querySelector('form#file-upload-form')
+
+      expect(form).not.toBeNull()
+      expect(form.getAttribute('action')).toContain('/upload-and-scan/')
     })
   })
 

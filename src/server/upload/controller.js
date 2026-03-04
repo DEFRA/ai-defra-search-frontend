@@ -44,8 +44,8 @@ export const uploadPostController = {
     }
 
     try {
-      const { uploadUrl } = await initiateUpload({ knowledgeGroupId })
-      return h.view(FILE_UPLOAD_VIEW_PATH, { uploadUrl })
+      const { uploadId } = await initiateUpload({ knowledgeGroupId })
+      return h.redirect(`/upload/files/${uploadId}`)
     } catch (err) {
       logger.warn({ err }, 'Failed to initiate upload session')
       const viewState = await buildUploadViewState({
@@ -54,6 +54,14 @@ export const uploadPostController = {
       })
       return h.view(UPLOAD_VIEW_PATH, viewState).code(statusCodes.INTERNAL_SERVER_ERROR)
     }
+  }
+}
+
+export const uploadFileGetController = {
+  async handler (request, h) {
+    const { uploadId } = request.params
+    const uploadUrl = `/upload-and-scan/${uploadId}`
+    return h.view(FILE_UPLOAD_VIEW_PATH, { uploadUrl })
   }
 }
 
