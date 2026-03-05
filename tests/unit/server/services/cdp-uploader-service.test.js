@@ -12,10 +12,6 @@ vi.mock('node:crypto', () => ({
   randomUUID: vi.fn().mockReturnValue(MOCK_UPLOAD_REFERENCE)
 }))
 
-const { MOCK_UPLOAD_REFERENCE } = vi.hoisted(() => ({
-  MOCK_UPLOAD_REFERENCE: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
-}))
-
 vi.mock('node:crypto', () => ({
   randomUUID: vi.fn().mockReturnValue(MOCK_UPLOAD_REFERENCE)
 }))
@@ -42,13 +38,12 @@ describe('cdp-uploader-service', () => {
           s3Path: 'uploads/group-1',
           metadata: { knowledgeGroupId: 'group-1', uploadReference: MOCK_UPLOAD_REFERENCE }
         })
-        .reply(200, { uploadId: 'abc123', uploadUrl: '/upload-and-scan/abc123', statusUrl: '/status/abc123' })
+        .reply(200, { uploadId: 'abc123', uploadUrl: '/upload-and-scan/abc123', statusUrl: `${cdpUploaderUrl}/status/abc123` })
 
       const result = await initiateUpload({ knowledgeGroupId: 'group-1' })
 
       expect(result).toEqual({
         uploadId: 'abc123',
-        uploadUrl: '/upload-and-scan/abc123',
         statusUrl: `${cdpUploaderUrl}/status/abc123`,
         uploadReference: MOCK_UPLOAD_REFERENCE
       })

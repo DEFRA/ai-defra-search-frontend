@@ -119,50 +119,7 @@ export const uploadCallbackController = {
   async handler (request, h) {
     const { uploadReference } = request.params
     const { metadata, form } = request.payload
-
-    const formEntries = Object.entries(form)
-
     logger.info({ uploadReference, uploadStatus: request.payload.uploadStatus }, 'CDP upload callback')
-
-    const completeFiles = formEntries
-      .filter(([, value]) => typeof value === 'object' && value !== null && value.fileStatus === 'complete')
-      .map(([, value]) => value)
-
-    const rejectedFiles = formEntries
-      .filter(([, value]) => typeof value === 'object' && value !== null && value.fileStatus === 'rejected')
-      .map(([, value]) => value)
-
-    if (rejectedFiles.length > 0) {
-      logger.warn({ uploadReference, rejectedFiles }, 'Files rejected during upload scan')
-    }
-
-    if (completeFiles.length > 0) {
-      const documents = completeFiles.map(file => ({
-        file_name: file.filename,
-        knowledge_group_id: metadata.knowledgeGroupId,
-        cdp_upload_id: uploadReference,
-        status: 'uploaded',
-        s3_key: file.s3Key
-      }))
-
-      try {
-        await createDocuments(documents)
-      } catch (err) {
-        logger.warn({ err, uploadReference }, 'Failed to create documents in knowledge service')
-      }
-    }
-
-    return h.response().code(statusCodes.OK)
-  }
-}
-
-export const uploadCallbackController = {
-  options: {
-    auth: false
-  },
-  async handler (request, h) {
-    const { uploadReference } = request.params
-    const { metadata, form } = request.payload
 
     const formEntries = Object.entries(form)
 

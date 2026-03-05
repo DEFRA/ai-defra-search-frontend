@@ -39,9 +39,9 @@ export async function initiateUpload ({ knowledgeGroupId }) {
     throw new Error(`CDP upload initiate failed with status ${response.status}`)
   }
 
-  const data = await response.json()
-  logger.info({ uploadReference, uploadId: data.uploadId, statusUrl: data.statusUrl }, 'CDP upload initiated')
-  return { ...data, uploadReference }
+  const { uploadId, statusUrl } = await response.json()
+  logger.info({ uploadReference, uploadId, statusUrl }, 'CDP upload initiated')
+  return { uploadId, statusUrl, uploadReference }
 }
 
 export async function fetchUploadStatus (statusUrl) {
