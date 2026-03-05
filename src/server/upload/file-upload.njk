@@ -1,4 +1,5 @@
 {% extends "layouts/page.njk" %}
+{% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% block content %}
@@ -7,9 +8,14 @@
       <h1 class="govuk-heading-xl">Upload files</h1>
 
       <form id="file-upload-form" method="post" action="{{ uploadUrl }}" enctype="multipart/form-data" novalidate>
-        <input type="file" id="file-upload" name="file" multiple class="govuk-visually-hidden">
-        <ul id="selected-files" class="govuk-list govuk-list--bullet"></ul>
-        {{ govukButton({ text: "Select files", type: "button", classes: "govuk-button--secondary", attributes: { id: "choose-files-btn" } }) }}
+        {{ govukFileUpload({
+          id: "file-upload",
+          name: "file",
+          label: { text: "Upload files", classes: "govuk-label--m" },
+          attributes: { multiple: true }
+        }) }}
+        <ul id="selected-files" class="govuk-list govuk-list--bullet govuk-!-display-none" aria-live="polite"></ul>
+        {{ govukButton({ text: "Select files", type: "button", classes: "govuk-button--secondary govuk-!-display-none", attributes: { id: "choose-files-btn" } }) }}
         {{ govukButton({ text: "Upload files" }) }}
       </form>
     </div>

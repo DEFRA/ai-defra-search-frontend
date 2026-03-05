@@ -146,7 +146,7 @@ describe('Upload page', () => {
   })
 
   describe('GET /upload/files/{uploadId}', () => {
-    test('renders file upload page with CDP upload form', async () => {
+    test('renders a no-JS-compatible file upload page targeting the CDP uploader', async () => {
       const response = await server.inject({
         method: 'GET',
         url: '/upload/files/test-upload-id'
@@ -157,9 +157,17 @@ describe('Upload page', () => {
       const { window } = new JSDOM(response.result)
       const page = window.document
       const form = page.querySelector('form#file-upload-form')
+      const fileInput = page.querySelector('input[type="file"][name="file"]')
+      const chooseBtn = page.querySelector('#choose-files-btn')
+      const selectedFiles = page.querySelector('#selected-files')
 
       expect(form).not.toBeNull()
       expect(form.getAttribute('action')).toContain('/upload-and-scan/')
+      expect(form.getAttribute('enctype')).toBe('multipart/form-data')
+      expect(fileInput).not.toBeNull()
+      expect(fileInput.classList.contains('govuk-visually-hidden')).toBe(false)
+      expect(chooseBtn.classList.contains('govuk-!-display-none')).toBe(true)
+      expect(selectedFiles.classList.contains('govuk-!-display-none')).toBe(true)
     })
   })
 
