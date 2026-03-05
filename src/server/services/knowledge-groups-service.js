@@ -15,7 +15,7 @@ export async function listKnowledgeGroups () {
   const headers = { 'Content-Type': 'application/json' }
   if (userId) { headers['user-id'] = userId }
 
-  const response = await fetchWithTimeout(url, { headers }, timeoutMs)
+  const response = await fetchWithTimeout(url, timeoutMs, { headers })
 
   if (!response.ok) {
     throw new Error(`Knowledge API ${response.status}: ${await response.text()}`)
@@ -34,11 +34,11 @@ export async function createDocuments (documents) {
   const headers = { 'Content-Type': 'application/json' }
   if (userId) { headers['user-id'] = userId }
 
-  const response = await fetchWithTimeout(url, {
+  const response = await fetchWithTimeout(url, timeoutMs, {
     method: 'POST',
     headers,
     body: JSON.stringify(documents)
-  }, timeoutMs)
+  })
 
   if (!response.ok) {
     throw new Error(`Knowledge API ${response.status}: ${await response.text()}`)
@@ -57,7 +57,7 @@ export async function createKnowledgeGroup ({ name, description, informationAsse
   const headers = { 'Content-Type': 'application/json' }
   if (userId) { headers['user-id'] = userId }
 
-  const response = await fetchWithTimeout(url, {
+  const response = await fetchWithTimeout(url, timeoutMs, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -65,7 +65,7 @@ export async function createKnowledgeGroup ({ name, description, informationAsse
       description: description || null,
       information_asset_owner: informationAssetOwner || null
     })
-  }, timeoutMs)
+  })
 
   if (!response.ok) {
     const body = await response.text()

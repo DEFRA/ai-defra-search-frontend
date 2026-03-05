@@ -20,10 +20,10 @@ async function request (path, options = {}) {
     headers['user-id'] = userId
   }
 
-  const response = await fetchWithTimeout(url, {
+  const response = await fetchWithTimeout(url, timeoutMs, {
     headers,
     ...options
-  }, timeoutMs)
+  })
 
   if (!response.ok) {
     const body = await response.text()

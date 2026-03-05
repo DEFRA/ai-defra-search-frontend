@@ -28,12 +28,12 @@ async function getModels () {
   const timeoutMs = config.get('chatApiTimeoutMs')
 
   try {
-    const response = await fetchWithTimeout(url, {
+    const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
       }
-    }, timeoutMs)
+    })
 
     if (!response.ok) {
       throw new Error(`Models API returned ${response.status}: ${response.statusText}`)

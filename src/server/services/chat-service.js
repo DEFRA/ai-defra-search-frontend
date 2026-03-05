@@ -27,7 +27,7 @@ async function sendQuestion (question, modelId, conversationId) {
       headers['user-id'] = userId
     }
 
-    const response = await fetchWithTimeout(url, {
+    const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -35,7 +35,7 @@ async function sendQuestion (question, modelId, conversationId) {
         conversation_id: conversationId || null,
         model_id: modelId
       })
-    }, timeoutMs)
+    })
 
     if (!response.ok) {
       const errorBody = await response.json()
@@ -77,7 +77,7 @@ async function getConversation (conversationId, timeoutMs = config.get('chatApiT
 
   const userId = getUserId()
   const headers = userId ? { 'user-id': userId } : {}
-  const response = await fetchWithTimeout(url, { headers }, timeoutMs)
+  const response = await fetchWithTimeout(url, timeoutMs, { headers })
   if (!response.ok) {
     const error = new Error(`Chat API returned ${response.status}`)
     error.response = { status: response.status, data: await response.text() }

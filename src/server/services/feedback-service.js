@@ -17,7 +17,7 @@ async function submitFeedback ({ conversationId, wasHelpful, comment }) {
   const timeoutMs = config.get('chatApiTimeoutMs')
 
   try {
-    const response = await fetchWithTimeout(url, {
+    const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -27,7 +27,7 @@ async function submitFeedback ({ conversationId, wasHelpful, comment }) {
         was_helpful: wasHelpful || null,
         comment: comment || null
       })
-    }, timeoutMs)
+    })
 
     if (!response.ok) {
       throw new Error(`Feedback API returned ${response.status}: ${response.statusText}`)

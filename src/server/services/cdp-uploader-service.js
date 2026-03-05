@@ -25,11 +25,11 @@ export async function initiateUpload ({ knowledgeGroupId }) {
 
   let response
   try {
-    response = await fetchWithTimeout(url, {
+    response = await fetchWithTimeout(url, timeoutMs, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
-    }, timeoutMs)
+    })
   } catch (err) {
     logger.warn({ err }, 'CDP Uploader initiate failed')
     throw err

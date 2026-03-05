@@ -18,7 +18,7 @@ describe('fetchWithTimeout', () => {
       .get('/test')
       .reply(200, { success: true })
 
-    const response = await fetchWithTimeout(`${testUrl}/test`, {}, 5000)
+    const response = await fetchWithTimeout(`${testUrl}/test`, 5000)
     const data = await response.json()
 
     expect(response.ok).toBe(true)
@@ -32,7 +32,7 @@ describe('fetchWithTimeout', () => {
       .reply(200, { success: true })
 
     await expect(
-      fetchWithTimeout(`${testUrl}/slow`, {}, 100)
+      fetchWithTimeout(`${testUrl}/slow`, 100)
     ).rejects.toThrow()
   }, 5000)
 
@@ -45,11 +45,11 @@ describe('fetchWithTimeout', () => {
         return [201, { created: true }]
       })
 
-    await fetchWithTimeout(`${testUrl}/data`, {
+    await fetchWithTimeout(`${testUrl}/data`, 5000, {
       method: 'POST',
       headers: { 'x-custom-header': 'test-value' },
       body: JSON.stringify({ test: 'data' })
-    }, 5000)
+    })
 
     expect(capturedHeaders['x-custom-header']).toBe('test-value')
   })
@@ -61,7 +61,7 @@ describe('fetchWithTimeout', () => {
       .get('/fast')
       .reply(200, { success: true })
 
-    await fetchWithTimeout(`${testUrl}/fast`, {}, 5000)
+    await fetchWithTimeout(`${testUrl}/fast`, 5000)
 
     expect(clearTimeoutSpy).toHaveBeenCalled()
     clearTimeoutSpy.mockRestore()
@@ -74,7 +74,7 @@ describe('fetchWithTimeout', () => {
       .get('/error')
       .reply(500, 'Internal Server Error')
 
-    await fetchWithTimeout(`${testUrl}/error`, {}, 5000)
+    await fetchWithTimeout(`${testUrl}/error`, 5000)
 
     expect(clearTimeoutSpy).toHaveBeenCalled()
     clearTimeoutSpy.mockRestore()
@@ -86,7 +86,7 @@ describe('fetchWithTimeout', () => {
       .replyWithError('Network error')
 
     await expect(
-      fetchWithTimeout(`${testUrl}/network-error`, {}, 5000)
+      fetchWithTimeout(`${testUrl}/network-error`, 5000)
     ).rejects.toThrow('Network error')
   })
 })

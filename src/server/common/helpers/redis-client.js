@@ -11,6 +11,8 @@ import { createLogger } from './logging/logger.js'
  * @param {string} connectionType - Type of connection ('single' or 'cluster')
  * @returns {Function} Retry strategy function
  */
+const RETRY_DELAY_MS = 50
+
 function createRetryStrategy (maxRetries, logger, connectionType = 'single') {
   return (times) => {
     if (times > maxRetries) {
@@ -21,7 +23,7 @@ function createRetryStrategy (maxRetries, logger, connectionType = 'single') {
       return null
     }
 
-    return times * 50
+    return times * RETRY_DELAY_MS
   }
 }
 
