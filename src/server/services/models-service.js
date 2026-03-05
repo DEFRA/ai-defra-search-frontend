@@ -1,6 +1,5 @@
-import fetch from 'node-fetch'
-
 import { config } from '../../config/config.js'
+import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
 
 const MODELS_CACHE_TTL_MINUTES = 5
 const MODELS_CACHE_TTL_MS = MODELS_CACHE_TTL_MINUTES * 60 * 1000
@@ -26,14 +25,15 @@ async function getModels () {
   const versionAtStart = modelsCache.version
   const chatApiUrl = config.get('chatApiUrl')
   const url = `${chatApiUrl}/models`
+  const timeoutMs = config.get('chatApiTimeoutMs')
 
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
       }
-    })
+    }, timeoutMs)
 
     if (!response.ok) {
       throw new Error(`Models API returned ${response.status}: ${response.statusText}`)

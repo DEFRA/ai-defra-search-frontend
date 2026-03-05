@@ -204,6 +204,36 @@ export const config = convict({
       format: Boolean,
       default: isProduction,
       env: 'REDIS_TLS'
+    },
+    connectTimeout: {
+      doc: 'Redis connection timeout in milliseconds',
+      format: Number,
+      default: 5000,
+      env: 'REDIS_CONNECT_TIMEOUT'
+    },
+    commandTimeout: {
+      doc: 'Redis command timeout in milliseconds',
+      format: Number,
+      default: 5000,
+      env: 'REDIS_COMMAND_TIMEOUT'
+    },
+    keepAlive: {
+      doc: 'Redis keepalive interval in milliseconds',
+      format: Number,
+      default: 30000,
+      env: 'REDIS_KEEPALIVE'
+    },
+    enableReadyCheck: {
+      doc: 'Enable Redis ready check',
+      format: Boolean,
+      default: true,
+      env: 'REDIS_ENABLE_READY_CHECK'
+    },
+    maxRetriesPerRequest: {
+      doc: 'Maximum number of retries per Redis request',
+      format: Number,
+      default: 3,
+      env: 'REDIS_MAX_RETRIES_PER_REQUEST'
     }
   },
   nunjucks: {
@@ -242,7 +272,7 @@ export const config = convict({
   chatApiTimeoutMs: {
     doc: 'Timeout for chat API requests in milliseconds',
     format: Number,
-    default: 3000,
+    default: 10000,
     env: 'CHAT_API_TIMEOUT_MS'
   },
   dataApiUrl: {
@@ -252,6 +282,12 @@ export const config = convict({
     default: null,
     env: 'DATA_API_URL'
   },
+  dataApiTimeoutMs: {
+    doc: 'Timeout for data API requests in milliseconds',
+    format: Number,
+    default: 10000,
+    env: 'DATA_API_TIMEOUT_MS'
+  },
   knowledgeApiUrl: {
     doc: 'Knowledge API base URL (ai-defra-search-knowledge /knowledge-groups)',
     format: String,
@@ -259,11 +295,23 @@ export const config = convict({
     default: null,
     env: 'KNOWLEDGE_API_URL'
   },
+  knowledgeApiTimeoutMs: {
+    doc: 'Timeout for knowledge API requests in milliseconds',
+    format: Number,
+    default: 10000,
+    env: 'KNOWLEDGE_API_TIMEOUT_MS'
+  },
   cdpUploaderUrl: {
     doc: 'CDP Uploader service base URL',
     format: String,
     default: null,
     env: 'CDP_UPLOADER_URL'
+  },
+  cdpUploaderTimeoutMs: {
+    doc: 'Timeout for CDP uploader requests in milliseconds',
+    format: Number,
+    default: 30000,
+    env: 'CDP_UPLOADER_TIMEOUT_MS'
   },
   cdpUploadCallbackUrl: {
     doc: 'Full base URL for the CDP upload callback endpoint, e.g. https://frontend.example.com/upload/callback',

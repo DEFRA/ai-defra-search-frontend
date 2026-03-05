@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
-import fetch from 'node-fetch'
 
 import { config } from '../../config/config.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
+import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
 
 const logger = createLogger()
 
@@ -10,6 +10,7 @@ export async function initiateUpload ({ knowledgeGroupId }) {
   const cdpUploaderUrl = config.get('cdpUploaderUrl')
   const uploadBucketName = config.get('uploadBucketName')
   const cdpUploadCallbackUrl = config.get('cdpUploadCallbackUrl')
+  const timeoutMs = config.get('cdpUploaderTimeoutMs')
 
   const uploadReference = randomUUID()
 
@@ -24,11 +25,11 @@ export async function initiateUpload ({ knowledgeGroupId }) {
 
   let response
   try {
-    response = await fetch(url, {
+    response = await fetchWithTimeout(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
-    })
+    }, timeoutMs)
   } catch (err) {
     logger.warn({ err }, 'CDP Uploader initiate failed')
     throw err

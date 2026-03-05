@@ -11,7 +11,15 @@ import { getUserId } from '../../../../src/server/common/helpers/user-context.js
 
 vi.mock('../../../../src/config/config.js', () => ({
   config: {
-    get: vi.fn((key) => (key === 'knowledgeApiUrl' ? baseUrl : null))
+    get: vi.fn((key) => {
+      if (key === 'knowledgeApiUrl') {
+        return baseUrl
+      }
+      if (key === 'knowledgeApiTimeoutMs') {
+        return 10000
+      }
+      return null
+    })
   }
 }))
 vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({

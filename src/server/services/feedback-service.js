@@ -1,6 +1,5 @@
-import fetch from 'node-fetch'
-
 import { config } from '../../config/config.js'
+import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
 
 /**
  * Submits user feedback about an AI response.
@@ -15,9 +14,10 @@ import { config } from '../../config/config.js'
 async function submitFeedback ({ conversationId, wasHelpful, comment }) {
   const chatApiUrl = config.get('chatApiUrl')
   const url = `${chatApiUrl}/feedback`
+  const timeoutMs = config.get('chatApiTimeoutMs')
 
   try {
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -27,7 +27,7 @@ async function submitFeedback ({ conversationId, wasHelpful, comment }) {
         was_helpful: wasHelpful || null,
         comment: comment || null
       })
-    })
+    }, timeoutMs)
 
     if (!response.ok) {
       throw new Error(`Feedback API returned ${response.status}: ${response.statusText}`)
