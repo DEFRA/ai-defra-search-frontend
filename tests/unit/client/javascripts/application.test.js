@@ -28,13 +28,27 @@ describe('application.js', () => {
   describe('file picker', () => {
     const setupDOM = () => {
       document.body.innerHTML = `
-        <input id="file-upload" type="file" class="govuk-visually-hidden">
-        <button id="choose-files-btn" type="button">Select files</button>
-        <ul id="selected-files"></ul>
+        <input id="file-upload" type="file" multiple>
+        <ul id="selected-files" class="govuk-!-display-none"></ul>
+        <button id="choose-files-btn" type="button" class="govuk-!-display-none">Select files</button>
       `
     }
 
-    test('clicking the choose button triggers the hidden file input', async () => {
+    test('hides the native file input and reveals the choose button and file list when JS runs', async () => {
+      setupDOM()
+
+      await import(MODULE_PATH)
+
+      const fileInput = document.getElementById('file-upload')
+      const chooseBtn = document.getElementById('choose-files-btn')
+      const selectedFiles = document.getElementById('selected-files')
+
+      expect(fileInput.classList.contains('govuk-visually-hidden')).toBe(true)
+      expect(chooseBtn.classList.contains('govuk-!-display-none')).toBe(false)
+      expect(selectedFiles.classList.contains('govuk-!-display-none')).toBe(false)
+    })
+
+    test('clicking the choose button triggers the native file input', async () => {
       setupDOM()
       const fileInput = document.getElementById('file-upload')
       const clickSpy = vi.spyOn(fileInput, 'click')
