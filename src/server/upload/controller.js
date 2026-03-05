@@ -2,12 +2,14 @@ import statusCodes from 'http-status-codes'
 
 import { createLogger } from '../common/helpers/logging/logger.js'
 import { listKnowledgeGroups, createKnowledgeGroup, createDocuments } from '../services/knowledge-groups-service.js'
-import { initiateUpload } from '../services/cdp-uploader-service.js'
+import { initiateUpload, fetchUploadStatus } from '../services/cdp-uploader-service.js'
+import { storeUploadSession, getUploadSession } from './upload-session-cache.js'
 
 const logger = createLogger()
 const UPLOAD_VIEW_PATH = 'upload/upload'
 const FILE_UPLOAD_VIEW_PATH = 'upload/file-upload'
 const CREATE_GROUP_VIEW_PATH = 'upload/create-group'
+const UPLOAD_STATUS_VIEW_PATH = 'upload/upload-status'
 const KNOWLEDGE_GROUP_REQUIRED = 'Select a knowledge group'
 
 async function buildUploadViewState (overrides = {}) {
@@ -44,8 +46,9 @@ export const uploadPostController = {
     }
 
     try {
-      const { uploadId } = await initiateUpload({ knowledgeGroupId })
-      return h.redirect(`/upload/files/${uploadId}`)
+      const { uploadId, statusUrl, uploadReference } = await initiateUpload({ knowledgeGroupId })
+      await storeUploadSession(uploadReference, { uploadId, statusUrl, knowledgeGroupId })
+      return h.redirect(`/upload/files/${uploadReference}`)
     } catch (err) {
       logger.warn({ err }, 'Failed to initiate upload session')
       const viewState = await buildUploadViewState({
@@ -59,9 +62,53 @@ export const uploadPostController = {
 
 export const uploadFileGetController = {
   async handler (request, h) {
-    const { uploadId } = request.params
-    const uploadUrl = `/upload-and-scan/${uploadId}`
-    return h.view(FILE_UPLOAD_VIEW_PATH, { uploadUrl })
+    const { uploadReference } = request.params
+    const session = await getUploadSession(uploadReference)
+
+    if (!session) {
+      return h.response().code(statusCodes.NOT_FOUND)
+    }
+
+    const uploadUrl = `/upload-and-scan/${session.uploadId}`
+    return h.view(FILE_UPLOAD_VIEW_PATH, { uploadUrl, uploadStatusUrl: `/upload-status/${uploadReference}` })
+  }
+}
+
+export const uploadStatusGetController = {
+  async handler (request, h) {
+    const { uploadReference } = request.params
+    const session = await getUploadSession(uploadReference)
+
+    if (!session) {
+      return h.response().code(statusCodes.NOT_FOUND)
+    }
+
+    let uploadStatus = null
+    let fileRows = []
+    let errorMessage = null
+
+    try {
+      const status = await fetchUploadStatus(session.statusUrl)
+      uploadStatus = status.uploadStatus
+      fileRows = Object.values(status.form ?? {})
+        .flat()
+        .filter(f => typeof f === 'object' && f !== null)
+        .map(f => [
+          { text: f.filename },
+          { text: f.fileId },
+          { text: f.fileStatus }
+        ])
+    } catch (err) {
+      logger.warn({ err, uploadReference }, 'Failed to fetch upload status')
+      errorMessage = 'Unable to retrieve upload status. Please try again.'
+    }
+
+    return h.view(UPLOAD_STATUS_VIEW_PATH, {
+      uploadReference,
+      uploadStatus,
+      fileRows,
+      errorMessage
+    })
   }
 }
 
@@ -74,6 +121,8 @@ export const uploadCallbackController = {
     const { metadata, form } = request.payload
 
     const formEntries = Object.entries(form)
+
+    logger.info({ uploadReference, uploadStatus: request.payload.uploadStatus }, 'CDP upload callback')
 
     const completeFiles = formEntries
       .filter(([, value]) => typeof value === 'object' && value !== null && value.fileStatus === 'complete')

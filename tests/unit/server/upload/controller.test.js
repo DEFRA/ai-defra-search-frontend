@@ -3,15 +3,19 @@ import statusCodes from 'http-status-codes'
 
 vi.mock('../../../../src/server/services/knowledge-groups-service.js')
 vi.mock('../../../../src/server/services/cdp-uploader-service.js')
+vi.mock('../../../../src/server/upload/upload-session-cache.js')
 vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   createLogger: () => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn() })
 }))
 
 const knowledgeGroupsService = await import('../../../../src/server/services/knowledge-groups-service.js')
 const cdpUploaderService = await import('../../../../src/server/services/cdp-uploader-service.js')
+const uploadSessionCache = await import('../../../../src/server/upload/upload-session-cache.js')
 const {
   uploadGetController,
   uploadPostController,
+  uploadFileGetController,
+  uploadStatusGetController,
   uploadCreateGroupGetController,
   uploadCreateGroupPostController
 } = await import('../../../../src/server/upload/controller.js')
@@ -24,7 +28,8 @@ describe('upload controller', () => {
     mockH = {
       view: vi.fn().mockReturnThis(),
       code: vi.fn().mockReturnThis(),
-      redirect: vi.fn().mockReturnThis()
+      redirect: vi.fn().mockReturnThis(),
+      response: vi.fn().mockReturnThis()
     }
   })
 
@@ -159,8 +164,10 @@ describe('upload controller', () => {
       cdpUploaderService.initiateUpload.mockResolvedValue({
         uploadId: 'abc123',
         uploadUrl: '/upload-and-scan/abc123',
-        statusUrl: '/status/abc123'
+        statusUrl: '/status/abc123',
+        uploadReference: 'ref-abc123'
       })
+      uploadSessionCache.storeUploadSession.mockResolvedValue(undefined)
 
       await uploadPostController.handler(
         { payload: { 'knowledge-group': 'g1' } },
@@ -170,19 +177,21 @@ describe('upload controller', () => {
       expect(cdpUploaderService.initiateUpload).toHaveBeenCalledWith({ knowledgeGroupId: 'g1' })
     })
 
-    test('redirects to /upload/files/{uploadId} on initiate success', async () => {
+    test('redirects to /upload/files/{uploadReference} on initiate success', async () => {
       cdpUploaderService.initiateUpload.mockResolvedValue({
         uploadId: 'abc123',
         uploadUrl: '/upload-and-scan/abc123',
-        statusUrl: '/status/abc123'
+        statusUrl: '/status/abc123',
+        uploadReference: 'ref-abc123'
       })
+      uploadSessionCache.storeUploadSession.mockResolvedValue(undefined)
 
       await uploadPostController.handler(
         { payload: { 'knowledge-group': 'g1' } },
         mockH
       )
 
-      expect(mockH.redirect).toHaveBeenCalledWith('/upload/files/abc123')
+      expect(mockH.redirect).toHaveBeenCalledWith('/upload/files/ref-abc123')
       expect(mockH.view).not.toHaveBeenCalled()
     })
 
@@ -202,6 +211,73 @@ describe('upload controller', () => {
         })
       )
       expect(mockH.code).toHaveBeenCalledWith(statusCodes.INTERNAL_SERVER_ERROR)
+    })
+  })
+
+  describe('uploadFileGetController', () => {
+    test('renders file upload form pointing to the CDP scan URL', async () => {
+      uploadSessionCache.getUploadSession.mockResolvedValue({
+        uploadId: 'abc123',
+        statusUrl: '/status/abc123',
+        knowledgeGroupId: 'group-1'
+      })
+
+      await uploadFileGetController.handler(
+        { params: { uploadReference: 'ref-abc123' } },
+        mockH
+      )
+
+      expect(mockH.view).toHaveBeenCalledWith(
+        'upload/file-upload',
+        { uploadUrl: '/upload-and-scan/abc123', uploadStatusUrl: '/upload-status/ref-abc123' }
+      )
+    })
+
+    test('returns 404 when session not found', async () => {
+      uploadSessionCache.getUploadSession.mockResolvedValue(null)
+
+      await uploadFileGetController.handler(
+        { params: { uploadReference: 'unknown-ref' } },
+        mockH
+      )
+
+      expect(mockH.response).toHaveBeenCalled()
+      expect(mockH.code).toHaveBeenCalledWith(statusCodes.NOT_FOUND)
+    })
+  })
+
+  describe('uploadStatusGetController', () => {
+    test('returns 404 when session not found', async () => {
+      uploadSessionCache.getUploadSession.mockResolvedValue(null)
+
+      await uploadStatusGetController.handler(
+        { params: { uploadReference: 'unknown-ref' } },
+        mockH
+      )
+
+      expect(mockH.response).toHaveBeenCalled()
+      expect(mockH.code).toHaveBeenCalledWith(statusCodes.NOT_FOUND)
+    })
+
+    test('renders status view with error banner when fetchUploadStatus throws', async () => {
+      uploadSessionCache.getUploadSession.mockResolvedValue({
+        uploadId: 'abc123',
+        statusUrl: 'http://cdp/status/abc123',
+        knowledgeGroupId: 'group-1'
+      })
+      cdpUploaderService.fetchUploadStatus.mockRejectedValue(new Error('CDP unavailable'))
+
+      await uploadStatusGetController.handler(
+        { params: { uploadReference: 'ref-abc123' } },
+        mockH
+      )
+
+      expect(mockH.view).toHaveBeenCalledWith(
+        'upload/upload-status',
+        expect.objectContaining({
+          errorMessage: 'Unable to retrieve upload status. Please try again.'
+        })
+      )
     })
   })
 

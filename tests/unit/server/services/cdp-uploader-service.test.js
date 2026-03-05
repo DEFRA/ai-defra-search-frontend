@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'
 import nock from 'nock'
 
 import { config } from '../../../../src/config/config.js'
-import { initiateUpload } from '../../../../src/server/services/cdp-uploader-service.js'
+import { initiateUpload, fetchUploadStatus } from '../../../../src/server/services/cdp-uploader-service.js'
 
 const { MOCK_UPLOAD_REFERENCE } = vi.hoisted(() => ({
   MOCK_UPLOAD_REFERENCE: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
@@ -28,7 +28,7 @@ describe('cdp-uploader-service', () => {
     test('POSTs to /initiate with correct body and returns uploadId and uploadReference', async () => {
       nock(cdpUploaderUrl)
         .post('/initiate', {
-          redirect: '/',
+          redirect: `/upload-status/${MOCK_UPLOAD_REFERENCE}`,
           callback: `${cdpUploadCallbackUrl}/${MOCK_UPLOAD_REFERENCE}`,
           s3Bucket: 'test-bucket',
           s3Path: 'uploads/group-1',
@@ -41,7 +41,7 @@ describe('cdp-uploader-service', () => {
       expect(result).toEqual({
         uploadId: 'abc123',
         uploadUrl: '/upload-and-scan/abc123',
-        statusUrl: '/status/abc123',
+        statusUrl: `${cdpUploaderUrl}/status/abc123`,
         uploadReference: MOCK_UPLOAD_REFERENCE
       })
     })
@@ -52,7 +52,7 @@ describe('cdp-uploader-service', () => {
         .reply(500, 'Internal Server Error')
 
       return expect(initiateUpload({ knowledgeGroupId: 'group-1' })).rejects.toThrow(
-        /CDP Uploader initiate failed with status 500/
+        /CDP upload initiate failed with status 500/
       )
     })
 
@@ -62,6 +62,33 @@ describe('cdp-uploader-service', () => {
         .replyWithError('ECONNREFUSED')
 
       return expect(initiateUpload({ knowledgeGroupId: 'group-1' })).rejects.toThrow('ECONNREFUSED')
+    })
+  })
+
+  describe('fetchUploadStatus', () => {
+    test('returns parsed status data', async () => {
+      const statusData = {
+        uploadStatus: 'ready',
+        form: {
+          'file-0': { fileId: 'f1', filename: 'doc.pdf', fileStatus: 'complete' }
+        }
+      }
+
+      nock(cdpUploaderUrl)
+        .get('/status/abc123')
+        .reply(200, statusData)
+
+      const result = await fetchUploadStatus(`${cdpUploaderUrl}/status/abc123`)
+
+      expect(result).toEqual(statusData)
+    })
+
+    test('throws on non-2xx', () => {
+      nock(cdpUploaderUrl)
+        .get('/status/abc123')
+        .reply(503)
+
+      return expect(fetchUploadStatus(`${cdpUploaderUrl}/status/abc123`)).rejects.toThrow(/503/)
     })
   })
 })

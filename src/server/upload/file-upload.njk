@@ -6,7 +6,7 @@
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-xl">Upload files</h1>
 
-      <form id="file-upload-form" method="post" action="{{ uploadUrl }}" enctype="multipart/form-data" novalidate>
+      <form id="file-upload-form" method="post" action="{{ uploadUrl }}" enctype="multipart/form-data" data-success-redirect="{{ uploadStatusUrl }}" novalidate>
         <input type="file" id="file-upload" name="file" multiple class="govuk-visually-hidden">
         <ul id="selected-files" class="govuk-list govuk-list--bullet"></ul>
         {{ govukButton({ text: "Select files", type: "button", classes: "govuk-button--secondary", attributes: { id: "choose-files-btn" } }) }}

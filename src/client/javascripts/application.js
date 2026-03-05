@@ -46,7 +46,7 @@ if (fileUploadForm) {
       const HTTP_FOUND = 302
       const redirected = res.type === 'opaqueredirect' || res.status === HTTP_FOUND
       if (redirected) {
-        window.location.href = '/'
+        window.location.href = fileUploadForm.dataset.successRedirect || '/'
       }
       if (!redirected && !res.ok) {
         console.error('Upload failed', res.status)
