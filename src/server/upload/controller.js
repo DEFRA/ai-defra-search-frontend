@@ -71,20 +71,12 @@ export const uploadCallbackController = {
   },
   async handler (request, h) {
     const { uploadReference } = request.params
-    logger.info({ uploadReference }, 'uploadCallbackController triggered')
-    logger.info({ payload: JSON.stringify(request.payload) }, 'uploadCallbackController payload')
     const { metadata, form } = request.payload
 
     const formFiles = Object.values(form).flat()
 
     const completeFiles = formFiles.filter(value => typeof value === 'object' && value !== null && value.fileStatus === 'complete')
     const rejectedFiles = formFiles.filter(value => typeof value === 'object' && value !== null && value.fileStatus === 'rejected')
-
-    logger.info({ completeFiles: completeFiles.map(f => f.filename), rejectedFiles: rejectedFiles.map(f => f.filename) }, 'uploadCallbackController files')
-
-    if (rejectedFiles.length > 0) {
-      logger.warn({ uploadReference, rejectedFiles }, 'Files rejected during upload scan')
-    }
 
     if (completeFiles.length > 0) {
       const documents = completeFiles.map(file => ({
@@ -96,6 +88,7 @@ export const uploadCallbackController = {
       }))
 
       try {
+        logger.info({ uploadReference, completeFiles: completeFiles.length, rejectedFiles: rejectedFiles.length }, 'Creating documents from upload callback')
         await createDocuments(documents)
       } catch (err) {
         logger.warn({ err, uploadReference }, 'Failed to create documents in knowledge service')

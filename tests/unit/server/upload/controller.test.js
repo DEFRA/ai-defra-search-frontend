@@ -12,6 +12,7 @@ const cdpUploaderService = await import('../../../../src/server/services/cdp-upl
 const {
   uploadGetController,
   uploadPostController,
+  uploadCallbackController,
   uploadCreateGroupGetController,
   uploadCreateGroupPostController
 } = await import('../../../../src/server/upload/controller.js')
@@ -202,6 +203,101 @@ describe('upload controller', () => {
         })
       )
       expect(mockH.code).toHaveBeenCalledWith(statusCodes.INTERNAL_SERVER_ERROR)
+    })
+  })
+
+  describe('uploadCallbackController', () => {
+    const uploadReference = 'upload-ref-123'
+    const knowledgeGroupId = 'group-abc'
+
+    const makeRequest = (formFiles, fileStatus = 'complete') => ({
+      params: { uploadReference },
+      payload: {
+        metadata: { knowledgeGroupId },
+        form: {
+          file: formFiles.map((name, i) => ({
+            fileId: `file-id-${i}`,
+            filename: name,
+            fileStatus,
+            s3Key: `uploads/${knowledgeGroupId}/${name}`,
+            s3Bucket: 'my-bucket'
+          }))
+        }
+      }
+    })
+
+    beforeEach(() => {
+      mockH.response = vi.fn().mockReturnThis()
+    })
+
+    test('creates documents for each complete file mapped with metadata from the callback payload', async () => {
+      knowledgeGroupsService.createDocuments.mockResolvedValue()
+
+      await uploadCallbackController.handler(makeRequest(['report.pdf', 'notes.txt']), mockH)
+
+      expect(knowledgeGroupsService.createDocuments).toHaveBeenCalledWith([
+        {
+          file_name: 'report.pdf',
+          knowledge_group_id: knowledgeGroupId,
+          cdp_upload_id: uploadReference,
+          status: 'uploaded',
+          s3_key: `uploads/${knowledgeGroupId}/report.pdf`
+        },
+        {
+          file_name: 'notes.txt',
+          knowledge_group_id: knowledgeGroupId,
+          cdp_upload_id: uploadReference,
+          status: 'uploaded',
+          s3_key: `uploads/${knowledgeGroupId}/notes.txt`
+        }
+      ])
+    })
+
+    test('creates documents only for complete files when the payload contains a mix of complete and rejected files', async () => {
+      knowledgeGroupsService.createDocuments.mockResolvedValue()
+
+      const request = {
+        params: { uploadReference },
+        payload: {
+          metadata: { knowledgeGroupId },
+          form: {
+            file: [
+              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
+              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
+            ]
+          }
+        }
+      }
+
+      await uploadCallbackController.handler(request, mockH)
+
+      expect(knowledgeGroupsService.createDocuments).toHaveBeenCalledWith([
+        expect.objectContaining({ file_name: 'good.pdf' })
+      ])
+    })
+
+    test('does not call createDocuments when no files are complete', async () => {
+      await uploadCallbackController.handler(makeRequest(['malware.exe'], 'rejected'), mockH)
+
+      expect(knowledgeGroupsService.createDocuments).not.toHaveBeenCalled()
+    })
+
+    test('returns 200 OK regardless of file status', async () => {
+      knowledgeGroupsService.createDocuments.mockResolvedValue()
+
+      await uploadCallbackController.handler(makeRequest(['report.pdf']), mockH)
+
+      expect(mockH.response).toHaveBeenCalled()
+      expect(mockH.code).toHaveBeenCalledWith(200)
+    })
+
+    test('returns 200 OK when createDocuments throws', async () => {
+      knowledgeGroupsService.createDocuments.mockRejectedValue(new Error('knowledge service unavailable'))
+
+      await uploadCallbackController.handler(makeRequest(['report.pdf']), mockH)
+
+      expect(mockH.response).toHaveBeenCalled()
+      expect(mockH.code).toHaveBeenCalledWith(200)
     })
   })
 
