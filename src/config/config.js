@@ -272,7 +272,7 @@ export const config = convict({
   chatApiTimeoutMs: {
     doc: 'Timeout for chat API requests in milliseconds',
     format: Number,
-    default: 10000,
+    default: 3000,
     env: 'CHAT_API_TIMEOUT_MS'
   },
   dataApiUrl: {
@@ -285,7 +285,7 @@ export const config = convict({
   dataApiTimeoutMs: {
     doc: 'Timeout for data API requests in milliseconds',
     format: Number,
-    default: 10000,
+    default: 3000,
     env: 'DATA_API_TIMEOUT_MS'
   },
   knowledgeApiUrl: {
@@ -298,7 +298,7 @@ export const config = convict({
   knowledgeApiTimeoutMs: {
     doc: 'Timeout for knowledge API requests in milliseconds',
     format: Number,
-    default: 10000,
+    default: 3000,
     env: 'KNOWLEDGE_API_TIMEOUT_MS'
   },
   cdpUploaderUrl: {
