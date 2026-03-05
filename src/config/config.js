@@ -262,14 +262,18 @@ export const config = convict({
   cdpUploaderUrl: {
     doc: 'CDP Uploader service base URL',
     format: String,
-    nullable: true,
     default: null,
     env: 'CDP_UPLOADER_URL'
+  },
+  cdpUploadCallbackUrl: {
+    doc: 'Full base URL for the CDP upload callback endpoint, e.g. https://frontend.example.com/upload/callback',
+    format: String,
+    default: null,
+    env: 'CDP_UPLOAD_CALLBACK_URL'
   },
   uploadBucketName: {
     doc: 'S3 bucket name for uploaded files',
     format: String,
-    nullable: true,
     default: null,
     env: 'UPLOAD_BUCKET_NAME'
   },

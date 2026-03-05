@@ -3,7 +3,8 @@ import nock from 'nock'
 
 import {
   listKnowledgeGroups,
-  createKnowledgeGroup
+  createKnowledgeGroup,
+  createDocuments
 } from '../../../../src/server/services/knowledge-groups-service.js'
 import { config } from '../../../../src/config/config.js'
 import { getUserId } from '../../../../src/server/common/helpers/user-context.js'
@@ -79,6 +80,39 @@ describe('knowledge-groups-service', () => {
 
       await expect(listKnowledgeGroups()).rejects.toThrow(
         /Knowledge API 500: Internal Server Error/
+      )
+    })
+  })
+
+  describe('createDocuments', () => {
+    test('POSTs documents to the knowledge API', async () => {
+      const documents = [
+        {
+          file_name: 'photo.jpg',
+          knowledge_group_id: 'group-1',
+          cdp_upload_id: 'upload-ref-123',
+          status: 'uploaded',
+          s3_key: 'uploads/group-1/c17543b8-e440-4156-8df4-af62f40a7ac8'
+        }
+      ]
+
+      nock(baseUrl)
+        .post('/documents', documents)
+        .matchHeader('user-id', 'user-1')
+        .reply(201, documents)
+
+      const result = await createDocuments(documents)
+
+      expect(result).toEqual(documents)
+    })
+
+    test('throws when knowledge API responds with non-2xx', async () => {
+      nock(baseUrl)
+        .post('/documents')
+        .reply(500, 'Internal Server Error')
+
+      await expect(createDocuments([{ file_name: 'photo.jpg' }])).rejects.toThrow(
+        /Knowledge API 500/
       )
     })
   })

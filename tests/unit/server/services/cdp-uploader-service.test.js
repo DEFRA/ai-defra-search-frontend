@@ -1,11 +1,20 @@
-import { describe, test, expect, beforeEach, afterEach } from 'vitest'
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'
 import nock from 'nock'
 
 import { config } from '../../../../src/config/config.js'
 import { initiateUpload } from '../../../../src/server/services/cdp-uploader-service.js'
 
+const { MOCK_UPLOAD_REFERENCE } = vi.hoisted(() => ({
+  MOCK_UPLOAD_REFERENCE: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+}))
+
+vi.mock('node:crypto', () => ({
+  randomUUID: vi.fn().mockReturnValue(MOCK_UPLOAD_REFERENCE)
+}))
+
 describe('cdp-uploader-service', () => {
   const cdpUploaderUrl = config.get('cdpUploaderUrl')
+  const cdpUploadCallbackUrl = config.get('cdpUploadCallbackUrl')
 
   beforeEach(() => {
     nock.cleanAll()
@@ -16,13 +25,14 @@ describe('cdp-uploader-service', () => {
   })
 
   describe('initiateUpload', () => {
-    test('POSTs to /initiate with correct body and returns result', async () => {
+    test('POSTs to /initiate with correct body and returns uploadId and uploadReference', async () => {
       nock(cdpUploaderUrl)
         .post('/initiate', {
           redirect: '/',
+          callback: `${cdpUploadCallbackUrl}/${MOCK_UPLOAD_REFERENCE}`,
           s3Bucket: 'test-bucket',
           s3Path: 'uploads/group-1',
-          metadata: { knowledgeGroupId: 'group-1' }
+          metadata: { knowledgeGroupId: 'group-1', uploadReference: MOCK_UPLOAD_REFERENCE }
         })
         .reply(200, { uploadId: 'abc123', uploadUrl: '/upload-and-scan/abc123', statusUrl: '/status/abc123' })
 
@@ -31,7 +41,8 @@ describe('cdp-uploader-service', () => {
       expect(result).toEqual({
         uploadId: 'abc123',
         uploadUrl: '/upload-and-scan/abc123',
-        statusUrl: '/status/abc123'
+        statusUrl: '/status/abc123',
+        uploadReference: MOCK_UPLOAD_REFERENCE
       })
     })
 
