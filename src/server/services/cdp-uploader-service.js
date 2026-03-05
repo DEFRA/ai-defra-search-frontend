@@ -15,7 +15,7 @@ export async function initiateUpload ({ knowledgeGroupId }) {
 
   const url = `${cdpUploaderUrl}/initiate`
   const body = {
-    redirect: '/',
+    redirect: `/upload-status/${uploadReference}`,
     callback: `${cdpUploadCallbackUrl}/${uploadReference}`,
     s3Bucket: uploadBucketName,
     s3Path: `uploads/${knowledgeGroupId}`,
@@ -30,16 +30,33 @@ export async function initiateUpload ({ knowledgeGroupId }) {
       body: JSON.stringify(body)
     })
   } catch (err) {
-    logger.warn({ err }, 'CDP Uploader initiate failed')
+    logger.warn({ uploadReference, err }, 'CDP upload initiate failed')
     throw err
   }
 
   if (!response.ok) {
-    logger.warn({ status: response.status }, 'CDP Uploader initiate failed')
-    throw new Error(`CDP Uploader initiate failed with status ${response.status}`)
+    logger.warn({ uploadReference, status: response.status }, 'CDP upload initiate failed')
+    throw new Error(`CDP upload initiate failed with status ${response.status}`)
   }
 
   const data = await response.json()
-  logger.info({ status: response.status, uploadId: data.uploadId, uploadReference }, 'CDP Uploader initiated')
+  logger.info({ uploadReference, uploadId: data.uploadId, statusUrl: data.statusUrl }, 'CDP upload initiated')
   return { ...data, uploadReference }
+}
+
+export async function fetchUploadStatus (statusUrl) {
+  let response
+  try {
+    response = await fetch(statusUrl)
+  } catch (err) {
+    logger.warn({ statusUrl, err }, 'CDP upload status fetch failed')
+    throw err
+  }
+
+  if (!response.ok) {
+    logger.warn({ statusUrl, status: response.status }, 'CDP upload status fetch returned non-2xx')
+    throw new Error(`CDP upload status fetch failed with status ${response.status}`)
+  }
+
+  return response.json()
 }

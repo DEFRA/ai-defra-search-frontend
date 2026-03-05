@@ -2,6 +2,7 @@ import {
   uploadGetController,
   uploadPostController,
   uploadFileGetController,
+  uploadStatusGetController,
   uploadCallbackController,
   uploadCreateGroupGetController,
   uploadCreateGroupPostController
@@ -24,8 +25,13 @@ export const upload = {
         },
         {
           method: 'GET',
-          path: '/upload/files/{uploadId}',
+          path: '/upload/files/{uploadReference}',
           ...uploadFileGetController
+        },
+        {
+          method: 'GET',
+          path: '/upload-status/{uploadReference}',
+          ...uploadStatusGetController
         },
         {
           method: 'POST',
