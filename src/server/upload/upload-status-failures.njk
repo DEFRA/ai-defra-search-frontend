@@ -1,0 +1,60 @@
+{{ govukErrorSummary({
+  titleText: "There is a problem",
+  errorList: [{ text: "Some files could not be uploaded" }]
+}) }}
+
+{% set successCount = successfulFiles.length %}
+{% set failCount = failedFiles.length %}
+
+{{ govukWarningText({
+  html: "<strong>" + successCount + " " + ("file" if successCount === 1 else "files") + " uploaded successfully. " + failCount + " " + ("file" if failCount === 1 else "files") + " could not be uploaded.</strong> Successfully uploaded files will now be ingested into the knowledge base and should be searchable in chat within <strong>15 to 20 minutes</strong>.",
+  iconFallbackText: "Warning"
+}) }}
+
+{% if successfulFiles.length %}
+  <h2 class="govuk-heading-m">Uploaded successfully</h2>
+  <ul class="govuk-list govuk-list--bullet">
+    {% for file in successfulFiles %}
+      <li>{{ file.name }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<h2 class="govuk-heading-m">Not uploaded</h2>
+<table class="govuk-table">
+  <thead class="govuk-table__head">
+    <tr class="govuk-table__row">
+      <th scope="col" class="govuk-table__header">Filename</th>
+      <th scope="col" class="govuk-table__header">Status</th>
+      <th scope="col" class="govuk-table__header">Message</th>
+    </tr>
+  </thead>
+  <tbody class="govuk-table__body">
+    {% for file in failedFiles %}
+      <tr class="govuk-table__row">
+        <td class="govuk-table__cell">{{ file.name }}</td>
+        <td class="govuk-table__cell">{{ file.status }}</td>
+        <td class="govuk-table__cell">{{ file.errorMessage if file.errorMessage else "—" }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2 class="govuk-heading-m">What you can do</h2>
+<ul class="govuk-list govuk-list--bullet">
+  <li>Remove the file and run your local virus scan</li>
+  <li>If you believe this is an error, contact your support team and include the file name</li>
+  <li>You can try uploading the file again once the issue is resolved</li>
+</ul>
+
+<div class="govuk-button-group">
+  {{ govukButton({
+    text: "Try uploading again",
+    href: "/upload"
+  }) }}
+  {{ govukButton({
+    text: "Return to AI assistant",
+    href: "/",
+    classes: "govuk-button--secondary"
+  }) }}
+</div>

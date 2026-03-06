@@ -256,13 +256,6 @@ export const config = convict({
       env: 'TRACING_HEADER'
     }
   },
-  prototypePassword: {
-    doc: 'Password for accessing the prototype',
-    format: String,
-    default: null,
-    env: 'PROTOTYPE_PASSWORD',
-    sensitive: true
-  },
   chatApiUrl: {
     doc: 'Chat API base URL',
     format: String,

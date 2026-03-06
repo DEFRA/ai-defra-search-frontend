@@ -19,6 +19,7 @@ import { secureContext } from '@defra/hapi-secure-context'
 import { contentSecurityPolicy } from './common/helpers/content-security-policy.js'
 import { userAgentProtection } from './common/helpers/user-agent-protection.js'
 import { initializeCache } from './start/conversation-cache.js'
+import { initializeUploadSessionCache } from './upload/upload-session-cache.js'
 
 export async function createServer () {
   setupProxy()
@@ -82,6 +83,7 @@ export async function createServer () {
   })
 
   initializeCache(server)
+  initializeUploadSessionCache(server)
 
   server.ext('onPreResponse', catchAll)
 

@@ -3,12 +3,40 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
 
-      <h1 class="govuk-heading-xl">Upload</h1>
+      <h1 class="govuk-heading-xl">Upload files to knowledge group</h1>
+
+      <p class="govuk-body">You are about to load files into a knowledge base. Once loaded, these files will be ingested into the knowledge base and should be searchable in chat within 15 to 20 minutes.</p>
+
+      <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+      <h2 class="govuk-heading-m">Be careful what the files contain</h2>
+
+      {{ govukWarningText({
+        text: "Only upload files that are suitable for this knowledge base.",
+        iconFallbackText: "Warning"
+      }) }}
+
+      <p class="govuk-body govuk-!-margin-bottom-1">You can upload:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>Files that contain content up to <strong>OFFICIAL-SENSITIVE</strong></li>
+      </ul>
+
+      <p class="govuk-body govuk-!-margin-bottom-1">Files should not contain:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>PII, including:
+          <ul class="govuk-list govuk-list--bullet">
+            <li>Defra research subjects</li>
+            <li>Non-Defra contributors</li>
+            <li>Defra authors or contacts</li>
+          </ul>
+        </li>
+      </ul>
 
       {% if errorMessage %}
         {{ govukErrorSummary({
@@ -28,15 +56,14 @@
           name: "knowledge-group",
           value: selectedKnowledgeGroup,
           label: {
-            text: "Knowledge group",
+            text: "Select knowledge group",
             classes: "govuk-label--m"
-          },
-          hint: {
-            html: 'Select the knowledge group to upload to. <a href="/upload/create-group" class="govuk-link">Create a new knowledge group</a>'
           },
           errorMessage: errorMessage and { text: errorMessage },
           items: knowledgeGroupSelectItems | default([])
         }) }}
+
+        <p class="govuk-body"><a href="/upload/create-group" class="govuk-link">Create a new knowledge group</a></p>
 
         {{ govukButton({
           text: "Continue"
