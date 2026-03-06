@@ -1,0 +1,30 @@
+<h1 class="govuk-heading-xl">Uploading files</h1>
+
+<p class="govuk-body">Your files are being uploaded. You can refresh this page to see the latest status.</p>
+
+<div class="app-loading-spinner" role="status" aria-label="Loading">
+  <div class="app-loading-spinner__icon"></div>
+</div>
+
+{% if fileRows.length %}
+  <table class="govuk-table">
+    <thead class="govuk-table__head">
+      <tr class="govuk-table__row">
+        <th scope="col" class="govuk-table__header">Filename</th>
+        <th scope="col" class="govuk-table__header">Status</th>
+      </tr>
+    </thead>
+    <tbody class="govuk-table__body">
+      {% for file in fileRows %}
+        <tr class="govuk-table__row">
+          <td class="govuk-table__cell">{{ file.name }}</td>
+          <td class="govuk-table__cell">{{ file.status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+{{ govukInsetText({
+  text: "After upload, files are ingested and should be searchable in chat within 15 to 20 minutes"
+}) }}

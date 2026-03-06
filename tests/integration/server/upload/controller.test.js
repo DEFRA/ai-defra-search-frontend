@@ -5,9 +5,11 @@ import { vi } from 'vitest'
 import { createServer } from '../../../../src/server/server.js'
 import { listKnowledgeGroups, createKnowledgeGroup } from '../../../../src/server/services/knowledge-groups-service.js'
 import { initiateUpload } from '../../../../src/server/services/cdp-uploader-service.js'
+import { getUploadSession, storeUploadSession } from '../../../../src/server/upload/upload-session-cache.js'
 
 vi.mock('../../../../src/server/services/knowledge-groups-service.js')
 vi.mock('../../../../src/server/services/cdp-uploader-service.js')
+vi.mock('../../../../src/server/upload/upload-session-cache.js')
 
 describe('Upload page', () => {
   let server
@@ -18,7 +20,14 @@ describe('Upload page', () => {
     vi.mocked(initiateUpload).mockResolvedValue({
       uploadId: 'test-upload-id',
       uploadUrl: '/upload-and-scan/test-upload-id',
-      statusUrl: '/status/test-upload-id'
+      statusUrl: '/status/test-upload-id',
+      uploadReference: 'test-upload-ref'
+    })
+    vi.mocked(storeUploadSession).mockResolvedValue(undefined)
+    vi.mocked(getUploadSession).mockResolvedValue({
+      uploadId: 'test-upload-id',
+      statusUrl: '/status/test-upload-id',
+      knowledgeGroupId: 'some-group-id'
     })
     server = await createServer()
     await server.initialize()
@@ -30,7 +39,14 @@ describe('Upload page', () => {
     vi.mocked(initiateUpload).mockResolvedValue({
       uploadId: 'test-upload-id',
       uploadUrl: '/upload-and-scan/test-upload-id',
-      statusUrl: '/status/test-upload-id'
+      statusUrl: '/status/test-upload-id',
+      uploadReference: 'test-upload-ref'
+    })
+    vi.mocked(storeUploadSession).mockResolvedValue(undefined)
+    vi.mocked(getUploadSession).mockResolvedValue({
+      uploadId: 'test-upload-id',
+      statusUrl: '/status/test-upload-id',
+      knowledgeGroupId: 'some-group-id'
     })
   })
 
@@ -117,7 +133,7 @@ describe('Upload page', () => {
       expect(page.querySelector('a[href="#knowledge-group"]')).not.toBeNull()
     })
 
-    test('redirects to /upload/files/{uploadId} when group is selected', async () => {
+    test('redirects to /upload/files/{uploadReference} when group is selected', async () => {
       const response = await server.inject({
         method: 'POST',
         url: '/upload',
@@ -125,7 +141,7 @@ describe('Upload page', () => {
       })
 
       expect(response.statusCode).toBe(statusCodes.MOVED_TEMPORARILY)
-      expect(response.headers.location).toBe('/upload/files/test-upload-id')
+      expect(response.headers.location).toBe('/upload/files/test-upload-ref')
     })
 
     test('returns 500 and shows error when initiateUpload throws', async () => {
@@ -145,11 +161,11 @@ describe('Upload page', () => {
     })
   })
 
-  describe('GET /upload/files/{uploadId}', () => {
+  describe('GET /upload/files/{uploadReference}', () => {
     test('renders a no-JS-compatible file upload page targeting the CDP uploader', async () => {
       const response = await server.inject({
         method: 'GET',
-        url: '/upload/files/test-upload-id'
+        url: '/upload/files/test-upload-ref'
       })
 
       expect(response.statusCode).toBe(statusCodes.OK)
@@ -162,7 +178,7 @@ describe('Upload page', () => {
       const selectedFiles = page.querySelector('#selected-files')
 
       expect(form).not.toBeNull()
-      expect(form.getAttribute('action')).toContain('/upload-and-scan/')
+      expect(form.getAttribute('action')).toContain('/upload-and-scan/test-upload-id')
       expect(form.getAttribute('enctype')).toBe('multipart/form-data')
       expect(fileInput).not.toBeNull()
       expect(fileInput.classList.contains('govuk-visually-hidden')).toBe(false)

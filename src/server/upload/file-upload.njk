@@ -7,7 +7,7 @@
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-xl">Upload files</h1>
 
-      <form id="file-upload-form" method="post" action="{{ uploadUrl }}" enctype="multipart/form-data" novalidate>
+      <form id="file-upload-form" method="post" action="{{ uploadUrl }}" enctype="multipart/form-data" data-success-redirect="{{ uploadStatusUrl }}" novalidate>
         {{ govukFileUpload({
           id: "file-upload",
           name: "file",
