@@ -1,21 +1,53 @@
 {% extends "layouts/page.njk" %}
 {% from "govuk/components/file-upload/macro.njk" import govukFileUpload %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
 
 {% block content %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
       <h1 class="govuk-heading-xl">Upload files</h1>
 
+      <p class="govuk-body">You can select one or more files.</p>
+
+      <hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+      <h2 class="govuk-heading-m">Be careful what the files contain</h2>
+
+      {{ govukWarningText({
+        text: "Only upload files that are suitable for this knowledge base.",
+        iconFallbackText: "Warning"
+      }) }}
+
+      <p class="govuk-body govuk-!-margin-bottom-1">You can upload:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>Files that contain content up to <strong>OFFICIAL-SENSITIVE</strong></li>
+      </ul>
+
+      <p class="govuk-body govuk-!-margin-bottom-1">Files should not contain:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>PII, including:
+          <ul class="govuk-list govuk-list--bullet">
+            <li>Defra research subjects</li>
+            <li>Non-Defra contributors</li>
+            <li>Defra authors or contacts</li>
+          </ul>
+        </li>
+      </ul>
+
       <form id="file-upload-form" method="post" action="{{ uploadUrl }}" enctype="multipart/form-data" data-success-redirect="{{ uploadStatusUrl }}" novalidate>
         {{ govukFileUpload({
           id: "file-upload",
           name: "file",
-          label: { text: "Upload files", classes: "govuk-label--m" },
+          label: { text: "Select files", classes: "govuk-label--m" },
           attributes: { multiple: true }
         }) }}
-        <ul id="selected-files" class="govuk-list govuk-list--bullet govuk-!-display-none" aria-live="polite"></ul>
-        {{ govukButton({ text: "Select files", type: "button", classes: "govuk-button--secondary govuk-!-display-none", attributes: { id: "choose-files-btn" } }) }}
+
+        <div id="selected-files-section" hidden>
+          <h2 class="govuk-heading-s">Selected files</h2>
+          <ul id="selected-files" class="govuk-list govuk-list--bullet" aria-live="polite"></ul>
+        </div>
+
         {{ govukButton({ text: "Upload files" }) }}
       </form>
     </div>

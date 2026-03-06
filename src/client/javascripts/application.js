@@ -21,19 +21,15 @@ createAll(SkipLink)
 initAll()
 
 const fileUpload = document.getElementById('file-upload')
-const chooseBtn = document.getElementById('choose-files-btn')
+const selectedFilesSection = document.getElementById('selected-files-section')
 const selectedFiles = document.getElementById('selected-files')
 
-if (fileUpload && chooseBtn && selectedFiles) {
-  fileUpload.classList.add('govuk-visually-hidden')
-  chooseBtn.classList.remove('govuk-!-display-none')
-  selectedFiles.classList.remove('govuk-!-display-none')
-
-  chooseBtn.addEventListener('click', function () { fileUpload.click() })
+if (fileUpload && selectedFilesSection && selectedFiles) {
   fileUpload.addEventListener('change', function () {
     selectedFiles.innerHTML = Array.from(this.files)
       .map(function (f) { return '<li>' + f.name + '</li>' })
       .join('')
+    selectedFilesSection.removeAttribute('hidden')
   })
 }
 
