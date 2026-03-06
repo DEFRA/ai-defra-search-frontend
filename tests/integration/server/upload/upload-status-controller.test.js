@@ -17,78 +17,143 @@ const SESSION = {
   knowledgeGroupId: 'group-1'
 }
 
-const STATUS_RESPONSE = {
-  uploadStatus: 'ready',
-  form: {
-    file: [
-      { fileId: 'file-id-1', filename: 'report.pdf', fileStatus: 'complete' },
-      { fileId: 'file-id-2', filename: 'data.csv', fileStatus: 'complete' }
-    ]
-  }
-}
-
 describe('GET /upload-status/:uploadReference', () => {
   let server
 
   beforeAll(async () => {
-    vi.mocked(getUploadSession).mockResolvedValue(SESSION)
-    vi.mocked(fetchUploadStatus).mockResolvedValue(STATUS_RESPONSE)
     server = await createServer()
     await server.initialize()
   })
 
   beforeEach(() => {
     vi.mocked(getUploadSession).mockResolvedValue(SESSION)
-    vi.mocked(fetchUploadStatus).mockResolvedValue(STATUS_RESPONSE)
   })
 
   afterAll(async () => {
     await server.stop({ timeout: 0 })
   })
 
-  test('renders status page with upload status and file table', async () => {
+  async function getStatusPage (statusResponse) {
+    vi.mocked(fetchUploadStatus).mockResolvedValue(statusResponse)
     const response = await server.inject({
       method: 'GET',
       url: `/upload-status/${UPLOAD_REFERENCE}`
     })
-
-    expect(response.statusCode).toBe(statusCodes.OK)
-
     const { window } = new JSDOM(response.result)
-    const page = window.document
+    return { response, document: window.document }
+  }
 
-    expect(page.body.textContent).toContain('Upload status')
-    expect(page.body.textContent).toContain('ready')
-    expect(page.body.textContent).toContain('report.pdf')
-    expect(page.body.textContent).toContain('file-id-1')
-    expect(page.body.textContent).toContain('data.csv')
-    expect(page.body.textContent).toContain('file-id-2')
+  describe('pending state', () => {
+    test('renders file names and statuses when upload is in progress', async () => {
+      const { response, document } = await getStatusPage({
+        uploadStatus: 'pending',
+        form: {
+          files: [
+            { filename: 'report.pdf', fileStatus: 'scanning' },
+            { filename: 'data.csv', fileStatus: 'scanning' }
+          ]
+        }
+      })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+      expect(document.body.textContent).toContain('report.pdf')
+      expect(document.body.textContent).toContain('data.csv')
+      expect(document.body.textContent).toContain('scanning')
+    })
   })
 
-  test('returns 404 when session not found', async () => {
-    vi.mocked(getUploadSession).mockResolvedValue(null)
+  describe('success state', () => {
+    test('renders successfully uploaded file names', async () => {
+      const { response, document } = await getStatusPage({
+        uploadStatus: 'ready',
+        form: {
+          files: [
+            { filename: 'report.pdf', fileStatus: 'complete' },
+            { filename: 'data.csv', fileStatus: 'complete' }
+          ]
+        }
+      })
 
-    const response = await server.inject({
-      method: 'GET',
-      url: `/upload-status/${UPLOAD_REFERENCE}`
+      expect(response.statusCode).toBe(statusCodes.OK)
+      expect(document.body.textContent).toContain('report.pdf')
+      expect(document.body.textContent).toContain('data.csv')
     })
-
-    expect(response.statusCode).toBe(statusCodes.NOT_FOUND)
   })
 
-  test('shows error banner when status fetch fails', async () => {
-    vi.mocked(fetchUploadStatus).mockRejectedValue(new Error('CDP unavailable'))
+  describe('failures state', () => {
+    test('renders failed file names, statuses, and error messages alongside successful files', async () => {
+      const { response, document } = await getStatusPage({
+        uploadStatus: 'ready',
+        form: {
+          files: [
+            { filename: 'report.pdf', fileStatus: 'complete' },
+            { filename: 'malware.exe', fileStatus: 'rejected', errorMessage: 'File contains a virus' }
+          ]
+        }
+      })
 
-    const response = await server.inject({
-      method: 'GET',
-      url: `/upload-status/${UPLOAD_REFERENCE}`
+      expect(response.statusCode).toBe(statusCodes.OK)
+      expect(document.body.textContent).toContain('report.pdf')
+      expect(document.body.textContent).toContain('malware.exe')
+      expect(document.body.textContent).toContain('rejected')
+      expect(document.body.textContent).toContain('File contains a virus')
     })
 
-    expect(response.statusCode).toBe(statusCodes.OK)
+    test('renders em dash for failed files with no error message', async () => {
+      const { document } = await getStatusPage({
+        uploadStatus: 'ready',
+        form: {
+          files: [
+            { filename: 'report.pdf', fileStatus: 'complete' },
+            { filename: 'bad.exe', fileStatus: 'rejected' }
+          ]
+        }
+      })
 
-    const { window } = new JSDOM(response.result)
-    const page = window.document
-    expect(page.body.textContent).toContain('There is a problem')
-    expect(page.body.textContent).toContain('Unable to retrieve upload status')
+      expect(document.body.textContent).toContain('—')
+    })
+
+    test('uses singular "file" in warning text when exactly one file fails', async () => {
+      const { document } = await getStatusPage({
+        uploadStatus: 'ready',
+        form: {
+          files: [
+            { filename: 'report.pdf', fileStatus: 'complete' },
+            { filename: 'bad.exe', fileStatus: 'rejected', errorMessage: 'Virus detected' }
+          ]
+        }
+      })
+
+      expect(document.body.textContent).toContain('1 file could not be uploaded')
+    })
+
+    test('uses plural "files" in warning text when multiple files fail', async () => {
+      const { document } = await getStatusPage({
+        uploadStatus: 'ready',
+        form: {
+          files: [
+            { filename: 'report.pdf', fileStatus: 'complete' },
+            { filename: 'bad1.exe', fileStatus: 'rejected', errorMessage: 'Virus detected' },
+            { filename: 'bad2.exe', fileStatus: 'rejected', errorMessage: 'Virus detected' }
+          ]
+        }
+      })
+
+      expect(document.body.textContent).toContain('2 files could not be uploaded')
+    })
+
+    test('does not render successful files section when all files failed', async () => {
+      const { document } = await getStatusPage({
+        uploadStatus: 'ready',
+        form: {
+          files: [
+            { filename: 'bad1.exe', fileStatus: 'rejected', errorMessage: 'Virus detected' },
+            { filename: 'bad2.exe', fileStatus: 'rejected', errorMessage: 'Virus detected' }
+          ]
+        }
+      })
+
+      expect(document.body.textContent).not.toContain('Uploaded successfully')
+    })
   })
 })

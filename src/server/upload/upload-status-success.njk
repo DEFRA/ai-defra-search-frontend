@@ -1,0 +1,36 @@
+{{ govukPanel({
+  titleText: "Files uploaded successfully",
+  html: "Your files have been successfully uploaded to the knowledge group"
+}) }}
+
+<p class="govuk-body">
+  The files will now be ingested into the knowledge base and should be searchable in chat within <strong>15 to 20 minutes</strong>.
+</p>
+
+{% if successfulFiles.length %}
+  <h2 class="govuk-heading-m">Files uploaded</h2>
+  <ul class="govuk-list govuk-list--bullet">
+    {% for file in successfulFiles %}
+      <li>{{ file.name }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<h2 class="govuk-heading-m">What happens next</h2>
+<ul class="govuk-list govuk-list--bullet">
+  <li>Files are processed and indexed</li>
+  <li>They become available for search and chat queries</li>
+  <li>You can upload more files or return to the knowledge group</li>
+</ul>
+
+<div class="govuk-button-group">
+  {{ govukButton({
+    text: "Upload more files",
+    href: "/upload"
+  }) }}
+  {{ govukButton({
+    text: "Return to AI assistant",
+    href: "/",
+    classes: "govuk-button--secondary"
+  }) }}
+</div>

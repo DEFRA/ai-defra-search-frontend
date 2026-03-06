@@ -85,6 +85,8 @@ export const uploadStatusGetController = {
 
     let uploadStatus = null
     let fileRows = []
+    let successfulFiles = []
+    let failedFiles = []
     let errorMessage = null
 
     try {
@@ -93,11 +95,9 @@ export const uploadStatusGetController = {
       fileRows = Object.values(status.form ?? {})
         .flat()
         .filter(f => typeof f === 'object' && f !== null)
-        .map(f => [
-          { text: f.filename },
-          { text: f.fileId },
-          { text: f.fileStatus }
-        ])
+        .map(f => ({ name: f.filename, status: f.fileStatus, errorMessage: f.errorMessage ?? null }))
+      successfulFiles = fileRows.filter(f => f.status === 'complete')
+      failedFiles = fileRows.filter(f => f.status !== 'complete')
     } catch (err) {
       logger.warn({ err, uploadReference }, 'Failed to fetch upload status')
       errorMessage = 'Unable to retrieve upload status. Please try again.'
@@ -107,6 +107,9 @@ export const uploadStatusGetController = {
       uploadReference,
       uploadStatus,
       fileRows,
+      successfulFiles,
+      failedFiles,
+      hasFailures: failedFiles.length > 0,
       errorMessage
     })
   }
