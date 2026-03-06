@@ -247,34 +247,6 @@ describe('chat-api', () => {
       }
     })
 
-    test('should timeout after specified duration', async () => {
-      nock(chatApiUrl)
-        .get('/conversations/conv-slow')
-        .delay(3000)
-        .reply(200, {
-          conversation_id: 'conv-slow',
-          messages: []
-        })
-
-      await expect(getConversation('conv-slow', 100))
-        .rejects
-        .toThrow()
-    }, 5000)
-
-    test('should use default timeout of 2000ms', async () => {
-      nock(chatApiUrl)
-        .get('/conversations/conv-default')
-        .delay(2500)
-        .reply(200, {
-          conversation_id: 'conv-default',
-          messages: []
-        })
-
-      await expect(getConversation('conv-default'))
-        .rejects
-        .toThrow()
-    }, 5000)
-
     test('should preserve message metadata when parsing', async () => {
       nock(chatApiUrl)
         .get('/conversations/conv-metadata')

@@ -1,7 +1,6 @@
-import fetch from 'node-fetch'
-
 import { config } from '../../config/config.js'
 import { getUserId } from '../common/helpers/user-context.js'
+import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
 
 const dataApiUrl = () => config.get('dataApiUrl')
 const HTTP_NO_CONTENT = 204
@@ -14,15 +13,18 @@ async function request (path, options = {}) {
     throw err
   }
   const url = `${base}/${path.replace(/^\//, '')}`
+  const timeoutMs = config.get('dataApiTimeoutMs')
   const userId = getUserId()
   const headers = { 'Content-Type': 'application/json', ...options.headers }
   if (userId) {
     headers['user-id'] = userId
   }
-  const response = await fetch(url, {
+
+  const response = await fetchWithTimeout(url, timeoutMs, {
     headers,
     ...options
   })
+
   if (!response.ok) {
     const body = await response.text()
     let detail

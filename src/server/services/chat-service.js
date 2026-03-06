@@ -1,8 +1,7 @@
-import fetch from 'node-fetch'
-
 import { config } from '../../config/config.js'
 import { marked } from 'marked'
 import { getUserId } from '../common/helpers/user-context.js'
+import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
 
 /**
  * Send a question to the backend chat API. The backend queues the request and
@@ -19,6 +18,7 @@ import { getUserId } from '../common/helpers/user-context.js'
 async function sendQuestion (question, modelId, conversationId) {
   const chatApiUrl = config.get('chatApiUrl')
   const url = `${chatApiUrl}/chat`
+  const timeoutMs = config.get('chatApiTimeoutMs')
 
   try {
     const userId = getUserId()
@@ -27,7 +27,7 @@ async function sendQuestion (question, modelId, conversationId) {
       headers['user-id'] = userId
     }
 
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -68,18 +68,16 @@ async function sendQuestion (question, modelId, conversationId) {
  * markdown into HTML for server-side rendering.
  *
  * @param {string} conversationId - UUID of the conversation
+ * @param {number} timeoutMs - Timeout in milliseconds (defaults to configured chatApiTimeoutMs)
  * @returns {Promise<Object>} The conversation object { conversationId, messages }
  */
-async function getConversation (conversationId, timeoutMs = 2000) {
+async function getConversation (conversationId, timeoutMs = config.get('chatApiTimeoutMs')) {
   const chatApiUrl = config.get('chatApiUrl')
   const url = `${chatApiUrl}/conversations/${conversationId}`
 
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), timeoutMs)
   const userId = getUserId()
   const headers = userId ? { 'user-id': userId } : {}
-  const response = await fetch(url, { signal: controller.signal, headers })
-  clearTimeout(timeout)
+  const response = await fetchWithTimeout(url, timeoutMs, { headers })
   if (!response.ok) {
     const error = new Error(`Chat API returned ${response.status}`)
     error.response = { status: response.status, data: await response.text() }

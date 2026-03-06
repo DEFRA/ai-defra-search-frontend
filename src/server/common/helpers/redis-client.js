@@ -3,6 +3,31 @@ import { Cluster, Redis } from 'ioredis'
 import { createLogger } from './logging/logger.js'
 
 /**
+ * Creates a retry strategy function for Redis connections
+ * Uses exponential backoff: 50ms, 100ms, 150ms for retries 1, 2, 3
+ *
+ * @param {number} maxRetries - Maximum number of retry attempts
+ * @param {Object} logger - Logger instance
+ * @param {string} connectionType - Type of connection ('single' or 'cluster')
+ * @returns {Function} Retry strategy function
+ */
+const RETRY_DELAY_MS = 50
+
+function createRetryStrategy (maxRetries, logger, connectionType = 'single') {
+  return (times) => {
+    if (times > maxRetries) {
+      const message = connectionType === 'cluster'
+        ? 'Redis cluster max connection retries reached, giving up'
+        : 'Redis max connection retries reached, giving up'
+      logger.warn(message)
+      return null
+    }
+
+    return times * RETRY_DELAY_MS
+  }
+}
+
+/**
  * Setup Redis and provide a redis client
  *
  * Local development - 1 Redis instance
@@ -31,6 +56,12 @@ export function buildRedisClient (redisConfig) {
       host,
       db,
       keyPrefix,
+      connectTimeout: redisConfig.connectTimeout,
+      commandTimeout: redisConfig.commandTimeout,
+      keepAlive: redisConfig.keepAlive,
+      enableReadyCheck: redisConfig.enableReadyCheck,
+      maxRetriesPerRequest: redisConfig.maxRetriesPerRequest,
+      retryStrategy: createRetryStrategy(redisConfig.maxRetriesPerRequest, logger, 'single'),
       ...credentials,
       ...tls
     })
@@ -46,8 +77,14 @@ export function buildRedisClient (redisConfig) {
         keyPrefix,
         slotsRefreshTimeout: 10000,
         dnsLookup: (address, callback) => callback(null, address),
+        clusterRetryStrategy: createRetryStrategy(redisConfig.maxRetriesPerRequest, logger, 'cluster'),
         redisOptions: {
           db,
+          connectTimeout: redisConfig.connectTimeout,
+          commandTimeout: redisConfig.commandTimeout,
+          keepAlive: redisConfig.keepAlive,
+          enableReadyCheck: redisConfig.enableReadyCheck,
+          maxRetriesPerRequest: redisConfig.maxRetriesPerRequest,
           ...credentials,
           ...tls
         }
