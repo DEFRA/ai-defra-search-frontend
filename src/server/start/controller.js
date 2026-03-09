@@ -1,6 +1,6 @@
 import statusCodes from 'http-status-codes'
 import { startPostSchema, startParamsSchema } from './chat-schema.js'
-import { StartViewModel } from './start.model.js'
+import { createStartViewModel } from './start.model.js'
 import {
   loadConversationPageData,
   detectPendingConflict,
@@ -16,7 +16,7 @@ const startGetController = {
   async handler (request, h) {
     try {
       const data = await loadConversationPageData(request.params.conversationId)
-      return h.view(START_VIEW_PATH, new StartViewModel(data)).code(data.notFound ? statusCodes.NOT_FOUND : statusCodes.OK)
+      return h.view(START_VIEW_PATH, createStartViewModel(data)).code(data.notFound ? statusCodes.NOT_FOUND : statusCodes.OK)
     } catch (error) {
       request.logger.error({ err: error, conversationId: request.params.conversationId }, 'Error fetching conversation')
       return h.view('error/index', {
@@ -39,7 +39,7 @@ const startPostController = {
         const errorMessage = error.details[0]?.message
 
         const data = await loadValidationError(conversationId, question, modelId, errorMessage)
-        return h.view(START_VIEW_PATH, new StartViewModel(data)).code(statusCodes.BAD_REQUEST).takeover()
+        return h.view(START_VIEW_PATH, createStartViewModel(data)).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
   },
@@ -50,7 +50,7 @@ const startPostController = {
     if (conversationId) {
       const conflict = await detectPendingConflict(conversationId)
       if (conflict) {
-        return h.view(START_VIEW_PATH, new StartViewModel({
+        return h.view(START_VIEW_PATH, createStartViewModel({
           ...conflict,
           conversationId,
           responsePending: true,
@@ -65,7 +65,7 @@ const startPostController = {
     } catch (error) {
       request.logger.error({ err: error, question }, 'Error calling chat API')
       const data = await loadSubmitError(question, modelId, conversationId, error)
-      return h.view(START_VIEW_PATH, new StartViewModel(data))
+      return h.view(START_VIEW_PATH, createStartViewModel(data))
     }
   }
 }
