@@ -69,12 +69,12 @@ async function sendQuestion (question, modelId, conversationId) {
  * markdown into HTML for server-side rendering.
  *
  * @param {string} conversationId - UUID of the conversation
- * @param {number} timeoutMs - Timeout in milliseconds (defaults to configured chatApiTimeoutMs)
  * @param {string} sessionId - Session ID for auditing (required)
  * @param {string} modelId - Model ID for auditing (required)
+ * @param {number} timeoutMs - Timeout in milliseconds (defaults to configured chatApiTimeoutMs)
  * @returns {Promise<Object>} The conversation object { conversationId, messages }
  */
-async function getConversation (conversationId, timeoutMs = config.get('chatApiTimeoutMs'), sessionId, modelId) {
+async function getConversation (conversationId, sessionId, modelId, timeoutMs = config.get('chatApiTimeoutMs')) {
   const chatApiUrl = config.get('chatApiUrl')
   const url = `${chatApiUrl}/conversations/${conversationId}`
 

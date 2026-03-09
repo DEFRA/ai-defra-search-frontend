@@ -155,7 +155,7 @@ describe('chat-api', () => {
           ]
         })
 
-      const result = await getConversation('conv-123')
+      const result = await getConversation('conv-123', 'session-123', 'model-456')
 
       expect(result.conversationId).toBe('conv-123')
       expect(result.messages).toHaveLength(2)
@@ -181,7 +181,7 @@ describe('chat-api', () => {
           ]
         })
 
-      const result = await getConversation('conv-456')
+      const result = await getConversation('conv-456', 'session-123', 'model-456')
 
       expect(result.messages[0].content).toBe('')
       expect(result.messages[1].content).toBe('')
@@ -195,7 +195,7 @@ describe('chat-api', () => {
           messages: []
         })
 
-      const result = await getConversation('conv-789')
+      const result = await getConversation('conv-789', 'session-123', 'model-456')
 
       expect(result.conversationId).toBe('conv-789')
       expect(result.messages).toEqual([])
@@ -208,7 +208,7 @@ describe('chat-api', () => {
           conversation_id: 'conv-999'
         })
 
-      const result = await getConversation('conv-999')
+      const result = await getConversation('conv-999', 'session-123', 'model-456')
 
       expect(result.conversationId).toBe('conv-999')
       expect(result.messages).toEqual([])
@@ -222,7 +222,7 @@ describe('chat-api', () => {
           messages: []
         })
 
-      const result = await getConversation('conv-111')
+      const result = await getConversation('conv-111', 'session-123', 'model-456')
 
       expect(result.conversationId).toBe('conv-111')
     })
@@ -233,7 +233,7 @@ describe('chat-api', () => {
         .reply(404, 'Not found')
 
       try {
-        await getConversation('not-found')
+        await getConversation('not-found', 'session-123', 'model-456')
       } catch (error) {
         expect(error.message).toBe('Chat API returned 404')
         expect(error.response.status).toBe(404)
@@ -247,7 +247,7 @@ describe('chat-api', () => {
         .reply(500, 'Internal server error')
 
       try {
-        await getConversation('conv-error')
+        await getConversation('conv-error', 'session-123', 'model-456')
       } catch (error) {
         expect(error.message).toBe('Chat API returned 500')
         expect(error.response.status).toBe(500)
@@ -269,7 +269,7 @@ describe('chat-api', () => {
           ]
         })
 
-      const result = await getConversation('conv-metadata')
+      const result = await getConversation('conv-metadata', 'session-123', 'model-456')
 
       expect(result.messages[0].role).toBe('user')
       expect(result.messages[0].timestamp).toBe('2026-02-10T12:00:00Z')
@@ -331,7 +331,7 @@ describe('chat-api', () => {
           ]
         })
 
-      await getConversation('conv-completed', undefined, 'session-123', 'model-456')
+      await getConversation('conv-completed', 'session-123', 'model-456')
 
       expect(auditLlmInteraction).toHaveBeenCalledWith({
         userId: 'test-user-123',
@@ -363,7 +363,7 @@ describe('chat-api', () => {
           ]
         })
 
-      await getConversation('conv-pending', undefined, 'session-123', 'model-456')
+      await getConversation('conv-pending', 'session-123', 'model-456')
 
       // Audit helper is called but doesn't emit event for pending messages
       expect(auditLlmInteraction).toHaveBeenCalledWith({
@@ -391,7 +391,7 @@ describe('chat-api', () => {
           ]
         })
 
-      await getConversation('conv-user-only', undefined, 'session-123', 'model-456')
+      await getConversation('conv-user-only', 'session-123', 'model-456')
 
       // Audit helper is called but doesn't emit event for user-only messages
       expect(auditLlmInteraction).toHaveBeenCalledWith({
@@ -424,7 +424,7 @@ describe('chat-api', () => {
           ]
         })
 
-      await getConversation('conv-failed', undefined, 'session-789', 'model-999')
+      await getConversation('conv-failed', 'session-789', 'model-999')
 
       expect(auditLlmInteraction).toHaveBeenCalledWith({
         userId: 'test-user-123',
@@ -456,7 +456,7 @@ describe('chat-api', () => {
           ]
         })
 
-      await getConversation('conv-mixed', undefined, 'session-abc', 'model-def')
+      await getConversation('conv-mixed', 'session-abc', 'model-def')
 
       expect(auditLlmInteraction).toHaveBeenCalledWith({
         userId: 'test-user-123',
