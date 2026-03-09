@@ -36,7 +36,7 @@ describe('chat-api', () => {
           question: 'What is UCD?',
           conversation_id: null,
           model_id: 'sonnet-3.7',
-          knowledge_group_id: null
+          knowledge_group_ids: []
         })
         .reply(200, {
           conversation_id: 'conv-123',
@@ -59,7 +59,7 @@ describe('chat-api', () => {
           question: 'Tell me more',
           conversation_id: 'existing-conv-123',
           model_id: 'haiku',
-          knowledge_group_id: null
+          knowledge_group_ids: []
         })
         .reply(200, {
           conversation_id: 'existing-conv-123',
