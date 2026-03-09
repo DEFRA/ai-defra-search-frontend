@@ -1,0 +1,37 @@
+{% from "govuk/components/textarea/macro.njk" import govukTextarea %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "model-select/macro.njk" import defraModelSelect %}
+
+<form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate{% if responsePending %} aria-disabled="true"{% endif %}>
+
+  {{ govukTextarea({
+    name: "question",
+    id: "question",
+    value: question if question else "",
+    label: {
+      text: "Enter a question or a prompt?",
+      classes: "govuk-label--m",
+      isPageHeading: false
+    },
+    hint: {
+      text: "For example, 'How do I design an accessible form?' or 'Can you help me put together a research plan?'"
+    },
+    disabled: responsePending
+  }) }}
+
+  <div class="govuk-button-group">
+    {{ govukButton({
+      text: "Send",
+      classes: "govuk-button--secondary",
+      disabled: responsePending
+    }) }}
+    <p class="govuk-body"><a href="/start/clear{% if conversationId %}/{{ conversationId }}{% endif %}" class="govuk-link">Clear conversation</a>.</p>
+  </div>
+
+  {{ defraModelSelect({
+    models: models,
+    modelId: modelId,
+    disabled: responsePending
+  }) }}
+
+</form>
