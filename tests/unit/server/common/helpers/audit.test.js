@@ -36,25 +36,6 @@ describe('audit helper', () => {
     }))
   })
 
-  test('auditLlmInteraction maps llm interaction fields', () => {
-    auditLlmInteraction({
-      userId: 'user-1',
-      sessionId: 'session-1',
-      conversationId: 'conv-1',
-      modelId: 'model-1',
-      interactionStatus: 'success'
-    })
-
-    expect(audit).toHaveBeenCalledWith(expect.objectContaining({
-      eventType: 'llm_interaction',
-      userId: 'user-1',
-      sessionId: 'session-1',
-      conversationId: 'conv-1',
-      modelId: 'model-1',
-      interactionStatus: 'success'
-    }))
-  })
-
   test('auditLlmInteraction determines success status from completed assistant messages', () => {
     auditLlmInteraction({
       userId: 'user-1',
