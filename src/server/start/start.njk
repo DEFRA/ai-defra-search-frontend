@@ -6,7 +6,7 @@
 
       {% include "view-components/error-summary.njk" %}
 
-      {% if messages %}
+      {% if messages.length %}
         <h2 class="govuk-heading-l govuk-!-margin-bottom-6">
           AI assistant
         </h2>
@@ -20,7 +20,7 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-full">
 
-        {% if not messages %}
+        {% if not messages.length %}
           <h1 class="govuk-heading-xl govuk-!-margin-bottom-6">
             AI assistant
           </h1>
