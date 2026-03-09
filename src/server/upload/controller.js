@@ -5,6 +5,7 @@ import { listKnowledgeGroups, createKnowledgeGroup, createDocuments } from '../s
 import { initiateUpload, fetchUploadStatus } from '../services/cdp-uploader-service.js'
 import { storeUploadSession, getUploadSession } from './upload-session-cache.js'
 import { auditKnowledgeGroupFileUpload } from '../common/helpers/audit.js'
+import { getUserId, getSessionId } from '../common/helpers/user-context.js'
 
 const logger = createLogger()
 const UPLOAD_VIEW_PATH = 'upload/upload'
@@ -48,7 +49,7 @@ export const uploadPostController = {
 
     try {
       const { uploadId, statusUrl, uploadReference } = await initiateUpload({ knowledgeGroupId })
-      await storeUploadSession(uploadReference, { uploadId, statusUrl, knowledgeGroupId })
+      await storeUploadSession(uploadReference, { uploadId, statusUrl, knowledgeGroupId, userId: getUserId(), sessionId: getSessionId() })
       return h.redirect(`/upload/files/${uploadReference}`)
     } catch (err) {
       logger.warn({ err }, 'Failed to initiate upload session')
@@ -125,12 +126,13 @@ export const uploadCallbackController = {
     const { metadata, form } = request.payload
     logger.info({ uploadReference, uploadStatus: request.payload.uploadStatus }, 'CDP upload callback')
 
+    const uploadSession = await getUploadSession(uploadReference)
     const formFiles = Object.values(form).flat()
 
     const completeFiles = formFiles.filter(value => typeof value === 'object' && value !== null && value.fileStatus === 'complete')
     const rejectedFiles = formFiles.filter(value => typeof value === 'object' && value !== null && value.fileStatus === 'rejected')
 
-    auditFileUploads([...completeFiles, ...rejectedFiles], metadata, request)
+    auditFileUploads([...completeFiles, ...rejectedFiles], metadata, uploadSession)
 
     if (completeFiles.length > 0) {
       const documents = completeFiles.map(file => ({
@@ -196,13 +198,11 @@ export const uploadCreateGroupPostController = {
   }
 }
 
-function auditFileUploads (files, metadata, request) {
-  const userId = request.auth?.credentials?.id ?? null
-
+function auditFileUploads (files, metadata, uploadSession) {
   files.forEach(file => {
     auditKnowledgeGroupFileUpload({
-      userId,
-      sessionId: request.sessionId,
+      userId: uploadSession?.userId ?? null,
+      sessionId: uploadSession?.sessionId ?? null,
       knowledgeGroupId: metadata.knowledgeGroupId,
       fileName: file.filename,
       fileSize: file.size,

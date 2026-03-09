@@ -1,11 +1,12 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'
 import nock from 'nock'
-import { getUserId } from '../../../../src/server/common/helpers/user-context.js'
+import { getUserId, getSessionId } from '../../../../src/server/common/helpers/user-context.js'
 import { sendQuestion, getConversation } from '../../../../src/server/services/chat-service.js'
 import { config } from '../../../../src/config/config.js'
 
 vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({
-  getUserId: vi.fn().mockReturnValue('test-user-123')
+  getUserId: vi.fn().mockReturnValue('test-user-123'),
+  getSessionId: vi.fn().mockReturnValue('test-session-abc')
 }))
 
 vi.mock('../../../../src/server/common/helpers/audit.js', () => ({
@@ -21,6 +22,7 @@ describe('chat-api', () => {
     nock.cleanAll()
     vi.clearAllMocks()
     getUserId.mockReturnValue('test-user-123')
+    getSessionId.mockReturnValue('test-session-abc')
   })
 
   afterEach(() => {
@@ -155,7 +157,7 @@ describe('chat-api', () => {
           ]
         })
 
-      const result = await getConversation('conv-123', 'session-123', 'model-456')
+      const result = await getConversation('conv-123')
 
       expect(result.conversationId).toBe('conv-123')
       expect(result.messages).toHaveLength(2)
@@ -181,7 +183,7 @@ describe('chat-api', () => {
           ]
         })
 
-      const result = await getConversation('conv-456', 'session-123', 'model-456')
+      const result = await getConversation('conv-456')
 
       expect(result.messages[0].content).toBe('')
       expect(result.messages[1].content).toBe('')
@@ -195,7 +197,7 @@ describe('chat-api', () => {
           messages: []
         })
 
-      const result = await getConversation('conv-789', 'session-123', 'model-456')
+      const result = await getConversation('conv-789')
 
       expect(result.conversationId).toBe('conv-789')
       expect(result.messages).toEqual([])
@@ -208,7 +210,7 @@ describe('chat-api', () => {
           conversation_id: 'conv-999'
         })
 
-      const result = await getConversation('conv-999', 'session-123', 'model-456')
+      const result = await getConversation('conv-999')
 
       expect(result.conversationId).toBe('conv-999')
       expect(result.messages).toEqual([])
@@ -222,7 +224,7 @@ describe('chat-api', () => {
           messages: []
         })
 
-      const result = await getConversation('conv-111', 'session-123', 'model-456')
+      const result = await getConversation('conv-111')
 
       expect(result.conversationId).toBe('conv-111')
     })
@@ -233,7 +235,7 @@ describe('chat-api', () => {
         .reply(404, 'Not found')
 
       try {
-        await getConversation('not-found', 'session-123', 'model-456')
+        await getConversation('not-found')
       } catch (error) {
         expect(error.message).toBe('Chat API returned 404')
         expect(error.response.status).toBe(404)
@@ -247,7 +249,7 @@ describe('chat-api', () => {
         .reply(500, 'Internal server error')
 
       try {
-        await getConversation('conv-error', 'session-123', 'model-456')
+        await getConversation('conv-error')
       } catch (error) {
         expect(error.message).toBe('Chat API returned 500')
         expect(error.response.status).toBe(500)
@@ -269,7 +271,7 @@ describe('chat-api', () => {
           ]
         })
 
-      const result = await getConversation('conv-metadata', 'session-123', 'model-456')
+      const result = await getConversation('conv-metadata')
 
       expect(result.messages[0].role).toBe('user')
       expect(result.messages[0].timestamp).toBe('2026-02-10T12:00:00Z')
@@ -312,160 +314,25 @@ describe('chat-api', () => {
   })
 
   describe('auditing', () => {
-    test('audits when conversation has completed assistant messages', async () => {
+    test('calls auditLlmInteraction with userId, sessionId, conversationId, and messages', async () => {
       nock(chatApiUrl)
-        .get('/conversations/conv-completed')
+        .get('/conversations/conv-audit')
         .reply(200, {
-          conversation_id: 'conv-completed',
+          conversation_id: 'conv-audit',
           messages: [
-            {
-              role: 'user',
-              content: 'Hello',
-              status: 'completed'
-            },
-            {
-              role: 'assistant',
-              content: 'Hi there!',
-              status: 'completed'
-            }
+            { role: 'user', content: 'Hello', status: 'completed', model_id: 'sonnet-3-7' },
+            { role: 'assistant', content: 'Hi there!', status: 'completed', model_id: 'sonnet-3-7' }
           ]
         })
 
-      await getConversation('conv-completed', 'session-123', 'model-456')
+      await getConversation('conv-audit')
 
       expect(auditLlmInteraction).toHaveBeenCalledWith({
         userId: 'test-user-123',
-        sessionId: 'session-123',
-        conversationId: 'conv-completed',
-        modelId: 'model-456',
+        sessionId: 'test-session-abc',
+        conversationId: 'conv-audit',
         messages: expect.arrayContaining([
           expect.objectContaining({ role: 'assistant', status: 'completed' })
-        ])
-      })
-    })
-
-    test('does not audit when conversation has no completed assistant messages', async () => {
-      nock(chatApiUrl)
-        .get('/conversations/conv-pending')
-        .reply(200, {
-          conversation_id: 'conv-pending',
-          messages: [
-            {
-              role: 'user',
-              content: 'Hello',
-              status: 'completed'
-            },
-            {
-              role: 'assistant',
-              content: 'Thinking...',
-              status: 'pending'
-            }
-          ]
-        })
-
-      await getConversation('conv-pending', 'session-123', 'model-456')
-
-      // Audit helper is called but doesn't emit event for pending messages
-      expect(auditLlmInteraction).toHaveBeenCalledWith({
-        userId: 'test-user-123',
-        sessionId: 'session-123',
-        conversationId: 'conv-pending',
-        modelId: 'model-456',
-        messages: expect.arrayContaining([
-          expect.objectContaining({ role: 'assistant', status: 'pending' })
-        ])
-      })
-    })
-
-    test('does not audit when conversation has only user messages', async () => {
-      nock(chatApiUrl)
-        .get('/conversations/conv-user-only')
-        .reply(200, {
-          conversation_id: 'conv-user-only',
-          messages: [
-            {
-              role: 'user',
-              content: 'Hello',
-              status: 'completed'
-            }
-          ]
-        })
-
-      await getConversation('conv-user-only', 'session-123', 'model-456')
-
-      // Audit helper is called but doesn't emit event for user-only messages
-      expect(auditLlmInteraction).toHaveBeenCalledWith({
-        userId: 'test-user-123',
-        sessionId: 'session-123',
-        conversationId: 'conv-user-only',
-        modelId: 'model-456',
-        messages: expect.arrayContaining([
-          expect.objectContaining({ role: 'user', status: 'completed' })
-        ])
-      })
-    })
-
-    test('audits with failure status when assistant message has failed', async () => {
-      nock(chatApiUrl)
-        .get('/conversations/conv-failed')
-        .reply(200, {
-          conversation_id: 'conv-failed',
-          messages: [
-            {
-              role: 'user',
-              content: 'Hello',
-              status: 'completed'
-            },
-            {
-              role: 'assistant',
-              content: 'Error occurred',
-              status: 'failed'
-            }
-          ]
-        })
-
-      await getConversation('conv-failed', 'session-789', 'model-999')
-
-      expect(auditLlmInteraction).toHaveBeenCalledWith({
-        userId: 'test-user-123',
-        sessionId: 'session-789',
-        conversationId: 'conv-failed',
-        modelId: 'model-999',
-        messages: expect.arrayContaining([
-          expect.objectContaining({ role: 'assistant', status: 'failed' })
-        ])
-      })
-    })
-
-    test('audits with failure status when conversation has both completed and failed messages', async () => {
-      nock(chatApiUrl)
-        .get('/conversations/conv-mixed')
-        .reply(200, {
-          conversation_id: 'conv-mixed',
-          messages: [
-            {
-              role: 'assistant',
-              content: 'First response',
-              status: 'completed'
-            },
-            {
-              role: 'assistant',
-              content: 'Failed response',
-              status: 'failed'
-            }
-          ]
-        })
-
-      await getConversation('conv-mixed', 'session-abc', 'model-def')
-
-      expect(auditLlmInteraction).toHaveBeenCalledWith({
-        userId: 'test-user-123',
-        sessionId: 'session-abc',
-        conversationId: 'conv-mixed',
-        modelId: 'model-def',
-        messages: expect.arrayContaining([
-          expect.objectContaining({ role: 'assistant', status: 'completed' }),
-          expect.objectContaining({ role: 'assistant', status: 'failed' })
         ])
       })
     })

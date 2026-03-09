@@ -9,16 +9,21 @@ const logger = createLogger()
 const DEV_USER_ID = 'local-dev-test'
 
 export const getUserId = () => asyncLocalStorage.getStore()?.get('userId') ?? null
+export const getSessionId = () => asyncLocalStorage.getStore()?.get('sessionId') ?? null
 
 /**
- * Test helper: run a function inside an async context with userId set.
+ * Test helper: run a function inside an async context with userId and sessionId set.
  * @param {string|null} userId
  * @param {Function} fn
+ * @param {string|null} [sessionId]
  */
-export function run (userId, fn) {
+export function run (userId, fn, sessionId) {
   const store = new Map()
   if (userId !== null && userId !== undefined) {
     store.set('userId', userId)
+  }
+  if (sessionId !== null && sessionId !== undefined) {
+    store.set('sessionId', sessionId)
   }
   return asyncLocalStorage.run(store, fn)
 }
@@ -45,8 +50,13 @@ export const userContext = {
 
       server.ext('onCredentials', (request, h) => {
         const store = asyncLocalStorage.getStore()
-        if (store && request.auth?.credentials?.id) {
-          store.set('userId', request.auth.credentials.id)
+        if (store) {
+          if (request.auth?.credentials?.id) {
+            store.set('userId', request.auth.credentials.id)
+          }
+          if (request.auth?.credentials?.sessionId) {
+            store.set('sessionId', request.auth.credentials.sessionId)
+          }
         }
         return h.continue
       })

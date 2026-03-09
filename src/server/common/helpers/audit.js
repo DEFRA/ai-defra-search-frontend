@@ -10,7 +10,7 @@ function emitAuditEvent ({ eventType, userId = null, sessionId, ...eventData }) 
   })
 }
 
-function auditLlmInteraction ({ userId, sessionId, conversationId, modelId, messages }) {
+function auditLlmInteraction ({ userId, sessionId, conversationId, messages }) {
   const failedMessage = messages.find(msg => msg.role === 'assistant' && msg.status === 'failed')
   const completedMessage = messages.find(msg => msg.role === 'assistant' && msg.status === 'completed')
   const assistantMessage = failedMessage || completedMessage
@@ -26,7 +26,7 @@ function auditLlmInteraction ({ userId, sessionId, conversationId, modelId, mess
     userId,
     sessionId,
     conversationId,
-    modelId,
+    modelId: assistantMessage.model_id ?? null,
     interactionStatus
   })
 }

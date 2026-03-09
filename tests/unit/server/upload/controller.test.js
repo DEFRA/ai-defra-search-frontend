@@ -7,6 +7,10 @@ vi.mock('../../../../src/server/upload/upload-session-cache.js')
 vi.mock('../../../../src/server/common/helpers/audit.js', () => ({
   auditKnowledgeGroupFileUpload: vi.fn()
 }))
+vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({
+  getUserId: vi.fn().mockReturnValue('user-123'),
+  getSessionId: vi.fn().mockReturnValue('session-abc')
+}))
 vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   createLogger: () => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn() })
 }))
@@ -182,6 +186,26 @@ describe('upload controller', () => {
       expect(cdpUploaderService.initiateUpload).toHaveBeenCalledWith({ knowledgeGroupId: 'g1' })
     })
 
+    test('stores userId and sessionId in the upload session', async () => {
+      cdpUploaderService.initiateUpload.mockResolvedValue({
+        uploadId: 'abc123',
+        uploadUrl: '/upload-and-scan/abc123',
+        statusUrl: '/status/abc123',
+        uploadReference: 'ref-abc123'
+      })
+      uploadSessionCache.storeUploadSession.mockResolvedValue(undefined)
+
+      await uploadPostController.handler(
+        { payload: { 'knowledge-group': 'g1' } },
+        mockH
+      )
+
+      expect(uploadSessionCache.storeUploadSession).toHaveBeenCalledWith(
+        'ref-abc123',
+        expect.objectContaining({ userId: 'user-123', sessionId: 'session-abc' })
+      )
+    })
+
     test('redirects to /upload/files/{uploadReference} on initiate success', async () => {
       cdpUploaderService.initiateUpload.mockResolvedValue({
         uploadId: 'abc123',
@@ -225,8 +249,6 @@ describe('upload controller', () => {
 
     const makeRequest = (formFiles, fileStatus = 'complete') => ({
       params: { uploadReference },
-      auth: { credentials: { id: 'user-123' } },
-      sessionId: 'session-123',
       payload: {
         metadata: { knowledgeGroupId },
         form: {
@@ -244,6 +266,13 @@ describe('upload controller', () => {
 
     beforeEach(() => {
       mockH.response = vi.fn().mockReturnThis()
+      uploadSessionCache.getUploadSession.mockResolvedValue({
+        uploadId: 'upload-id-123',
+        statusUrl: '/status/upload-ref-123',
+        knowledgeGroupId,
+        userId: 'user-123',
+        sessionId: 'session-abc'
+      })
     })
 
     test('creates documents for each complete file mapped with metadata from the callback payload', async () => {
@@ -274,14 +303,12 @@ describe('upload controller', () => {
 
       const request = {
         params: { uploadReference },
-        auth: { credentials: { id: 'user-123' } },
-        sessionId: 'session-123',
         payload: {
           metadata: { knowledgeGroupId },
           form: {
             file: [
-              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', size: 100, s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
-              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', size: 200, s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
+              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', size: 1234, s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
+              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', size: 1234, s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
             ]
           }
         }
@@ -323,14 +350,12 @@ describe('upload controller', () => {
 
       const request = {
         params: { uploadReference },
-        auth: { credentials: { id: 'user-123' } },
-        sessionId: 'session-123',
         payload: {
           metadata: { knowledgeGroupId },
           form: {
             file: [
-              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', size: 100, s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
-              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', size: 200, s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
+              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', size: 1234, s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
+              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', size: 1234, s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
             ]
           }
         }
@@ -341,18 +366,18 @@ describe('upload controller', () => {
       expect(auditKnowledgeGroupFileUpload).toHaveBeenCalledTimes(2)
       expect(auditKnowledgeGroupFileUpload).toHaveBeenCalledWith({
         userId: 'user-123',
-        sessionId: 'session-123',
+        sessionId: 'session-abc',
         knowledgeGroupId,
         fileName: 'good.pdf',
-        fileSize: 100,
+        fileSize: 1234,
         uploadStatus: 'complete'
       })
       expect(auditKnowledgeGroupFileUpload).toHaveBeenCalledWith({
         userId: 'user-123',
-        sessionId: 'session-123',
+        sessionId: 'session-abc',
         knowledgeGroupId,
         fileName: 'virus.exe',
-        fileSize: 200,
+        fileSize: 1234,
         uploadStatus: 'rejected'
       })
     })

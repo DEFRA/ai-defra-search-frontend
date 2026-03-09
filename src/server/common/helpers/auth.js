@@ -80,7 +80,7 @@ async function _validateSessionToken (request, session) {
     return { isValid: false }
   }
 
-  return { isValid: true, credentials: userSession }
+  return { isValid: true, credentials: { ...userSession, sessionId: session.id } }
 }
 
 const auth = {

@@ -41,16 +41,16 @@ describe('audit helper', () => {
       userId: 'user-1',
       sessionId: 'session-1',
       conversationId: 'conv-1',
-      modelId: 'model-1',
       messages: [
         { role: 'user', content: 'Hello', status: 'completed' },
-        { role: 'assistant', content: 'Hi', status: 'completed' }
+        { role: 'assistant', content: 'Hi', status: 'completed', model_id: 'sonnet-3-7' }
       ]
     })
 
     expect(audit).toHaveBeenCalledWith(expect.objectContaining({
       eventType: 'llm_interaction',
-      interactionStatus: 'success'
+      interactionStatus: 'success',
+      modelId: 'sonnet-3-7'
     }))
   })
 
@@ -59,16 +59,16 @@ describe('audit helper', () => {
       userId: 'user-1',
       sessionId: 'session-1',
       conversationId: 'conv-1',
-      modelId: 'model-1',
       messages: [
         { role: 'user', content: 'Hello', status: 'completed' },
-        { role: 'assistant', content: 'Error', status: 'failed' }
+        { role: 'assistant', content: 'Error', status: 'failed', model_id: 'haiku' }
       ]
     })
 
     expect(audit).toHaveBeenCalledWith(expect.objectContaining({
       eventType: 'llm_interaction',
-      interactionStatus: 'failure'
+      interactionStatus: 'failure',
+      modelId: 'haiku'
     }))
   })
 
@@ -77,10 +77,9 @@ describe('audit helper', () => {
       userId: 'user-1',
       sessionId: 'session-1',
       conversationId: 'conv-1',
-      modelId: 'model-1',
       messages: [
-        { role: 'assistant', content: 'First', status: 'completed' },
-        { role: 'assistant', content: 'Second', status: 'failed' }
+        { role: 'assistant', content: 'First', status: 'completed', model_id: 'sonnet-3-7' },
+        { role: 'assistant', content: 'Second', status: 'failed', model_id: 'sonnet-3-7' }
       ]
     })
 
@@ -97,7 +96,6 @@ describe('audit helper', () => {
       userId: 'user-1',
       sessionId: 'session-1',
       conversationId: 'conv-1',
-      modelId: 'model-1',
       messages: [
         { role: 'user', content: 'Hello', status: 'completed' }
       ]
@@ -113,9 +111,8 @@ describe('audit helper', () => {
       userId: 'user-1',
       sessionId: 'session-1',
       conversationId: 'conv-1',
-      modelId: 'model-1',
       messages: [
-        { role: 'assistant', content: 'Thinking...', status: 'pending' }
+        { role: 'assistant', content: 'Thinking...', status: 'pending', model_id: 'sonnet-3-7' }
       ]
     })
 
