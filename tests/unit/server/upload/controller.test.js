@@ -252,14 +252,18 @@ describe('upload controller', () => {
       payload: {
         metadata: { knowledgeGroupId },
         form: {
-          file: formFiles.map((name, i) => ({
-            fileId: `file-id-${i}`,
-            filename: name,
-            fileStatus,
-            size: 1234,
-            s3Key: `uploads/${knowledgeGroupId}/${name}`,
-            s3Bucket: 'my-bucket'
-          }))
+          file: formFiles.map((fileSpec, i) => {
+            const filename = typeof fileSpec === 'string' ? fileSpec : fileSpec.filename
+            const status = typeof fileSpec === 'string' ? fileStatus : (fileSpec.fileStatus ?? fileStatus)
+            return {
+              fileId: `file-id-${i}`,
+              filename,
+              fileStatus: status,
+              size: 1234,
+              s3Key: `uploads/${knowledgeGroupId}/${filename}`,
+              s3Bucket: 'my-bucket'
+            }
+          })
         }
       }
     })
@@ -301,18 +305,10 @@ describe('upload controller', () => {
     test('creates documents only for complete files when the payload contains a mix of complete and rejected files', async () => {
       knowledgeGroupsService.createDocuments.mockResolvedValue()
 
-      const request = {
-        params: { uploadReference },
-        payload: {
-          metadata: { knowledgeGroupId },
-          form: {
-            file: [
-              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', size: 1234, s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
-              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', size: 1234, s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
-            ]
-          }
-        }
-      }
+      const request = makeRequest([
+        { filename: 'good.pdf', fileStatus: 'complete' },
+        { filename: 'virus.exe', fileStatus: 'rejected' }
+      ])
 
       await uploadCallbackController.handler(request, mockH)
 
@@ -348,18 +344,10 @@ describe('upload controller', () => {
     test('audits each complete and rejected file individually', async () => {
       knowledgeGroupsService.createDocuments.mockResolvedValue()
 
-      const request = {
-        params: { uploadReference },
-        payload: {
-          metadata: { knowledgeGroupId },
-          form: {
-            file: [
-              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', size: 1234, s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
-              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', size: 1234, s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
-            ]
-          }
-        }
-      }
+      const request = makeRequest([
+        { filename: 'good.pdf', fileStatus: 'complete' },
+        { filename: 'virus.exe', fileStatus: 'rejected' }
+      ])
 
       await uploadCallbackController.handler(request, mockH)
 
