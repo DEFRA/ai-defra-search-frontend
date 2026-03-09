@@ -1,6 +1,7 @@
 import statusCodes from 'http-status-codes'
 import { sendQuestion, getConversation as getConversationApi } from '../services/chat-service.js'
 import { getModels } from '../services/models-service.js'
+import { listKnowledgeGroups } from '../services/knowledge-groups-service.js'
 import { getConversation as getCachedConversation, storeConversation, clearConversation } from './conversation-cache.js'
 import { hasPendingResponse, buildUserMessage, buildPlaceholderMessage } from './message-builders.js'
 import { getErrorDetails } from './error-mapping.js'
@@ -49,11 +50,19 @@ async function storeConversationWithPlaceholder (conversationId, question, apiRe
  * @param {string|undefined} conversationId
  * @returns {Promise<object>}
  */
+function buildKnowledgeGroupSelectItems (knowledgeGroups) {
+  return [
+    { value: '', text: 'No knowledge group' },
+    ...knowledgeGroups.map(g => ({ value: g.id, text: g.name }))
+  ]
+}
+
 async function loadConversationPageData (conversationId) {
-  const models = await getModels()
+  const [models, knowledgeGroups] = await Promise.all([getModels(), listKnowledgeGroups()])
+  const knowledgeGroupSelectItems = buildKnowledgeGroupSelectItems(knowledgeGroups)
 
   if (!conversationId) {
-    return { models, messages: [], conversationId: null, modelId: null, responsePending: false }
+    return { models, knowledgeGroupSelectItems, messages: [], conversationId: null, modelId: null, responsePending: false }
   }
 
   const cached = await getCachedConversation(conversationId)
@@ -62,6 +71,7 @@ async function loadConversationPageData (conversationId) {
     await clearInitialViewPending(cached)
     return {
       models,
+      knowledgeGroupSelectItems,
       messages: cached.messages,
       conversationId: cached.conversationId,
       modelId: cached.modelId || null,
@@ -78,7 +88,7 @@ async function loadConversationPageData (conversationId) {
     ])
 
     if (!conversation) {
-      return { models, messages: [], conversationId, modelId: null, responsePending: false }
+      return { models, knowledgeGroupSelectItems, messages: [], conversationId, modelId: null, responsePending: false }
     }
 
     try {
@@ -89,6 +99,7 @@ async function loadConversationPageData (conversationId) {
 
     return {
       models,
+      knowledgeGroupSelectItems,
       messages: conversation.messages,
       conversationId: conversation.conversationId,
       modelId: null,
@@ -99,6 +110,7 @@ async function loadConversationPageData (conversationId) {
       const fallbackMessages = cached?.messages ?? []
       return {
         models,
+        knowledgeGroupSelectItems,
         messages: fallbackMessages,
         conversationId,
         modelId: cached?.modelId ?? null,
@@ -106,7 +118,7 @@ async function loadConversationPageData (conversationId) {
       }
     }
     if (error.response?.status === statusCodes.NOT_FOUND) {
-      return { models, messages: [], conversationId, modelId: null, responsePending: false, notFound: true }
+      return { models, knowledgeGroupSelectItems, messages: [], conversationId, modelId: null, responsePending: false, notFound: true }
     }
     throw error
   }
@@ -124,10 +136,11 @@ async function detectPendingConflict (conversationId) {
   if (!hasPendingResponse(cached?.messages)) {
     return null
   }
-  const models = await getModels()
+  const [models, knowledgeGroups] = await Promise.all([getModels(), listKnowledgeGroups()])
   return {
     messages: cached.messages,
     models,
+    knowledgeGroupSelectItems: buildKnowledgeGroupSelectItems(knowledgeGroups),
     modelId: cached.modelId ?? null
   }
 }
@@ -139,10 +152,11 @@ async function detectPendingConflict (conversationId) {
  * @param {string} question
  * @param {string} modelId
  * @param {string|undefined} conversationId
+ * @param {string|null} [knowledgeGroupId]
  * @returns {Promise<{ conversationId: string }>}
  */
-async function submitQuestion (question, modelId, conversationId) {
-  const apiResponse = await sendQuestion(question, modelId, conversationId)
+async function submitQuestion (question, modelId, conversationId, knowledgeGroupId) {
+  const apiResponse = await sendQuestion(question, modelId, conversationId, knowledgeGroupId)
   await storeConversationWithPlaceholder(conversationId, question, apiResponse, modelId)
   return { conversationId: apiResponse.conversationId }
 }
@@ -154,16 +168,18 @@ async function submitQuestion (question, modelId, conversationId) {
  * @param {string} modelId
  * @param {string|undefined} conversationId
  * @param {Error} error
+ * @param {string|null} [knowledgeGroupId]
  * @returns {Promise<object>}
  */
-async function loadSubmitError (question, modelId, conversationId, error) {
-  const [models, conversation, errorDetails] = await Promise.all([
+async function loadSubmitError (question, modelId, conversationId, error, knowledgeGroupId) {
+  const [models, knowledgeGroups, conversation, errorDetails] = await Promise.all([
     getModels(),
+    listKnowledgeGroups(),
     getCachedConversation(conversationId),
     getErrorDetails(error)
   ])
   const messages = conversation?.messages || []
-  return { messages, question, conversationId, modelId, models, errorDetails, responsePending: hasPendingResponse(messages) }
+  return { messages, question, conversationId, modelId, models, knowledgeGroupSelectItems: buildKnowledgeGroupSelectItems(knowledgeGroups), knowledgeGroupId: knowledgeGroupId || null, errorDetails, responsePending: hasPendingResponse(messages) }
 }
 
 /**
@@ -173,15 +189,17 @@ async function loadSubmitError (question, modelId, conversationId, error) {
  * @param {string} question
  * @param {string} modelId
  * @param {string} errorMessage
+ * @param {string|null} [knowledgeGroupId]
  * @returns {Promise<object>}
  */
-async function loadValidationError (conversationId, question, modelId, errorMessage) {
-  const [models, conversation] = await Promise.all([
+async function loadValidationError (conversationId, question, modelId, errorMessage, knowledgeGroupId) {
+  const [models, knowledgeGroups, conversation] = await Promise.all([
     getModels(),
+    listKnowledgeGroups(),
     getCachedConversation(conversationId)
   ])
   const messages = conversation?.messages || []
-  return { messages, question, conversationId, modelId, models, errorMessage, responsePending: hasPendingResponse(messages) }
+  return { messages, question, conversationId, modelId, models, knowledgeGroupSelectItems: buildKnowledgeGroupSelectItems(knowledgeGroups), knowledgeGroupId: knowledgeGroupId || null, errorMessage, responsePending: hasPendingResponse(messages) }
 }
 
 /**

@@ -82,9 +82,35 @@ function cleanupKnowledgeApiMocks () {
   nock.cleanAll()
 }
 
+const knowledgeApiBaseUrl = 'http://localhost:9999'
+
+function setupKnowledgeGroupsMock () {
+  nock(knowledgeApiBaseUrl)
+    .persist()
+    .get('/knowledge-groups')
+    .reply(200, [{ id: 'kg-1', name: 'Test Knowledge Group' }])
+}
+
+function setupKnowledgeGroupsEmptyMock () {
+  nock(knowledgeApiBaseUrl)
+    .persist()
+    .get('/knowledge-groups')
+    .reply(200, [])
+}
+
+function setupKnowledgeGroupsErrorMock () {
+  nock(knowledgeApiBaseUrl)
+    .persist()
+    .get('/knowledge-groups')
+    .reply(500, { error: 'Knowledge groups API error' })
+}
+
 export {
   cleanupKnowledgeApiMocks,
   setupKnowledgeApiMocks,
   setupKnowledgeApiListError,
-  setupKnowledgeApiGroupError
+  setupKnowledgeApiGroupError,
+  setupKnowledgeGroupsMock,
+  setupKnowledgeGroupsEmptyMock,
+  setupKnowledgeGroupsErrorMock
 }

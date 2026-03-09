@@ -1,5 +1,6 @@
 {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
 {% from "model-select/macro.njk" import defraModelSelect %}
 
 <form action="/start{% if conversationId %}/{{ conversationId }}{% endif %}" method="post" novalidate{% if responsePending %} aria-disabled="true"{% endif %}>
@@ -33,5 +34,21 @@
     modelId: modelId,
     disabled: responsePending
   }) }}
+
+  {{ govukSelect({
+    name: "knowledgeGroupId",
+    id: "knowledgeGroupId",
+    label: {
+      text: "Knowledge group",
+      classes: "govuk-label--s"
+    },
+    value: knowledgeGroupId if knowledgeGroupId else "",
+    disabled: responsePending,
+    items: knowledgeGroupSelectItems
+  }) }}
+
+  <p class="govuk-body">
+    <a href="/upload" class="govuk-link">Upload files</a>
+  </p>
 
 </form>

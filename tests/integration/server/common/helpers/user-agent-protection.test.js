@@ -2,6 +2,7 @@ import { describe, beforeEach, afterEach, test, expect, beforeAll } from 'vitest
 import http2 from 'node:http2'
 import { createServer } from '../../../../../src/server/server.js'
 import { setupModelsApiMocks } from '../../../../mocks/models-api-handlers.js'
+import { setupKnowledgeGroupsMock } from '../../../../mocks/knowledge-api-handlers.js'
 
 const { constants: httpConstants } = http2
 const MAX_USER_AGENT_LENGTH = 150
@@ -11,6 +12,7 @@ describe('user-agent protection', () => {
 
   beforeAll(() => {
     setupModelsApiMocks()
+    setupKnowledgeGroupsMock()
   })
 
   beforeEach(async () => {

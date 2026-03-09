@@ -5,6 +5,7 @@ import nock from 'nock'
 import { createServer } from '../../../../src/server/server.js'
 import { cleanupChatApiMocks, setupChatApiErrorMock, setupChatApiMocks } from '../../../mocks/chat-api-handlers.js'
 import { cleanupModelsApiMocks, setupModelsApiErrorMock, setupModelsApiMocks } from '../../../mocks/models-api-handlers.js'
+import { setupKnowledgeGroupsMock, setupKnowledgeGroupsEmptyMock, setupKnowledgeGroupsErrorMock } from '../../../mocks/knowledge-api-handlers.js'
 import { clearConversation } from '../../../../src/server/start/conversation-cache.js'
 import { clearModelsCache } from '../../../../src/server/services/models-service.js'
 
@@ -22,6 +23,7 @@ describe('Start page', () => {
     cleanupModelsApiMocks()
     clearModelsCache()
     await clearConversation('mock-conversation-123')
+    setupKnowledgeGroupsMock()
   })
 
   afterAll(async () => {
@@ -55,6 +57,49 @@ describe('Start page', () => {
 
       expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
       expect(new JSDOM(response.result).window.document.body.textContent).toContain('Sorry, there was a problem with the service request')
+    })
+
+    test('renders the start page with the knowledge group dropdown and an upload files link', async () => {
+      setupModelsApiMocks()
+
+      const response = await server.inject({ method: 'GET', url: '/start' })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+
+      const page = new JSDOM(response.result).window.document
+      const select = page.querySelector('select[name="knowledgeGroupId"]')
+      expect(select).not.toBeNull()
+      expect(select.querySelector('option[value=""]')?.textContent?.trim()).toBe('No knowledge group')
+      expect(select.querySelector('option[value="kg-1"]')?.textContent?.trim()).toBe('Test Knowledge Group')
+      expect(page.querySelector('a[href="/upload"]')).not.toBeNull()
+    })
+
+    test('renders a server error page when the knowledge groups API fails', async () => {
+      nock.cleanAll()
+      setupModelsApiMocks()
+      setupKnowledgeGroupsErrorMock()
+
+      const response = await server.inject({ method: 'GET', url: '/start' })
+
+      expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
+      expect(new JSDOM(response.result).window.document.body.textContent).toContain('Sorry, there was a problem with the service request')
+    })
+
+    test('renders only the no-knowledge-group option when the knowledge groups API returns an empty list', async () => {
+      nock.cleanAll()
+      setupModelsApiMocks()
+      setupKnowledgeGroupsEmptyMock()
+
+      const response = await server.inject({ method: 'GET', url: '/start' })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+
+      const page = new JSDOM(response.result).window.document
+      const select = page.querySelector('select[name="knowledgeGroupId"]')
+      expect(select).not.toBeNull()
+      const options = select.querySelectorAll('option')
+      expect(options.length).toBe(1)
+      expect(options[0].getAttribute('value')).toBe('')
     })
   })
 
@@ -129,6 +174,7 @@ describe('Start page', () => {
     test('shows a non-retryable error when the chat API returns 500', async () => {
       setupChatApiErrorMock(statusCodes.INTERNAL_SERVER_ERROR)
       setupModelsApiMocks()
+      setupKnowledgeGroupsMock()
 
       const response = await server.inject({
         method: 'POST',
@@ -151,6 +197,7 @@ describe('Start page', () => {
     ])('shows a retryable error when the chat API returns %s', async (statusCode) => {
       setupChatApiErrorMock(statusCode)
       setupModelsApiMocks()
+      setupKnowledgeGroupsMock()
 
       const response = await server.inject({
         method: 'POST',
@@ -168,6 +215,7 @@ describe('Start page', () => {
     test('shows a non-retryable error when the chat API returns 400', async () => {
       setupChatApiErrorMock(statusCodes.BAD_REQUEST)
       setupModelsApiMocks()
+      setupKnowledgeGroupsMock()
 
       const response = await server.inject({
         method: 'POST',
@@ -185,6 +233,7 @@ describe('Start page', () => {
     test('shows a non-retryable error when the chat API connection times out', async () => {
       setupChatApiErrorMock(null, 'timeout')
       setupModelsApiMocks()
+      setupKnowledgeGroupsMock()
 
       const response = await server.inject({
         method: 'POST',
@@ -199,6 +248,7 @@ describe('Start page', () => {
     test('includes conversationId in the clear link when a retryable error occurs mid-conversation', async () => {
       setupChatApiErrorMock(statusCodes.GATEWAY_TIMEOUT)
       setupModelsApiMocks()
+      setupKnowledgeGroupsMock()
 
       const response = await server.inject({
         method: 'POST',
@@ -208,6 +258,41 @@ describe('Start page', () => {
 
       expect(response.statusCode).toBe(statusCodes.OK)
       expect(new JSDOM(response.result).window.document.querySelector('a[href="/start/clear/timeout-conversation-123"]')).not.toBeNull()
+    })
+
+    test.each([
+      [{ knowledgeGroupId: 'kg-1' }],
+      [{ knowledgeGroupId: '' }]
+    ])('redirects to the conversation page when a knowledge group is selected and when none is selected', async ({ knowledgeGroupId }) => {
+      setupModelsApiMocks()
+      setupChatApiMocks()
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/start',
+        payload: { modelId: 'sonnet-3.7', question: 'What is UCD?', knowledgeGroupId }
+      })
+
+      expect(response.statusCode).toBe(statusCodes.SEE_OTHER)
+      expect(response.headers.location).toMatch(/\/start\/mock-conversation-123/)
+    })
+
+    test('preserves the selected knowledge group when a validation error occurs', async () => {
+      setupModelsApiMocks()
+
+      const response = await server.inject({
+        method: 'POST',
+        url: '/start',
+        payload: { modelId: 'sonnet-3.7', question: '', knowledgeGroupId: 'kg-1' }
+      })
+
+      expect(response.statusCode).toBe(statusCodes.BAD_REQUEST)
+
+      const page = new JSDOM(response.result).window.document
+      const select = page.querySelector('select[name="knowledgeGroupId"]')
+      expect(select).not.toBeNull()
+      const selectedOption = select.querySelector('option[selected]') || select.querySelector('option[value="kg-1"]')
+      expect(selectedOption).not.toBeNull()
     })
   })
 
@@ -274,6 +359,7 @@ describe('Start page', () => {
     test('falls back to empty messages when the API times out', async () => {
       cleanupChatApiMocks()
       setupModelsApiMocks()
+      setupKnowledgeGroupsMock()
 
       nock('http://host.docker.internal:3018')
         .get('/conversations/timeout-conv')
@@ -289,6 +375,7 @@ describe('Start page', () => {
     test('returns 404 when the conversation is not found', async () => {
       cleanupChatApiMocks()
       setupModelsApiMocks()
+      setupKnowledgeGroupsMock()
 
       nock('http://host.docker.internal:3018')
         .get('/conversations/not-found')
@@ -302,6 +389,7 @@ describe('Start page', () => {
     test('returns 500 when the API returns an unexpected error', async () => {
       cleanupChatApiMocks()
       setupModelsApiMocks()
+      setupKnowledgeGroupsMock()
 
       nock('http://host.docker.internal:3018')
         .get('/conversations/error-conv')
@@ -311,6 +399,26 @@ describe('Start page', () => {
       const response = await server.inject({ method: 'GET', url: '/start/error-conv' })
 
       expect(response.statusCode).toBe(statusCodes.INTERNAL_SERVER_ERROR)
+    })
+
+    test('disables the knowledge group dropdown while a response is pending', async () => {
+      setupModelsApiMocks()
+      setupChatApiMocks()
+
+      const postResponse = await server.inject({
+        method: 'POST',
+        url: '/start',
+        payload: { modelId: 'sonnet-3.7', question: 'What is UCD?' }
+      })
+
+      const response = await server.inject({ method: 'GET', url: postResponse.headers.location })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+
+      const page = new JSDOM(response.result).window.document
+      const select = page.querySelector('select[name="knowledgeGroupId"]')
+      expect(select).not.toBeNull()
+      expect(select.disabled || select.hasAttribute('disabled')).toBe(true)
     })
   })
 

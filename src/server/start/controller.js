@@ -35,16 +35,16 @@ const startPostController = {
       params: startParamsSchema,
       failAction: async (request, h, error) => {
         const { conversationId } = request.params
-        const { question, modelId } = request.payload || {}
+        const { question, modelId, knowledgeGroupId } = request.payload || {}
         const errorMessage = error.details[0]?.message
 
-        const data = await loadValidationError(conversationId, question, modelId, errorMessage)
+        const data = await loadValidationError(conversationId, question, modelId, errorMessage, knowledgeGroupId)
         return h.view(START_VIEW_PATH, createStartViewModel(data)).code(statusCodes.BAD_REQUEST).takeover()
       }
     }
   },
   async handler (request, h) {
-    const { modelId, question } = request.payload
+    const { modelId, question, knowledgeGroupId } = request.payload
     const { conversationId } = request.params
 
     if (conversationId) {
@@ -60,11 +60,11 @@ const startPostController = {
     }
 
     try {
-      const { conversationId: id } = await submitQuestion(question, modelId, conversationId)
+      const { conversationId: id } = await submitQuestion(question, modelId, conversationId, knowledgeGroupId)
       return h.redirect(`/start/${id}`).code(statusCodes.SEE_OTHER)
     } catch (error) {
       request.logger.error({ err: error, question }, 'Error calling chat API')
-      const data = await loadSubmitError(question, modelId, conversationId, error)
+      const data = await loadSubmitError(question, modelId, conversationId, error, knowledgeGroupId)
       return h.view(START_VIEW_PATH, createStartViewModel(data))
     }
   }
