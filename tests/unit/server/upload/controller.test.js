@@ -4,6 +4,9 @@ import statusCodes from 'http-status-codes'
 vi.mock('../../../../src/server/services/knowledge-groups-service.js')
 vi.mock('../../../../src/server/services/cdp-uploader-service.js')
 vi.mock('../../../../src/server/upload/upload-session-cache.js')
+vi.mock('../../../../src/server/common/helpers/audit.js', () => ({
+  auditKnowledgeGroupFileUpload: vi.fn()
+}))
 vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   createLogger: () => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn() })
 }))
@@ -11,6 +14,7 @@ vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
 const knowledgeGroupsService = await import('../../../../src/server/services/knowledge-groups-service.js')
 const cdpUploaderService = await import('../../../../src/server/services/cdp-uploader-service.js')
 const uploadSessionCache = await import('../../../../src/server/upload/upload-session-cache.js')
+const { auditKnowledgeGroupFileUpload } = await import('../../../../src/server/common/helpers/audit.js')
 const {
   uploadGetController,
   uploadPostController,
@@ -221,6 +225,8 @@ describe('upload controller', () => {
 
     const makeRequest = (formFiles, fileStatus = 'complete') => ({
       params: { uploadReference },
+      auth: { credentials: { id: 'user-123' } },
+      sessionId: 'session-123',
       payload: {
         metadata: { knowledgeGroupId },
         form: {
@@ -228,6 +234,7 @@ describe('upload controller', () => {
             fileId: `file-id-${i}`,
             filename: name,
             fileStatus,
+            size: 1234,
             s3Key: `uploads/${knowledgeGroupId}/${name}`,
             s3Bucket: 'my-bucket'
           }))
@@ -267,12 +274,14 @@ describe('upload controller', () => {
 
       const request = {
         params: { uploadReference },
+        auth: { credentials: { id: 'user-123' } },
+        sessionId: 'session-123',
         payload: {
           metadata: { knowledgeGroupId },
           form: {
             file: [
-              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
-              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
+              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', size: 100, s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
+              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', size: 200, s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
             ]
           }
         }
@@ -307,6 +316,45 @@ describe('upload controller', () => {
 
       expect(mockH.response).toHaveBeenCalled()
       expect(mockH.code).toHaveBeenCalledWith(200)
+    })
+
+    test('audits each complete and rejected file individually', async () => {
+      knowledgeGroupsService.createDocuments.mockResolvedValue()
+
+      const request = {
+        params: { uploadReference },
+        auth: { credentials: { id: 'user-123' } },
+        sessionId: 'session-123',
+        payload: {
+          metadata: { knowledgeGroupId },
+          form: {
+            file: [
+              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', size: 100, s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
+              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', size: 200, s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
+            ]
+          }
+        }
+      }
+
+      await uploadCallbackController.handler(request, mockH)
+
+      expect(auditKnowledgeGroupFileUpload).toHaveBeenCalledTimes(2)
+      expect(auditKnowledgeGroupFileUpload).toHaveBeenCalledWith({
+        userId: 'user-123',
+        sessionId: 'session-123',
+        knowledgeGroupId,
+        fileName: 'good.pdf',
+        fileSize: 100,
+        uploadStatus: 'complete'
+      })
+      expect(auditKnowledgeGroupFileUpload).toHaveBeenCalledWith({
+        userId: 'user-123',
+        sessionId: 'session-123',
+        knowledgeGroupId,
+        fileName: 'virus.exe',
+        fileSize: 200,
+        uploadStatus: 'rejected'
+      })
     })
   })
 
@@ -425,6 +473,7 @@ describe('upload controller', () => {
         values: { name: '', description: '', 'information-asset-owner': '' }
       })
       expect(mockH.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
+      expect(knowledgeGroupsService.createKnowledgeGroup).not.toHaveBeenCalled()
     })
 
     test('creates group and redirects on success', async () => {

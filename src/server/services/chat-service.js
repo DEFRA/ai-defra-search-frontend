@@ -2,6 +2,7 @@ import { config } from '../../config/config.js'
 import { marked } from 'marked'
 import { getUserId } from '../common/helpers/user-context.js'
 import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { auditLlmInteraction } from '../common/helpers/audit.js'
 
 /**
  * Send a question to the backend chat API. The backend queues the request and
@@ -69,9 +70,11 @@ async function sendQuestion (question, modelId, conversationId) {
  *
  * @param {string} conversationId - UUID of the conversation
  * @param {number} timeoutMs - Timeout in milliseconds (defaults to configured chatApiTimeoutMs)
+ * @param {string} sessionId - Session ID for auditing (required)
+ * @param {string} modelId - Model ID for auditing (required)
  * @returns {Promise<Object>} The conversation object { conversationId, messages }
  */
-async function getConversation (conversationId, timeoutMs = config.get('chatApiTimeoutMs')) {
+async function getConversation (conversationId, timeoutMs = config.get('chatApiTimeoutMs'), sessionId, modelId) {
   const chatApiUrl = config.get('chatApiUrl')
   const url = `${chatApiUrl}/conversations/${conversationId}`
 
@@ -91,8 +94,16 @@ async function getConversation (conversationId, timeoutMs = config.get('chatApiT
     content: message.content ? marked.parse(message.content) : ''
   }))
 
+  auditLlmInteraction({
+    userId,
+    sessionId,
+    conversationId,
+    modelId,
+    messages: parsedMessages
+  })
+
   return {
-    conversationId: data.conversation_id || data.conversationId,
+    conversationId,
     messages: parsedMessages
   }
 }

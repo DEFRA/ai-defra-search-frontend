@@ -1,4 +1,5 @@
 import { randomUUID as uuidv4 } from 'node:crypto'
+import { auditLoginSuccess } from '../common/helpers/audit.js'
 
 /**
  * @typedef {Object} Profile
@@ -28,6 +29,12 @@ export const authController = {
     await request.server.app.cache.set(sessionId, buildSession(profile, token))
 
     request.cookieAuth.set({ id: sessionId })
+
+    auditLoginSuccess({
+      userId: profile.id,
+      sessionId,
+      sourceIp: request.info.remoteAddress
+    })
 
     return h.redirect('/')
   }

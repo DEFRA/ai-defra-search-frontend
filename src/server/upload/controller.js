@@ -4,6 +4,7 @@ import { createLogger } from '../common/helpers/logging/logger.js'
 import { listKnowledgeGroups, createKnowledgeGroup, createDocuments } from '../services/knowledge-groups-service.js'
 import { initiateUpload, fetchUploadStatus } from '../services/cdp-uploader-service.js'
 import { storeUploadSession, getUploadSession } from './upload-session-cache.js'
+import { auditKnowledgeGroupFileUpload } from '../common/helpers/audit.js'
 
 const logger = createLogger()
 const UPLOAD_VIEW_PATH = 'upload/upload'
@@ -129,6 +130,8 @@ export const uploadCallbackController = {
     const completeFiles = formFiles.filter(value => typeof value === 'object' && value !== null && value.fileStatus === 'complete')
     const rejectedFiles = formFiles.filter(value => typeof value === 'object' && value !== null && value.fileStatus === 'rejected')
 
+    auditFileUploads([...completeFiles, ...rejectedFiles], metadata, request)
+
     if (completeFiles.length > 0) {
       const documents = completeFiles.map(file => ({
         file_name: file.filename,
@@ -191,4 +194,19 @@ export const uploadCreateGroupPostController = {
       }).code(err.status || statusCodes.INTERNAL_SERVER_ERROR)
     }
   }
+}
+
+function auditFileUploads (files, metadata, request) {
+  const userId = request.auth?.credentials?.id ?? null
+
+  files.forEach(file => {
+    auditKnowledgeGroupFileUpload({
+      userId,
+      sessionId: request.sessionId,
+      knowledgeGroupId: metadata.knowledgeGroupId,
+      fileName: file.filename,
+      fileSize: file.size,
+      uploadStatus: file.fileStatus
+    })
+  })
 }
