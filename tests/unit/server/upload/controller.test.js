@@ -4,6 +4,13 @@ import statusCodes from 'http-status-codes'
 vi.mock('../../../../src/server/services/knowledge-groups-service.js')
 vi.mock('../../../../src/server/services/cdp-uploader-service.js')
 vi.mock('../../../../src/server/upload/upload-session-cache.js')
+vi.mock('../../../../src/server/common/helpers/audit.js', () => ({
+  auditKnowledgeGroupFileUpload: vi.fn()
+}))
+vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({
+  getUserId: vi.fn().mockReturnValue('user-123'),
+  getSessionId: vi.fn().mockReturnValue('session-abc')
+}))
 vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   createLogger: () => ({ warn: vi.fn(), info: vi.fn(), error: vi.fn() })
 }))
@@ -11,6 +18,7 @@ vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
 const knowledgeGroupsService = await import('../../../../src/server/services/knowledge-groups-service.js')
 const cdpUploaderService = await import('../../../../src/server/services/cdp-uploader-service.js')
 const uploadSessionCache = await import('../../../../src/server/upload/upload-session-cache.js')
+const { auditKnowledgeGroupFileUpload } = await import('../../../../src/server/common/helpers/audit.js')
 const {
   uploadGetController,
   uploadPostController,
@@ -178,6 +186,26 @@ describe('upload controller', () => {
       expect(cdpUploaderService.initiateUpload).toHaveBeenCalledWith({ knowledgeGroupId: 'g1' })
     })
 
+    test('stores userId and sessionId in the upload session', async () => {
+      cdpUploaderService.initiateUpload.mockResolvedValue({
+        uploadId: 'abc123',
+        uploadUrl: '/upload-and-scan/abc123',
+        statusUrl: '/status/abc123',
+        uploadReference: 'ref-abc123'
+      })
+      uploadSessionCache.storeUploadSession.mockResolvedValue(undefined)
+
+      await uploadPostController.handler(
+        { payload: { 'knowledge-group': 'g1' } },
+        mockH
+      )
+
+      expect(uploadSessionCache.storeUploadSession).toHaveBeenCalledWith(
+        'ref-abc123',
+        expect.objectContaining({ userId: 'user-123', sessionId: 'session-abc' })
+      )
+    })
+
     test('redirects to /upload/files/{uploadReference} on initiate success', async () => {
       cdpUploaderService.initiateUpload.mockResolvedValue({
         uploadId: 'abc123',
@@ -224,19 +252,31 @@ describe('upload controller', () => {
       payload: {
         metadata: { knowledgeGroupId },
         form: {
-          file: formFiles.map((name, i) => ({
-            fileId: `file-id-${i}`,
-            filename: name,
-            fileStatus,
-            s3Key: `uploads/${knowledgeGroupId}/${name}`,
-            s3Bucket: 'my-bucket'
-          }))
+          file: formFiles.map((fileSpec, i) => {
+            const filename = typeof fileSpec === 'string' ? fileSpec : fileSpec.filename
+            const status = typeof fileSpec === 'string' ? fileStatus : (fileSpec.fileStatus ?? fileStatus)
+            return {
+              fileId: `file-id-${i}`,
+              filename,
+              fileStatus: status,
+              size: 1234,
+              s3Key: `uploads/${knowledgeGroupId}/${filename}`,
+              s3Bucket: 'my-bucket'
+            }
+          })
         }
       }
     })
 
     beforeEach(() => {
       mockH.response = vi.fn().mockReturnThis()
+      uploadSessionCache.getUploadSession.mockResolvedValue({
+        uploadId: 'upload-id-123',
+        statusUrl: '/status/upload-ref-123',
+        knowledgeGroupId,
+        userId: 'user-123',
+        sessionId: 'session-abc'
+      })
     })
 
     test('creates documents for each complete file mapped with metadata from the callback payload', async () => {
@@ -265,18 +305,10 @@ describe('upload controller', () => {
     test('creates documents only for complete files when the payload contains a mix of complete and rejected files', async () => {
       knowledgeGroupsService.createDocuments.mockResolvedValue()
 
-      const request = {
-        params: { uploadReference },
-        payload: {
-          metadata: { knowledgeGroupId },
-          form: {
-            file: [
-              { fileId: 'f1', filename: 'good.pdf', fileStatus: 'complete', s3Key: 'uploads/good.pdf', s3Bucket: 'my-bucket' },
-              { fileId: 'f2', filename: 'virus.exe', fileStatus: 'rejected', s3Key: 'uploads/virus.exe', s3Bucket: 'my-bucket' }
-            ]
-          }
-        }
-      }
+      const request = makeRequest([
+        { filename: 'good.pdf', fileStatus: 'complete' },
+        { filename: 'virus.exe', fileStatus: 'rejected' }
+      ])
 
       await uploadCallbackController.handler(request, mockH)
 
@@ -307,6 +339,35 @@ describe('upload controller', () => {
 
       expect(mockH.response).toHaveBeenCalled()
       expect(mockH.code).toHaveBeenCalledWith(200)
+    })
+
+    test('audits each complete and rejected file individually', async () => {
+      knowledgeGroupsService.createDocuments.mockResolvedValue()
+
+      const request = makeRequest([
+        { filename: 'good.pdf', fileStatus: 'complete' },
+        { filename: 'virus.exe', fileStatus: 'rejected' }
+      ])
+
+      await uploadCallbackController.handler(request, mockH)
+
+      expect(auditKnowledgeGroupFileUpload).toHaveBeenCalledTimes(2)
+      expect(auditKnowledgeGroupFileUpload).toHaveBeenCalledWith({
+        userId: 'user-123',
+        sessionId: 'session-abc',
+        knowledgeGroupId,
+        fileName: 'good.pdf',
+        fileSize: 1234,
+        uploadStatus: 'complete'
+      })
+      expect(auditKnowledgeGroupFileUpload).toHaveBeenCalledWith({
+        userId: 'user-123',
+        sessionId: 'session-abc',
+        knowledgeGroupId,
+        fileName: 'virus.exe',
+        fileSize: 1234,
+        uploadStatus: 'rejected'
+      })
     })
   })
 
@@ -425,6 +486,7 @@ describe('upload controller', () => {
         values: { name: '', description: '', 'information-asset-owner': '' }
       })
       expect(mockH.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
+      expect(knowledgeGroupsService.createKnowledgeGroup).not.toHaveBeenCalled()
     })
 
     test('creates group and redirects on success', async () => {

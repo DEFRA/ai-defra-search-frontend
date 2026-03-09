@@ -1,7 +1,8 @@
 import { config } from '../../config/config.js'
 import { marked } from 'marked'
-import { getUserId } from '../common/helpers/user-context.js'
+import { getUserId, getSessionId } from '../common/helpers/user-context.js'
 import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { auditLlmInteraction } from '../common/helpers/audit.js'
 
 /**
  * Send a question to the backend chat API. The backend queues the request and
@@ -76,6 +77,7 @@ async function getConversation (conversationId, timeoutMs = config.get('chatApiT
   const url = `${chatApiUrl}/conversations/${conversationId}`
 
   const userId = getUserId()
+  const sessionId = getSessionId()
   const headers = userId ? { 'user-id': userId } : {}
   const response = await fetchWithTimeout(url, timeoutMs, { headers })
   if (!response.ok) {
@@ -90,6 +92,13 @@ async function getConversation (conversationId, timeoutMs = config.get('chatApiT
     ...message,
     content: message.content ? marked.parse(message.content) : ''
   }))
+
+  auditLlmInteraction({
+    userId,
+    sessionId,
+    conversationId,
+    messages: parsedMessages
+  })
 
   return {
     conversationId: data.conversation_id || data.conversationId,

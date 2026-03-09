@@ -1,19 +1,28 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'
 import nock from 'nock'
-import { getUserId } from '../../../../src/server/common/helpers/user-context.js'
+import { getUserId, getSessionId } from '../../../../src/server/common/helpers/user-context.js'
 import { sendQuestion, getConversation } from '../../../../src/server/services/chat-service.js'
 import { config } from '../../../../src/config/config.js'
 
 vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({
-  getUserId: vi.fn().mockReturnValue(null)
+  getUserId: vi.fn().mockReturnValue('test-user-123'),
+  getSessionId: vi.fn().mockReturnValue('test-session-abc')
 }))
+
+vi.mock('../../../../src/server/common/helpers/audit.js', () => ({
+  auditLlmInteraction: vi.fn()
+}))
+
+const { auditLlmInteraction } = await import('../../../../src/server/common/helpers/audit.js')
 
 describe('chat-api', () => {
   const chatApiUrl = config.get('chatApiUrl')
 
   beforeEach(() => {
     nock.cleanAll()
-    getUserId.mockReturnValue(null)
+    vi.clearAllMocks()
+    getUserId.mockReturnValue('test-user-123')
+    getSessionId.mockReturnValue('test-session-abc')
   })
 
   afterEach(() => {
@@ -277,7 +286,7 @@ describe('chat-api', () => {
       let capturedHeaders
       nock(chatApiUrl)
         .post('/chat')
-        .reply(function (uri, body) {
+        .reply(function () {
           capturedHeaders = this.req.headers
           return [200, { conversation_id: 'c1', message_id: 'm1', status: 'queued' }]
         })
@@ -293,7 +302,7 @@ describe('chat-api', () => {
       let capturedHeaders
       nock(chatApiUrl)
         .post('/chat')
-        .reply(function (uri, body) {
+        .reply(function () {
           capturedHeaders = this.req.headers
           return [200, { conversation_id: 'c1', message_id: 'm1', status: 'queued' }]
         })
@@ -301,6 +310,31 @@ describe('chat-api', () => {
       await sendQuestion('q', 'model', null)
 
       expect(capturedHeaders['user-id']).toBeUndefined()
+    })
+  })
+
+  describe('auditing', () => {
+    test('calls auditLlmInteraction with userId, sessionId, conversationId, and messages', async () => {
+      nock(chatApiUrl)
+        .get('/conversations/conv-audit')
+        .reply(200, {
+          conversation_id: 'conv-audit',
+          messages: [
+            { role: 'user', content: 'Hello', status: 'completed', model_id: 'sonnet-3-7' },
+            { role: 'assistant', content: 'Hi there!', status: 'completed', model_id: 'sonnet-3-7' }
+          ]
+        })
+
+      await getConversation('conv-audit')
+
+      expect(auditLlmInteraction).toHaveBeenCalledWith({
+        userId: 'test-user-123',
+        sessionId: 'test-session-abc',
+        conversationId: 'conv-audit',
+        messages: expect.arrayContaining([
+          expect.objectContaining({ role: 'assistant', status: 'completed' })
+        ])
+      })
     })
   })
 })
