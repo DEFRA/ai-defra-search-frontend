@@ -1,5 +1,8 @@
 import { config } from '../../config/config.js'
 import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { createLogger } from '../common/helpers/logging/logger.js'
+
+const logger = createLogger()
 
 const MODELS_CACHE_TTL_MINUTES = 5
 const MODELS_CACHE_TTL_MS = MODELS_CACHE_TTL_MINUTES * 60 * 1000
@@ -28,6 +31,7 @@ async function getModels () {
   const timeoutMs = config.get('chatApiTimeoutMs')
 
   try {
+    logger.info({ url, timeoutMs }, 'Fetching models from API')
     const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'GET',
       headers: {
@@ -45,6 +49,7 @@ async function getModels () {
     }
     return data
   } catch (error) {
+    logger.error({ err: error, url }, 'Failed to fetch models from API')
     throw new Error(`Failed to connect to models API at ${url}: ${error.message}`)
   }
 }

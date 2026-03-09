@@ -1,0 +1,7 @@
+{% from "conversation/macro.njk" import defraConversation %}
+
+{{ defraConversation({
+  messages: messages,
+  errorDetails: errorDetails,
+  conversationId: conversationId
+}) }}
