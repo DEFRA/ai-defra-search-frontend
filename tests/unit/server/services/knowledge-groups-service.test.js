@@ -4,7 +4,8 @@ import nock from 'nock'
 import {
   listKnowledgeGroups,
   createKnowledgeGroup,
-  createDocuments
+  createDocuments,
+  listDocumentsByKnowledgeGroup
 } from '../../../../src/server/services/knowledge-groups-service.js'
 import { config } from '../../../../src/config/config.js'
 import { getUserId } from '../../../../src/server/common/helpers/user-context.js'
@@ -93,6 +94,14 @@ describe('knowledge-groups-service', () => {
   })
 
   describe('createDocuments', () => {
+    test('throws when knowledgeApiUrl is not configured', async () => {
+      config.get.mockReturnValueOnce(null)
+
+      await expect(createDocuments([{ file_name: 'a.pdf' }])).rejects.toThrow(
+        'Knowledge API URL is not configured'
+      )
+    })
+
     test('POSTs documents to the knowledge API', async () => {
       const documents = [
         {
@@ -121,6 +130,76 @@ describe('knowledge-groups-service', () => {
 
       await expect(createDocuments([{ file_name: 'photo.jpg' }])).rejects.toThrow(
         /Knowledge API 500/
+      )
+    })
+  })
+
+  describe('listDocumentsByKnowledgeGroup', () => {
+    test('returns [] when knowledgeApiUrl is not configured', async () => {
+      config.get.mockReturnValueOnce(null)
+
+      const result = await listDocumentsByKnowledgeGroup('kg-1')
+
+      expect(result).toEqual([])
+    })
+
+    test('returns [] when user context has no ID', async () => {
+      getUserId.mockReturnValue(null)
+
+      const result = await listDocumentsByKnowledgeGroup('kg-1')
+
+      expect(result).toEqual([])
+    })
+
+    test('returns documents from API', async () => {
+      const docs = [
+        { id: 'd1', file_name: 'guide.pdf', knowledge_group_id: 'kg-1', created_at: '2025-03-05T12:00:00Z' }
+      ]
+      nock(baseUrl)
+        .get('/documents')
+        .query({ knowledge_group_id: 'kg-1' })
+        .matchHeader('user-id', 'user-1')
+        .reply(200, docs)
+
+      const result = await listDocumentsByKnowledgeGroup('kg-1')
+
+      expect(result).toEqual(docs)
+    })
+
+    test('strips trailing slash from base URL', async () => {
+      config.get.mockReturnValueOnce(`${baseUrl}/`)
+
+      nock(baseUrl)
+        .get('/documents')
+        .query({ knowledge_group_id: 'kg-1' })
+        .reply(200, [])
+
+      await listDocumentsByKnowledgeGroup('kg-1')
+
+      expect(nock.isDone()).toBe(true)
+    })
+
+    test('includes user-id header when userId present', async () => {
+      getUserId.mockReturnValue('user-xyz')
+      nock(baseUrl)
+        .get('/documents')
+        .query({ knowledge_group_id: 'kg-1' })
+        .matchHeader('user-id', 'user-xyz')
+        .reply(200, [])
+
+      await listDocumentsByKnowledgeGroup('kg-1')
+
+      expect(nock.isDone()).toBe(true)
+    })
+
+    test('throws when API returns non-ok', async () => {
+      nock(baseUrl)
+        .get('/documents')
+        .query({ knowledge_group_id: 'kg-1' })
+        .reply(404, 'Not Found')
+
+      await expect(listDocumentsByKnowledgeGroup('kg-1')).rejects.toThrow(
+        /Knowledge API 404: Not Found/
       )
     })
   })

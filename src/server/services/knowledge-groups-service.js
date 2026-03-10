@@ -46,6 +46,22 @@ export async function createDocuments (documents) {
   return response.json()
 }
 
+export async function listDocumentsByKnowledgeGroup (knowledgeGroupId) {
+  const base = knowledgeApiUrl()
+  const userId = getUserId()
+  if (!base || !userId) {
+    return []
+  }
+  const url = `${base.replace(/\/$/, '')}/documents?knowledge_group_id=${encodeURIComponent(knowledgeGroupId)}`
+  const headers = { 'Content-Type': 'application/json' }
+  if (userId) { headers['user-id'] = userId }
+  const response = await fetch(url, { headers })
+  if (!response.ok) {
+    throw new Error(`Knowledge API ${response.status}: ${await response.text()}`)
+  }
+  return response.json()
+}
+
 export async function createKnowledgeGroup ({ name, description, informationAssetOwner }) {
   const base = knowledgeApiUrl()
   const userId = getUserId()
