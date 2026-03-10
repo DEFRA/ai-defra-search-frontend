@@ -1,4 +1,5 @@
 {
-  "sonarCloudOrganization": "defra",
-  "projectKey": "DEFRA_ai-defra-search-frontend"
+    "sonarCloudOrganization": "defra",
+    "projectKey": "DEFRA_ai-defra-search-frontend",
+    "region": "EU"
 }
