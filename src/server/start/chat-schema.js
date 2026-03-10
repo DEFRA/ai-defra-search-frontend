@@ -16,7 +16,7 @@ const startPostSchema = Joi.object({
       'string.max': 'Question must be no more than 500 characters',
       'any.required': 'Question is required'
     }),
-  knowledgeGroupId: Joi.string().optional().allow('').default(null)
+  knowledgeGroupId: Joi.string().empty('').default(null)
 })
 
 const startParamsSchema = Joi.object({
