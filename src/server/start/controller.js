@@ -18,7 +18,6 @@ const startGetController = {
       const data = await loadConversationPageData(request.params.conversationId)
       return h.view(START_VIEW_PATH, createStartViewModel(data)).code(data.notFound ? statusCodes.NOT_FOUND : statusCodes.OK)
     } catch (error) {
-      request.logger.error({ err: error, conversationId: request.params.conversationId }, 'Error fetching conversation')
       return h.view('error/index', {
         pageTitle: 'Something went wrong',
         heading: 500,

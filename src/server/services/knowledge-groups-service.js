@@ -1,6 +1,9 @@
 import { config } from '../../config/config.js'
 import { getUserId } from '../common/helpers/user-context.js'
 import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { createLogger } from '../common/helpers/logging/logger.js'
+
+const logger = createLogger()
 
 const knowledgeApiUrl = () => config.get('knowledgeApiUrl')
 
@@ -88,7 +91,8 @@ export async function createKnowledgeGroup ({ name, description, informationAsse
     let detail
     try {
       detail = JSON.parse(body)?.detail
-    } catch {
+    } catch (parseError) {
+      logger.error({ err: parseError }, 'Failed to parse Knowledge API error response body')
       detail = body
     }
     const err = new Error(`Knowledge API ${response.status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`)

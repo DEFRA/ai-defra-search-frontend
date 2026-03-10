@@ -1,6 +1,9 @@
 import { config } from '../../config/config.js'
 import { getUserId } from '../common/helpers/user-context.js'
 import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { createLogger } from '../common/helpers/logging/logger.js'
+
+const logger = createLogger()
 
 const dataApiUrl = () => config.get('dataApiUrl')
 const HTTP_NO_CONTENT = 204
@@ -30,7 +33,8 @@ async function request (path, options = {}) {
     let detail
     try {
       detail = JSON.parse(body)?.detail
-    } catch {
+    } catch (parseError) {
+      logger.error({ err: parseError }, 'Failed to parse Data API error response body')
       detail = body
     }
     const err = new Error(`Data API ${response.status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`)
