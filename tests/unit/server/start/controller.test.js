@@ -97,7 +97,7 @@ describe('startPostController', () => {
 
       await startPostController.options.validate.failAction(mockRequest, mockH, joiError)
 
-      expect(core.loadValidationError).toHaveBeenCalledWith('conv-123', '', 'model-1', '"question" is required')
+      expect(core.loadValidationError).toHaveBeenCalledWith('conv-123', '', 'model-1', '"question" is required', undefined)
       expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
         errorMessage: '"question" is required'
       }))
@@ -149,7 +149,7 @@ describe('startPostController', () => {
 
       await startPostController.handler(mockRequest, mockH)
 
-      expect(core.loadSubmitError).toHaveBeenCalledWith('What is UCD?', 'model-1', undefined, expect.any(Error))
+      expect(core.loadSubmitError).toHaveBeenCalledWith('What is UCD?', 'model-1', undefined, expect.any(Error), undefined)
       expect(mockH.view).toHaveBeenCalledWith('start/start', expect.objectContaining({
         question: 'What is UCD?',
         models: mockModels

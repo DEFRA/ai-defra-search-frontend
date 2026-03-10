@@ -9,6 +9,8 @@
  * @param {Object|null} [params.errorDetails]
  * @param {string|null} [params.question]
  * @param {boolean} [params.notFound]
+ * @param {Array} [params.knowledgeGroupSelectItems]
+ * @param {string|null} [params.knowledgeGroupId]
  */
 function createStartViewModel ({
   messages = [],
@@ -19,7 +21,9 @@ function createStartViewModel ({
   errorMessage = null,
   errorDetails = null,
   question = null,
-  notFound = false
+  notFound = false,
+  knowledgeGroupSelectItems = [],
+  knowledgeGroupId = null
 }) {
   const model = {
     messages,
@@ -29,7 +33,9 @@ function createStartViewModel ({
     responsePending,
     errorMessage,
     errorDetails,
-    question
+    question,
+    knowledgeGroupSelectItems,
+    knowledgeGroupId
   }
   if (notFound) {
     model.notFound = true

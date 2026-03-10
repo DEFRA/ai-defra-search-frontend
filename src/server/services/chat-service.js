@@ -13,10 +13,11 @@ import { auditLlmInteraction } from '../common/helpers/audit.js'
  * @param {string} question - The user's question
  * @param {string} modelId - The ID of the AI model to use
  * @param {string} conversationId - Optional conversation ID to continue an existing conversation
+ * @param {string|null} [knowledgeGroupId] - Optional knowledge group ID to scope the question (wrapped into array for the API)
  * @returns {Promise<Object>} An object containing `conversationId`, `messageId` and `status`
  * @throws {Error} If the API request fails
  */
-async function sendQuestion (question, modelId, conversationId) {
+async function sendQuestion (question, modelId, conversationId, knowledgeGroupId) {
   const chatApiUrl = config.get('chatApiUrl')
   const url = `${chatApiUrl}/chat`
   const timeoutMs = config.get('chatApiTimeoutMs')
@@ -34,7 +35,8 @@ async function sendQuestion (question, modelId, conversationId) {
       body: JSON.stringify({
         question,
         conversation_id: conversationId || null,
-        model_id: modelId
+        model_id: modelId,
+        knowledge_group_ids: knowledgeGroupId ? [knowledgeGroupId] : []
       })
     })
 

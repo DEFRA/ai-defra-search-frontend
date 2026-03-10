@@ -2,6 +2,7 @@ import { describe, test, expect, beforeEach, vi } from 'vitest'
 
 vi.mock('../../../../src/server/services/chat-service.js')
 vi.mock('../../../../src/server/services/models-service.js')
+vi.mock('../../../../src/server/services/knowledge-groups-service.js')
 vi.mock('../../../../src/server/start/conversation-cache.js')
 vi.mock('../../../../src/server/start/message-builders.js')
 vi.mock('../../../../src/server/start/error-mapping.js')
@@ -14,6 +15,7 @@ vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
 
 const chatService = await import('../../../../src/server/services/chat-service.js')
 const modelsService = await import('../../../../src/server/services/models-service.js')
+const knowledgeGroupsService = await import('../../../../src/server/services/knowledge-groups-service.js')
 const conversationCache = await import('../../../../src/server/start/conversation-cache.js')
 const messageBuilders = await import('../../../../src/server/start/message-builders.js')
 const errorMapping = await import('../../../../src/server/start/error-mapping.js')
@@ -28,20 +30,42 @@ const {
 } = await import('../../../../src/server/start/chat-view-model.js')
 
 const mockModels = [{ id: 'model-1', name: 'Model One' }]
+const mockKnowledgeGroups = [{ id: 'kg-1', name: 'Test Knowledge Group' }]
+const mockKnowledgeGroupSelectItems = [
+  { value: '', text: 'No knowledge group' },
+  { value: 'kg-1', text: 'Test Knowledge Group' }
+]
 
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(messageBuilders.hasPendingResponse).mockReturnValue(false)
+  vi.mocked(knowledgeGroupsService.listKnowledgeGroups).mockResolvedValue(mockKnowledgeGroups)
 })
 
 describe('loadConversationPageData', () => {
   describe('when no conversationId is provided', () => {
-    test('returns available models with empty conversation state', async () => {
+    test('returns available models and knowledge groups with empty conversation state', async () => {
       vi.mocked(modelsService.getModels).mockResolvedValue(mockModels)
 
       const result = await loadConversationPageData(undefined)
 
-      expect(result).toMatchObject({ models: mockModels, messages: [], conversationId: null })
+      expect(result).toMatchObject({ models: mockModels, knowledgeGroupSelectItems: mockKnowledgeGroupSelectItems, messages: [], conversationId: null })
+    })
+
+    test('returns empty knowledge groups when the API returns an empty list', async () => {
+      vi.mocked(modelsService.getModels).mockResolvedValue(mockModels)
+      vi.mocked(knowledgeGroupsService.listKnowledgeGroups).mockResolvedValue([])
+
+      const result = await loadConversationPageData(undefined)
+
+      expect(result).toMatchObject({ knowledgeGroupSelectItems: [{ value: '', text: 'No knowledge group' }] })
+    })
+
+    test('throws when the knowledge groups API fails', async () => {
+      vi.mocked(modelsService.getModels).mockResolvedValue(mockModels)
+      vi.mocked(knowledgeGroupsService.listKnowledgeGroups).mockRejectedValue(new Error('Knowledge API down'))
+
+      await expect(loadConversationPageData(undefined)).rejects.toThrow('Knowledge API down')
     })
   })
 
@@ -208,7 +232,7 @@ describe('detectPendingConflict', () => {
 
       const result = await detectPendingConflict('conv-123')
 
-      expect(result).toMatchObject({ messages: cachedMessages, models: mockModels, modelId: 'model-1' })
+      expect(result).toMatchObject({ messages: cachedMessages, models: mockModels, knowledgeGroupSelectItems: mockKnowledgeGroupSelectItems, modelId: 'model-1' })
     })
   })
 })
@@ -285,6 +309,32 @@ describe('submitQuestion', () => {
       await expect(submitQuestion('What is UCD?', 'model-1', null)).rejects.toThrow('API down')
     })
   })
+
+  test('passes the knowledge group id to the chat API', async () => {
+    const apiResponse = { conversationId: 'conv-new', messageId: 'msg-1' }
+    vi.mocked(chatService.sendQuestion).mockResolvedValue(apiResponse)
+    vi.mocked(messageBuilders.buildUserMessage).mockReturnValue({ role: 'user', content: 'q' })
+    vi.mocked(messageBuilders.buildPlaceholderMessage).mockReturnValue({ role: 'assistant', isPlaceholder: true })
+    vi.mocked(conversationCache.getConversation).mockResolvedValue(null)
+    vi.mocked(conversationCache.storeConversation).mockResolvedValue(undefined)
+
+    await submitQuestion('What is UCD?', 'model-1', null, 'kg-1')
+
+    expect(chatService.sendQuestion).toHaveBeenCalledWith('What is UCD?', 'model-1', null, 'kg-1')
+  })
+
+  test('passes no knowledge group id when none is selected', async () => {
+    const apiResponse = { conversationId: 'conv-new', messageId: 'msg-1' }
+    vi.mocked(chatService.sendQuestion).mockResolvedValue(apiResponse)
+    vi.mocked(messageBuilders.buildUserMessage).mockReturnValue({ role: 'user', content: 'q' })
+    vi.mocked(messageBuilders.buildPlaceholderMessage).mockReturnValue({ role: 'assistant', isPlaceholder: true })
+    vi.mocked(conversationCache.getConversation).mockResolvedValue(null)
+    vi.mocked(conversationCache.storeConversation).mockResolvedValue(undefined)
+
+    await submitQuestion('What is UCD?', 'model-1', null, null)
+
+    expect(chatService.sendQuestion).toHaveBeenCalledWith('What is UCD?', 'model-1', null, null)
+  })
 })
 
 describe('loadSubmitError', () => {
@@ -307,6 +357,17 @@ describe('loadSubmitError', () => {
       errorDetails,
       responsePending: false
     })
+  })
+
+  test('returns the knowledge group id in submit error state', async () => {
+    const cachedMessages = [{ role: 'user', content: 'q' }]
+    vi.mocked(modelsService.getModels).mockResolvedValue(mockModels)
+    vi.mocked(conversationCache.getConversation).mockResolvedValue({ messages: cachedMessages })
+    vi.mocked(errorMapping.getErrorDetails).mockResolvedValue({ isRetryable: false, timestamp: new Date() })
+
+    const result = await loadSubmitError('my question', 'model-1', 'conv-123', new Error('fail'), 'kg-1')
+
+    expect(result).toMatchObject({ knowledgeGroupId: 'kg-1' })
   })
 
   test('returns empty messages when no cached conversation exists', async () => {
@@ -338,6 +399,17 @@ describe('loadValidationError', () => {
       errorMessage: '"question" is required',
       responsePending: false
     })
+  })
+
+  test('returns the knowledge group id in validation error state', async () => {
+    const cachedMessages = [{ role: 'user', content: 'q' }]
+    vi.mocked(modelsService.getModels).mockResolvedValue(mockModels)
+    vi.mocked(conversationCache.getConversation).mockResolvedValue({ messages: cachedMessages })
+    vi.mocked(messageBuilders.hasPendingResponse).mockReturnValue(false)
+
+    const result = await loadValidationError('conv-123', 'my question', 'model-1', 'error', 'kg-1')
+
+    expect(result).toMatchObject({ knowledgeGroupId: 'kg-1' })
   })
 
   test('returns empty messages when no cached conversation exists', async () => {
