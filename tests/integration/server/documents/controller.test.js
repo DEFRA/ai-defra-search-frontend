@@ -71,7 +71,7 @@ describe('Documents page', () => {
       vi.mocked(listKnowledgeGroups).mockResolvedValue([
         { id: 'kg1', name: 'My Group' }
       ])
-        vi.mocked(listDocumentsByKnowledgeGroup).mockResolvedValue([
+      vi.mocked(listDocumentsByKnowledgeGroup).mockResolvedValue([
         {
           id: 'doc1',
           file_name: 'guide.pdf',
