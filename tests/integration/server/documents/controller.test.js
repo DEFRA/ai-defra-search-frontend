@@ -114,5 +114,77 @@ describe('Documents page', () => {
       const { window } = new JSDOM(response.result)
       expect(window.document.body.textContent).toMatch(/problem|error|failed/i)
     })
+
+    test('renders page when listKnowledgeGroups fails (buildViewState catch)', async () => {
+      vi.mocked(listKnowledgeGroups).mockRejectedValue(new Error('Knowledge API unavailable'))
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/documents'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+      const { window } = new JSDOM(response.result)
+      expect(window.document.body.textContent).toContain('Documents')
+      expect(window.document.querySelector('select#group')).not.toBeNull()
+    })
+
+    test('handles non-array response from listDocumentsByKnowledgeGroup', async () => {
+      vi.mocked(listKnowledgeGroups).mockResolvedValue([{ id: 'kg1', name: 'My Group' }])
+      vi.mocked(listDocumentsByKnowledgeGroup).mockResolvedValue({ items: [] })
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/documents?group=kg1'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+      const { window } = new JSDOM(response.result)
+      expect(window.document.body.textContent).toContain('My Group')
+    })
+
+    test('handles document with null created_at', async () => {
+      vi.mocked(listKnowledgeGroups).mockResolvedValue([{ id: 'kg1', name: 'My Group' }])
+      vi.mocked(listDocumentsByKnowledgeGroup).mockResolvedValue([
+        { id: 'doc1', file_name: 'no-date.pdf', created_at: null }
+      ])
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/documents?group=kg1'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+      const { window } = new JSDOM(response.result)
+      expect(window.document.body.textContent).toContain('no-date.pdf')
+    })
+
+    test('uses selectedGroupId when selectedGroup not in dropdown', async () => {
+      vi.mocked(listKnowledgeGroups).mockResolvedValue([{ id: 'kg1', name: 'My Group' }])
+      vi.mocked(listDocumentsByKnowledgeGroup).mockResolvedValue([])
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/documents?group=unknown-id'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+      const { window } = new JSDOM(response.result)
+      expect(window.document.body.textContent).toContain('unknown-id')
+    })
+
+    test('returns error status code when API error has status', async () => {
+      vi.mocked(listKnowledgeGroups).mockResolvedValue([{ id: 'kg1', name: 'My Group' }])
+      const err = new Error('Forbidden')
+      err.status = 403
+      vi.mocked(listDocumentsByKnowledgeGroup).mockRejectedValue(err)
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/documents?group=kg1'
+      })
+
+      expect(response.statusCode).toBe(403)
+    })
   })
 })
