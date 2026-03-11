@@ -61,7 +61,7 @@ async function storeConversation (conversationId, messages, modelId, meta = {}) 
 
     await cache.set(key, value, cacheTtl)
   } catch (error) {
-    logger.error({ error, conversationId }, 'Failed to store conversation in cache')
+    logger.error({ err: error, conversationId }, 'Failed to store conversation in cache')
   }
 }
 
@@ -89,7 +89,7 @@ async function getConversation (conversationId) {
 
     return null
   } catch (error) {
-    logger.error({ error, conversationId }, 'Error retrieving conversation from cache')
+    logger.error({ err: error, conversationId }, 'Error retrieving conversation from cache')
     return null
   }
 }
@@ -123,7 +123,7 @@ async function clearConversation (conversationId) {
     const key = getCacheKey(conversationId)
     await cache.drop(key)
   } catch (error) {
-    logger.error({ error, conversationId }, 'Error clearing conversation from cache')
+    logger.error({ err: error, conversationId }, 'Error clearing conversation from cache')
   }
 }
 

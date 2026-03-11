@@ -1,5 +1,8 @@
 import { config } from '../../config/config.js'
 import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { createLogger } from '../common/helpers/logging/logger.js'
+
+const logger = createLogger()
 
 /**
  * Submits user feedback about an AI response.
@@ -33,6 +36,7 @@ async function submitFeedback ({ conversationId, wasHelpful, comment }) {
       throw new Error(`Feedback API returned ${response.status}: ${response.statusText}`)
     }
   } catch (error) {
+    logger.error({ err: error, url }, 'Failed to submit feedback to API')
     throw new Error(`Failed to submit feedback to API at ${url}: ${error.message}`)
   }
 }

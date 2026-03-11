@@ -26,6 +26,13 @@ vi.mock('../../../../src/config/config.js', () => ({
 vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({
   getUserId: vi.fn()
 }))
+vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
+  createLogger: vi.fn(() => ({
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn()
+  }))
+}))
 
 const baseUrl = 'http://localhost:9999'
 
