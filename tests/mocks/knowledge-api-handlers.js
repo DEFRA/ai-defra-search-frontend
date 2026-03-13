@@ -2,7 +2,7 @@ import nock from 'nock'
 
 import { config } from '../../src/config/config.js'
 
-const knowledgeApiBaseUrl = config.get('knowledgeApiUrl') || 'http://localhost:8085'
+const knowledgeApiBaseUrl = config.get('knowledgeApiUrl') || 'http://localhost:9999'
 
 function setupKnowledgeApiMocks () {
   nock(knowledgeApiBaseUrl)

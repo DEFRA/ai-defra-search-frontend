@@ -363,7 +363,7 @@ describe('Start page', () => {
 
       nock('http://host.docker.internal:3018')
         .get('/conversations/timeout-conv')
-        .delay(1500)
+        .delay(150)
         .reply(200, { conversationId: 'timeout-conv', messages: [] })
 
       const response = await server.inject({ method: 'GET', url: '/start/timeout-conv' })
@@ -393,7 +393,7 @@ describe('Start page', () => {
 
       nock('http://host.docker.internal:3018')
         .get('/conversations/error-conv')
-        .delay(500)
+        .delay(10)
         .reply(500, { error: 'Internal server error' })
 
       const response = await server.inject({ method: 'GET', url: '/start/error-conv' })

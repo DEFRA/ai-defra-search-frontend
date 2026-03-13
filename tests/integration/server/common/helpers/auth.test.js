@@ -2,9 +2,11 @@ describe('Azure Entra Authentication Provider', () => {
   let server
 
   beforeAll(async () => {
+    const workerId = parseInt(process.env.VITEST_WORKER_ID || '1', 10)
+    const port = 3097 + workerId
     vitest.stubEnv('AUTH_ENABLED', 'true')
-    vitest.stubEnv('PORT', '3097')
-    vitest.stubEnv('MS_ENTRA_REDIRECT_HOST', 'http://localhost:3097')
+    vitest.stubEnv('PORT', String(port))
+    vitest.stubEnv('MS_ENTRA_REDIRECT_HOST', `http://localhost:${port}`)
 
     const { createServer } = await import('../../../../../src/server/server.js')
     server = await createServer()
@@ -35,7 +37,8 @@ describe('Azure Entra Authentication Provider', () => {
 
     expect(url.pathname).toMatch(new RegExp(`^/${'cb2d380f-8056-494b-bfad-cfcaf767c0b3'}/oauth2/v2\\.0/authorize$`))
     expect(url.searchParams.get('client_id')).toBe('28434819-c64a-4b95-bb23-0f6202bcfc02')
-    expect(url.searchParams.get('redirect_uri')).toBe('http://localhost:3097/auth/callback')
+    const port = 3097 + parseInt(process.env.VITEST_WORKER_ID || '1', 10)
+    expect(url.searchParams.get('redirect_uri')).toBe(`http://localhost:${port}/auth/callback`)
     expect(url.searchParams.get('scope')).toBe('openid profile User.Read')
   })
 })

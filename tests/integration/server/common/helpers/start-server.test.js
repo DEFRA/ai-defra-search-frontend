@@ -11,7 +11,8 @@ describe('#startServer', () => {
   let modelsApiImport
 
   beforeAll(async () => {
-    vi.stubEnv('PORT', '3097')
+    const workerId = parseInt(process.env.VITEST_WORKER_ID || '1', 10)
+    vi.stubEnv('PORT', String(3097 + workerId))
 
     createServerImport = await import('../../../../../src/server/server.js')
     modelsApiImport = await import('../../../../../src/server/services/models-service.js')
@@ -70,7 +71,7 @@ describe('#startServer', () => {
 
       const server = await startServerImport.startServer()
 
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 10))
 
       expect(getModelsSpy).toHaveBeenCalled()
       await server.stop({ timeout: 0 })
