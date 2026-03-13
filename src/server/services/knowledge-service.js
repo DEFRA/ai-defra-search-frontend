@@ -5,18 +5,18 @@ import { createLogger } from '../common/helpers/logging/logger.js'
 
 const logger = createLogger()
 
-const dataApiUrl = () => config.get('dataApiUrl')
+const knowledgeApiUrl = () => config.get('knowledgeApiUrl')
 const HTTP_NO_CONTENT = 204
 
 async function request (path, options = {}) {
-  const base = dataApiUrl()
+  const base = knowledgeApiUrl()
   if (!base) {
-    const err = new Error('DATA_API_URL is not configured')
+    const err = new Error('KNOWLEDGE_API_URL is not configured')
     err.status = 503
     throw err
   }
   const url = `${base}/${path.replace(/^\//, '')}`
-  const timeoutMs = config.get('dataApiTimeoutMs')
+  const timeoutMs = config.get('knowledgeApiTimeoutMs')
   const userId = getUserId()
   const headers = { 'Content-Type': 'application/json', ...options.headers }
   if (userId) {

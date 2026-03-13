@@ -268,19 +268,6 @@ export const config = convict({
     default: 3000,
     env: 'CHAT_API_TIMEOUT_MS'
   },
-  dataApiUrl: {
-    doc: 'Data API base URL (knowledge management, snapshots)',
-    format: String,
-    nullable: true,
-    default: null,
-    env: 'DATA_API_URL'
-  },
-  dataApiTimeoutMs: {
-    doc: 'Timeout for data API requests in milliseconds',
-    format: Number,
-    default: 3000,
-    env: 'DATA_API_TIMEOUT_MS'
-  },
   knowledgeApiUrl: {
     doc: 'Knowledge API base URL (ai-defra-search-knowledge /knowledge-groups)',
     format: String,

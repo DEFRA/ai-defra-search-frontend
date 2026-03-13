@@ -19,7 +19,7 @@ vi.mock('../../../../src/server/common/helpers/user-context.js', () => ({
 }))
 
 describe('knowledge-api', () => {
-  const dataApiUrl = config.get('dataApiUrl')
+  const knowledgeApiUrl = config.get('knowledgeApiUrl')
 
   beforeEach(() => {
     nock.cleanAll()
@@ -32,7 +32,7 @@ describe('knowledge-api', () => {
 
   describe('listGroups', () => {
     test('should return groups array', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups')
         .reply(200, [{ groupId: 'g1', title: 'Group 1', sources: {} }])
 
@@ -44,7 +44,7 @@ describe('knowledge-api', () => {
     })
 
     test('should throw when API returns 500', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups')
         .reply(500, { detail: 'Internal error' })
 
@@ -56,7 +56,7 @@ describe('knowledge-api', () => {
 
   describe('getGroup', () => {
     test('should fetch group by id', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups/g1')
         .reply(200, { groupId: 'g1', title: 'My Group', sources: { s1: {} } })
 
@@ -70,7 +70,7 @@ describe('knowledge-api', () => {
 
   describe('listGroupSnapshots', () => {
     test('should return snapshots for group', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups/g1/snapshots')
         .reply(200, [{ snapshot_id: 'snap1', source_chunk_counts: { s1: 10 } }])
 
@@ -85,7 +85,7 @@ describe('knowledge-api', () => {
   describe('createGroup', () => {
     test('should POST group with sources', async () => {
       let capturedBody
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .post('/knowledge/groups', (body) => {
           capturedBody = body
           return true
@@ -110,7 +110,7 @@ describe('knowledge-api', () => {
 
   describe('ingestGroup', () => {
     test('should POST to ingest endpoint', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .post('/knowledge/groups/g1/ingest')
         .reply(204)
 
@@ -122,7 +122,7 @@ describe('knowledge-api', () => {
   describe('addSourceToGroup', () => {
     test('should PATCH source to group', async () => {
       let capturedBody
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .patch('/knowledge/groups/g1/sources', (body) => {
           capturedBody = body
           return true
@@ -145,7 +145,7 @@ describe('knowledge-api', () => {
 
   describe('removeSourceFromGroup', () => {
     test('should DELETE source', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .delete('/knowledge/groups/g1/sources/sid1')
         .reply(204)
 
@@ -156,7 +156,7 @@ describe('knowledge-api', () => {
 
   describe('activateSnapshot', () => {
     test('should PATCH activate snapshot', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .patch('/snapshots/snap1/activate')
         .reply(200, {})
 
@@ -167,7 +167,7 @@ describe('knowledge-api', () => {
   describe('querySnapshot', () => {
     test('should POST query with groupId, query, maxResults', async () => {
       let capturedBody
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .post('/snapshots/query', (body) => {
           capturedBody = body
           return true
@@ -183,7 +183,7 @@ describe('knowledge-api', () => {
 
     test('should use default maxResults of 5', async () => {
       let capturedBody
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .post('/snapshots/query', (body) => {
           capturedBody = body
           return true
@@ -198,7 +198,7 @@ describe('knowledge-api', () => {
 
   describe('request error handling', () => {
     test('should attach detail from JSON error body', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups')
         .reply(400, { detail: 'Bad request detail' })
 
@@ -208,7 +208,7 @@ describe('knowledge-api', () => {
     })
 
     test('should handle non-JSON error body', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups')
         .reply(500, 'plain text error')
 
@@ -217,7 +217,7 @@ describe('knowledge-api', () => {
     })
 
     test('should handle detail as object in error response', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups')
         .reply(400, { detail: { code: 'ERR', message: 'Invalid' } })
 
@@ -227,7 +227,7 @@ describe('knowledge-api', () => {
     })
 
     test('should handle network error', async () => {
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups')
         .replyWithError('ECONNREFUSED')
 
@@ -240,7 +240,7 @@ describe('knowledge-api', () => {
       getUserId.mockReturnValue('test-oid-xyz789')
 
       let capturedHeaders
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups')
         .reply(function () {
           capturedHeaders = this.req.headers
@@ -256,7 +256,7 @@ describe('knowledge-api', () => {
       getUserId.mockReturnValue(null)
 
       let capturedHeaders
-      nock(dataApiUrl)
+      nock(knowledgeApiUrl)
         .get('/knowledge/groups')
         .reply(function () {
           capturedHeaders = this.req.headers
