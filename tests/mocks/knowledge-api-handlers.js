@@ -6,57 +6,24 @@ const knowledgeApiBaseUrl = config.get('knowledgeApiUrl') || 'http://localhost:8
 
 function setupKnowledgeApiMocks () {
   nock(knowledgeApiBaseUrl)
-    .get('/knowledge/groups')
+    .get('/knowledge-groups')
     .reply(200, [
-      { groupId: 'g1', title: 'Test Group', description: 'Desc', sources: { s1: {} } }
+      { id: 'g1', name: 'Test Group', description: 'Desc', information_asset_owner: 'Owner' }
     ])
 
   nock(knowledgeApiBaseUrl)
-    .get('/knowledge/groups/g1')
-    .reply(200, {
-      groupId: 'g1',
-      title: 'Test Group',
-      description: 'Desc',
-      sources: { s1: { id: 's1', name: 'Source 1', sourceId: 's1', type: 'BLOB', location: 's3://b/k' } },
-      activeSnapshot: 'snap1'
-    })
-
-  nock(knowledgeApiBaseUrl)
-    .get('/knowledge/groups/g1/snapshots')
+    .get(/\/documents\?knowledge_group_id=g1/)
     .reply(200, [
-      { snapshot_id: 'snap1', version: 'v1', created_at: '2024-01-15T10:00:00Z', chunk_count: 10, source_chunk_counts: { s1: 10 } }
+      { id: 'd1', file_name: 'doc.pdf', status: 'ready', chunk_count: 10 }
     ])
 
   nock(knowledgeApiBaseUrl)
-    .post('/knowledge/groups')
-    .reply(201, {})
+    .get(/\/documents\?knowledge_group_id=missing/)
+    .reply(404, { detail: 'Knowledge group not found' })
 
   nock(knowledgeApiBaseUrl)
-    .post('/knowledge/groups/g1/ingest')
-    .reply(204)
-
-  nock(knowledgeApiBaseUrl)
-    .patch('/knowledge/groups/g1/sources')
-    .reply(200, {})
-
-  nock(knowledgeApiBaseUrl)
-    .delete('/knowledge/groups/g1/sources/s1')
-    .reply(204)
-
-  nock(knowledgeApiBaseUrl)
-    .patch('/snapshots/snap1/activate')
-    .reply(200, {})
-
-  nock(knowledgeApiBaseUrl)
-    .post('/snapshots/query')
-    .reply(200, [{
-      content: 'result',
-      similarityScore: 0.9,
-      similarityCategory: 'high',
-      name: 'Test',
-      location: '/path',
-      sourceId: 's1'
-    }])
+    .post('/knowledge-group')
+    .reply(200, { id: 'new-id', name: 'New Group' })
 
   return nock
 }
@@ -64,17 +31,14 @@ function setupKnowledgeApiMocks () {
 function setupKnowledgeApiListError (statusCode = 500) {
   nock.cleanAll()
   nock(knowledgeApiBaseUrl)
-    .get('/knowledge/groups')
+    .get('/knowledge-groups')
     .reply(statusCode, { detail: 'API error' })
 }
 
 function setupKnowledgeApiGroupError (groupId, statusCode = 404) {
   nock.cleanAll()
   nock(knowledgeApiBaseUrl)
-    .get(`/knowledge/groups/${groupId}`)
-    .reply(statusCode, { detail: 'Not found' })
-  nock(knowledgeApiBaseUrl)
-    .get(`/knowledge/groups/${groupId}/snapshots`)
+    .get('/knowledge-groups')
     .reply(200, [])
 }
 
