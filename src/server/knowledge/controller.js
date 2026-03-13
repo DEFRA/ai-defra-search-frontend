@@ -3,16 +3,10 @@ import Joi from 'joi'
 
 import { createLogger } from '../common/helpers/logging/logger.js'
 import {
-  listGroups,
-  getGroup,
-  listGroupSnapshots,
-  createGroup,
-  ingestGroup,
-  addSourceToGroup,
-  removeSourceFromGroup,
-  activateSnapshot,
-  querySnapshot
-} from '../services/knowledge-service.js'
+  listKnowledgeGroups,
+  listDocumentsByKnowledgeGroup,
+  createKnowledgeGroup
+} from '../services/knowledge-groups-service.js'
 
 const logger = createLogger()
 
@@ -151,109 +145,6 @@ export const knowledgeAddGroupPostController = {
         errorMessage: extractErrorDetail(err),
         values: request.payload
       }).code(err.status || statusCodes.INTERNAL_SERVER_ERROR)
-    }
-  }
-}
-
-export const knowledgeIngestController = {
-  async handler (request, h) {
-    const { groupId } = request.params
-    try {
-      await ingestGroup(groupId)
-      return h.redirect(`/knowledge/${groupId}?ingested=1#ingest`)
-    } catch (err) {
-      logger.error({ err, groupId }, 'Failed to trigger ingest')
-      return h.redirect(redirectWithError(groupId, err))
-    }
-  }
-}
-
-export const knowledgeAddSourceController = {
-  options: {
-    validate: {
-      payload: Joi.object({
-        source_name: Joi.string().min(1).max(MAX_NAME_LENGTH).required(),
-        source_type: Joi.string().valid('BLOB', 'PRECHUNKED_BLOB').required(),
-        source_location: Joi.string().min(1).max(2048).required()
-      }),
-      failAction: (req, h, error) => {
-        return h.redirect(`/knowledge/${req.params.groupId}?addError=${encodeURIComponent(error.details?.[0]?.message ?? VALIDATION_FAILED_MESSAGE)}`).takeover()
-      }
-    }
-  },
-  async handler (request, h) {
-    const { groupId } = request.params
-    const { source_name: sourceName, source_type: sourceType, source_location: sourceLocation } = request.payload
-    try {
-      await addSourceToGroup(groupId, {
-        name: sourceName,
-        type: sourceType,
-        location: sourceLocation
-      })
-      return h.redirect(`/knowledge/${groupId}?sourceAdded=1`)
-    } catch (err) {
-      logger.error({ err, groupId }, 'Failed to add source')
-      return h.redirect(redirectWithError(groupId, err))
-    }
-  }
-}
-
-export const knowledgeRemoveSourceController = {
-  async handler (request, h) {
-    const { groupId, sourceId } = request.params
-    try {
-      await removeSourceFromGroup(groupId, sourceId)
-      return h.redirect(`/knowledge/${groupId}?sourceRemoved=1`)
-    } catch (err) {
-      logger.error({ err, groupId, sourceId }, 'Failed to remove source')
-      return h.redirect(redirectWithError(groupId, err))
-    }
-  }
-}
-
-export const knowledgeActivateSnapshotController = {
-  async handler (request, h) {
-    const { groupId, snapshotId } = request.params
-    try {
-      await activateSnapshot(snapshotId)
-      return h.redirect(`/knowledge/${groupId}?activated=1`)
-    } catch (err) {
-      logger.error({ err, snapshotId }, 'Failed to activate snapshot')
-      return h.redirect(redirectWithError(groupId, err))
-    }
-  }
-}
-
-export const knowledgeQueryController = {
-  options: {
-    validate: {
-      payload: Joi.object({
-        query: Joi.string().min(1).max(MAX_QUERY_LENGTH).required(),
-        max_results: Joi.number().integer().min(1).max(MAX_QUERY_RESULTS).default(DEFAULT_QUERY_RESULTS)
-      }),
-      failAction: (req, h, error) => {
-        return h.redirect(`/knowledge/${req.params.groupId}?queryError=${encodeURIComponent(error.details?.[0]?.message ?? VALIDATION_FAILED_MESSAGE)}`).takeover()
-      }
-    }
-  },
-  async handler (request, h) {
-    const { groupId } = request.params
-    const { query, max_results: maxResults } = request.payload
-    try {
-      const [group, snapshots, queryResults] = await Promise.all([
-        getGroup(groupId),
-        listGroupSnapshots(groupId),
-        querySnapshot(groupId, query, maxResults)
-      ])
-      return h.view(GROUP_PATH, buildGroupViewState(group, snapshots, {
-        request,
-        queryResults: Array.isArray(queryResults) ? queryResults : [],
-        lastQuery: query,
-        lastMaxResults: maxResults
-      }))
-    } catch (err) {
-      logger.error({ err, groupId }, 'Failed to query snapshot')
-      return h.redirect(redirectWithError(groupId, err))
     }
   }
 }
