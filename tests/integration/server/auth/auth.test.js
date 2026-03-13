@@ -18,8 +18,9 @@ describe('OIDC Callback', () => {
   }
 
   beforeAll(async () => {
+    const workerId = parseInt(process.env.VITEST_WORKER_ID || '1', 10)
     vi.stubEnv('AUTH_ENABLED', 'true')
-    vi.stubEnv('PORT', '3099')
+    vi.stubEnv('PORT', String(3099 + workerId))
 
     vi.useFakeTimers()
 
