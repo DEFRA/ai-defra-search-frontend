@@ -113,11 +113,8 @@ export const knowledgeAddGroupPostController = {
     validate: {
       payload: Joi.object({
         name: Joi.string().min(1).max(MAX_NAME_LENGTH).required(),
-        description: Joi.string().min(1).required(),
-        owner: Joi.string().min(1).max(MAX_NAME_LENGTH).required(),
-        source_name: Joi.string().min(1).max(MAX_NAME_LENGTH).required(),
-        source_type: Joi.string().valid('BLOB', 'PRECHUNKED_BLOB').required(),
-        source_location: Joi.string().min(1).max(2048).required()
+        description: Joi.string().allow('').max(MAX_DESCRIPTION_LENGTH).optional(),
+        'information-asset-owner': Joi.string().allow('').max(MAX_NAME_LENGTH).optional()
       }),
       failAction: (_request, h, error) => {
         return h.view(ADD_GROUP_PATH, {
@@ -129,13 +126,12 @@ export const knowledgeAddGroupPostController = {
     }
   },
   async handler (request, h) {
-    const { name, description, owner, source_name: sourceName, source_type: sourceType, source_location: sourceLocation } = request.payload
+    const { name, description, 'information-asset-owner': informationAssetOwner } = request.payload
     try {
-      await createGroup({
-        name,
-        description,
-        owner,
-        sources: [{ name: sourceName, type: sourceType, location: sourceLocation }]
+      await createKnowledgeGroup({
+        name: name.trim(),
+        description: description?.trim() || null,
+        informationAssetOwner: informationAssetOwner?.trim() || null
       })
       return h.redirect('/knowledge')
     } catch (err) {
