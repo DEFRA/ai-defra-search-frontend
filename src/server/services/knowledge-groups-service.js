@@ -56,11 +56,22 @@ export async function listDocumentsByKnowledgeGroup (knowledgeGroupId) {
     return []
   }
   const url = `${base.replace(/\/$/, '')}/documents?knowledge_group_id=${encodeURIComponent(knowledgeGroupId)}`
+  const timeoutMs = config.get('knowledgeApiTimeoutMs')
   const headers = { 'Content-Type': 'application/json' }
   if (userId) { headers['user-id'] = userId }
-  const response = await fetch(url, { headers })
+  const response = await fetchWithTimeout(url, timeoutMs, { headers })
   if (!response.ok) {
-    throw new Error(`Knowledge API ${response.status}: ${await response.text()}`)
+    const body = await response.text()
+    let detail
+    try {
+      detail = JSON.parse(body)?.detail
+    } catch {
+      detail = body
+    }
+    const err = new Error(`Knowledge API ${response.status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`)
+    err.status = response.status
+    err.detail = detail
+    throw err
   }
   return response.json()
 }

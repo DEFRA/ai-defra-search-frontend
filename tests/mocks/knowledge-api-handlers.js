@@ -40,6 +40,9 @@ function setupKnowledgeApiGroupError (groupId, statusCode = 404) {
   nock(knowledgeApiBaseUrl)
     .get('/knowledge-groups')
     .reply(200, [])
+  nock(knowledgeApiBaseUrl)
+    .get(new RegExp(`\\/documents\\?knowledge_group_id=${encodeURIComponent(groupId)}`))
+    .reply(statusCode, { detail: 'Knowledge group not found' })
 }
 
 function cleanupKnowledgeApiMocks () {
