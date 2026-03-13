@@ -2,12 +2,7 @@ import {
   knowledgeListController,
   knowledgeGroupController,
   knowledgeAddGroupGetController,
-  knowledgeAddGroupPostController,
-  knowledgeIngestController,
-  knowledgeAddSourceController,
-  knowledgeRemoveSourceController,
-  knowledgeActivateSnapshotController,
-  knowledgeQueryController
+  knowledgeAddGroupPostController
 } from './controller.js'
 
 export const knowledge = {
@@ -18,12 +13,7 @@ export const knowledge = {
         { method: 'GET', path: '/knowledge', ...knowledgeListController },
         { method: 'GET', path: '/knowledge/add', ...knowledgeAddGroupGetController },
         { method: 'POST', path: '/knowledge/add', ...knowledgeAddGroupPostController },
-        { method: 'GET', path: '/knowledge/{groupId}', ...knowledgeGroupController },
-        { method: 'POST', path: '/knowledge/{groupId}/ingest', ...knowledgeIngestController },
-        { method: 'POST', path: '/knowledge/{groupId}/sources/add', ...knowledgeAddSourceController },
-        { method: 'POST', path: '/knowledge/{groupId}/sources/{sourceId}/remove', ...knowledgeRemoveSourceController },
-        { method: 'POST', path: '/knowledge/{groupId}/snapshots/{snapshotId}/activate', ...knowledgeActivateSnapshotController },
-        { method: 'POST', path: '/knowledge/{groupId}/query', ...knowledgeQueryController }
+        { method: 'GET', path: '/knowledge/{groupId}', ...knowledgeGroupController }
       ])
     }
   }
