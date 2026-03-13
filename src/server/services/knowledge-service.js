@@ -34,10 +34,10 @@ async function request (path, options = {}) {
     try {
       detail = JSON.parse(body)?.detail
     } catch (parseError) {
-      logger.error({ err: parseError }, 'Failed to parse Data API error response body')
+      logger.error({ err: parseError }, 'Failed to parse Knowledge API error response body')
       detail = body
     }
-    const err = new Error(`Data API ${response.status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`)
+    const err = new Error(`Knowledge API ${response.status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`)
     err.status = response.status
     err.detail = detail
     throw err
