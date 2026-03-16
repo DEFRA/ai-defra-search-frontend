@@ -8,7 +8,6 @@ export default defineConfig({
     timeout: 10000,
     hookTimeout: 10000,
     env: {
-      PROTOTYPE_PASSWORD: 'correctpassword',
       API_BASE_URL: 'http://host.docker.internal:3018',
       KNOWLEDGE_API_URL: 'http://localhost:9999',
       AUTH_ENABLED: 'false',
