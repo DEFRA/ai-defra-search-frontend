@@ -10,6 +10,7 @@ const knowledgeGroupsApi = await import('../../../../src/server/services/knowled
 const {
   knowledgeListController,
   knowledgeGroupController,
+  knowledgeGroupDocumentsController,
   knowledgeAddGroupGetController,
   knowledgeAddGroupPostController
 } = await import('../../../../src/server/knowledge/controller.js')
@@ -103,12 +104,9 @@ describe('knowledge controller', () => {
   })
 
   describe('knowledgeGroupController', () => {
-    test('should render group with documents', async () => {
+    test('should render group without documents', async () => {
       knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
         { id: 'g1', name: 'My Group', description: 'Desc', information_asset_owner: 'Owner' }
-      ])
-      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([
-        { id: 'd1', file_name: 'doc.pdf', status: 'ready', chunk_count: 10 }
       ])
 
       const request = { params: { groupId: 'g1' } }
@@ -117,24 +115,22 @@ describe('knowledge controller', () => {
       expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
         pageTitle: 'My Group – Knowledge',
         group: { groupId: 'g1', title: 'My Group', description: 'Desc', owner: 'Owner' },
-        documents: [{ id: 'd1', file_name: 'doc.pdf', status: 'ready', chunk_count: 10 }],
         errorMessage: null
       }))
+      expect(knowledgeGroupsApi.listDocumentsByKnowledgeGroup).not.toHaveBeenCalled()
     })
 
     test('should render 404 when group not found', async () => {
       knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
         { id: 'other', name: 'Other', description: null, information_asset_owner: null }
       ])
-      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([])
 
       const request = { params: { groupId: 'g1' } }
       await knowledgeGroupController.handler(request, mockH)
 
       expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
         pageTitle: 'Knowledge Group – Error',
-        errorMessage: 'Knowledge group not found',
-        documents: []
+        errorMessage: 'Knowledge group not found'
       }))
       expect(mockH.code).toHaveBeenCalledWith(404)
     })
@@ -150,10 +146,74 @@ describe('knowledge controller', () => {
 
       expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
         pageTitle: 'Knowledge Group – Error',
-        errorMessage: 'Group not found',
+        errorMessage: 'Group not found'
+      }))
+      expect(mockH.code).toHaveBeenCalledWith(404)
+    })
+  })
+
+  describe('knowledgeGroupDocumentsController', () => {
+    test('should render documents page with full columns', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'My Group', description: 'Desc', information_asset_owner: 'Owner' }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([
+        { id: 'd1', file_name: 'doc.pdf', status: 'ready', chunk_count: 10, cdp_upload_id: 'up-1', created_at: '2025-03-05T12:00:00Z' }
+      ])
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupDocumentsController.handler(request, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith('knowledge/documents', expect.objectContaining({
+        pageTitle: 'Documents – My Group',
+        group: expect.objectContaining({ groupId: 'g1', title: 'My Group' }),
+        errorMessage: null
+      }))
+      const viewArgs = mockH.view.mock.calls[0][1]
+      expect(viewArgs.documents).toHaveLength(1)
+      expect(viewArgs.documents[0]).toMatchObject({
+        file_name: 'doc.pdf',
+        status: 'ready',
+        chunk_count: 10,
+        cdp_upload_id: 'up-1'
+      })
+      expect(viewArgs.documents[0].created_at_display).toBeTruthy()
+    })
+
+    test('should render 404 when group not found', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'other', name: 'Other', description: null, information_asset_owner: null }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([])
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupDocumentsController.handler(request, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith('knowledge/documents', expect.objectContaining({
+        pageTitle: 'Documents – Error',
+        errorMessage: 'Knowledge group not found',
         documents: []
       }))
       expect(mockH.code).toHaveBeenCalledWith(404)
+    })
+
+    test('should render error view on listDocumentsByKnowledgeGroup failure', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'My Group', description: null, information_asset_owner: null }
+      ])
+      const err = new Error('API error')
+      err.status = 500
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockRejectedValue(err)
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupDocumentsController.handler(request, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith('knowledge/documents', expect.objectContaining({
+        pageTitle: 'Documents – Error',
+        documents: [],
+        errorMessage: 'API error'
+      }))
+      expect(mockH.code).toHaveBeenCalledWith(500)
     })
   })
 

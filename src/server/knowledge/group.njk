@@ -43,39 +43,10 @@
       <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--l">
 
       <h2 class="govuk-heading-m">Documents</h2>
-      <p class="govuk-body">Upload documents to this group via <a href="/upload" class="govuk-link">Upload</a>.</p>
-      {% if documents.length === 0 %}
-        <p class="govuk-body">No documents in this group yet.</p>
-      {% else %}
-        <table class="govuk-table">
-          <thead class="govuk-table__head">
-            <tr class="govuk-table__row">
-              <th class="govuk-table__header">File name</th>
-              <th class="govuk-table__header">Status</th>
-              <th class="govuk-table__header">Chunks</th>
-            </tr>
-          </thead>
-          <tbody class="govuk-table__body">
-            {% for doc in documents %}
-              <tr class="govuk-table__row">
-                <td class="govuk-table__cell">{{ doc.file_name }}</td>
-                <td class="govuk-table__cell">
-                  {% if doc.status == 'ready' %}
-                  <span class="govuk-tag govuk-tag--green">{{ doc.status }}</span>
-                  {% elif doc.status == 'in_progress' %}
-                  <span class="govuk-tag govuk-tag--blue">{{ doc.status }}</span>
-                  {% elif doc.status == 'failed' %}
-                  <span class="govuk-tag govuk-tag--red">{{ doc.status }}</span>
-                  {% else %}
-                  <span class="govuk-tag govuk-tag--grey">{{ doc.status }}</span>
-                  {% endif %}
-                </td>
-                <td class="govuk-table__cell">{{ doc.chunk_count or '—' }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% endif %}
+      <p class="govuk-body">
+        <a href="/knowledge/{{ group.groupId }}/documents" class="govuk-button">View documents</a>
+        <span class="govuk-body govuk-!-margin-left-4">Upload documents via <a href="/upload" class="govuk-link">Upload</a>.</span>
+      </p>
     </div>
   </div>
 {% endblock %}

@@ -82,7 +82,7 @@ describe('Knowledge routes', () => {
   })
 
   describe('GET /knowledge/{groupId}', () => {
-    test('should return group page with documents', async () => {
+    test('should return group page with View documents link', async () => {
       setupKnowledgeApiMocks()
 
       const response = await server.inject({
@@ -97,7 +97,9 @@ describe('Knowledge routes', () => {
 
       const bodyText = page.body.textContent
       expect(bodyText).toContain('Test Group')
-      expect(bodyText).toContain('doc.pdf')
+      const viewDocsLink = page.querySelector('a[href="/knowledge/g1/documents"]')
+      expect(viewDocsLink).not.toBeNull()
+      expect(viewDocsLink?.textContent).toContain('View documents')
     })
 
     test('should handle group not found', async () => {
@@ -106,6 +108,39 @@ describe('Knowledge routes', () => {
       const response = await server.inject({
         method: 'GET',
         url: '/knowledge/missing'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.NOT_FOUND)
+    })
+  })
+
+  describe('GET /knowledge/{groupId}/documents', () => {
+    test('should return documents page with document list', async () => {
+      setupKnowledgeApiMocks()
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/knowledge/g1/documents'
+      })
+
+      expect(response.statusCode).toBe(statusCodes.OK)
+
+      const { window } = new JSDOM(response.result)
+      const page = window.document
+
+      const bodyText = page.body.textContent
+      expect(bodyText).toContain('Test Group')
+      expect(bodyText).toContain('doc.pdf')
+      expect(bodyText).toContain('ready')
+      expect(page.querySelector('table.govuk-table')).not.toBeNull()
+    })
+
+    test('should handle group not found', async () => {
+      setupKnowledgeApiGroupError('missing')
+
+      const response = await server.inject({
+        method: 'GET',
+        url: '/knowledge/missing/documents'
       })
 
       expect(response.statusCode).toBe(statusCodes.NOT_FOUND)
