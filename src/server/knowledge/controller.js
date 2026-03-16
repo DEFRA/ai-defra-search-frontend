@@ -12,7 +12,6 @@ const logger = createLogger()
 
 const LIST_PATH = 'knowledge/knowledge'
 const GROUP_PATH = 'knowledge/group'
-const DOCUMENTS_PATH = 'knowledge/documents'
 const ADD_GROUP_PATH = 'knowledge/add-group'
 const ADD_GROUP_PAGE_TITLE = 'Add knowledge group'
 const MAX_NAME_LENGTH = 255
@@ -67,51 +66,15 @@ export const knowledgeGroupController = {
   async handler (request, h) {
     const { groupId } = request.params
     try {
-      const allGroups = await listKnowledgeGroups()
-      const group = (Array.isArray(allGroups) ? allGroups : []).find(g => g.id === groupId)
-      if (!group) {
-        return h.view(GROUP_PATH, {
-          pageTitle: 'Knowledge Group – Error',
-          group: { groupId, title: 'Unknown', description: '' },
-          errorMessage: 'Knowledge group not found',
-          request
-        }).code(statusCodes.NOT_FOUND)
-      }
-      const viewGroup = {
-        ...mapGroupToView(group),
-        groupId: group.id
-      }
-      return h.view(GROUP_PATH, {
-        pageTitle: `${viewGroup.title} – Knowledge`,
-        group: viewGroup,
-        errorMessage: null,
-        request
-      })
-    } catch (err) {
-      logger.error({ err, groupId }, 'Failed to load knowledge group')
-      return h.view(GROUP_PATH, {
-        pageTitle: 'Knowledge Group – Error',
-        group: { groupId, title: 'Unknown', description: '' },
-        errorMessage: extractErrorDetail(err),
-        request
-      }).code(err.status || statusCodes.INTERNAL_SERVER_ERROR)
-    }
-  }
-}
-
-export const knowledgeGroupDocumentsController = {
-  async handler (request, h) {
-    const { groupId } = request.params
-    try {
       const [allGroups, documents] = await Promise.all([
         listKnowledgeGroups(),
         listDocumentsByKnowledgeGroup(groupId)
       ])
       const group = (Array.isArray(allGroups) ? allGroups : []).find(g => g.id === groupId)
       if (!group) {
-        return h.view(DOCUMENTS_PATH, {
-          pageTitle: 'Documents – Error',
-          group: { groupId, title: 'Unknown' },
+        return h.view(GROUP_PATH, {
+          pageTitle: 'Knowledge Group – Error',
+          group: { groupId, title: 'Unknown', description: '' },
           documents: [],
           errorMessage: 'Knowledge group not found',
           request
@@ -124,18 +87,18 @@ export const knowledgeGroupDocumentsController = {
           ? new Date(d.created_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
           : null
       }))
-      return h.view(DOCUMENTS_PATH, {
-        pageTitle: `Documents – ${viewGroup.title}`,
+      return h.view(GROUP_PATH, {
+        pageTitle: `${viewGroup.title} – Knowledge`,
         group: viewGroup,
         documents: docs,
         errorMessage: null,
         request
       })
     } catch (err) {
-      logger.error({ err, groupId }, 'Failed to load documents')
-      return h.view(DOCUMENTS_PATH, {
-        pageTitle: 'Documents – Error',
-        group: { groupId, title: 'Unknown' },
+      logger.error({ err, groupId }, 'Failed to load knowledge group')
+      return h.view(GROUP_PATH, {
+        pageTitle: 'Knowledge Group – Error',
+        group: { groupId, title: 'Unknown', description: '' },
         documents: [],
         errorMessage: extractErrorDetail(err),
         request

@@ -82,45 +82,12 @@ describe('Knowledge routes', () => {
   })
 
   describe('GET /knowledge/{groupId}', () => {
-    test('should return group page with View documents link', async () => {
+    test('should return group page with documents table inline', async () => {
       setupKnowledgeApiMocks()
 
       const response = await server.inject({
         method: 'GET',
         url: '/knowledge/g1'
-      })
-
-      expect(response.statusCode).toBe(statusCodes.OK)
-
-      const { window } = new JSDOM(response.result)
-      const page = window.document
-
-      const bodyText = page.body.textContent
-      expect(bodyText).toContain('Test Group')
-      const viewDocsLink = page.querySelector('a[href="/knowledge/g1/documents"]')
-      expect(viewDocsLink).not.toBeNull()
-      expect(viewDocsLink?.textContent).toContain('View documents')
-    })
-
-    test('should handle group not found', async () => {
-      setupKnowledgeApiGroupError('missing')
-
-      const response = await server.inject({
-        method: 'GET',
-        url: '/knowledge/missing'
-      })
-
-      expect(response.statusCode).toBe(statusCodes.NOT_FOUND)
-    })
-  })
-
-  describe('GET /knowledge/{groupId}/documents', () => {
-    test('should return documents page with document list', async () => {
-      setupKnowledgeApiMocks()
-
-      const response = await server.inject({
-        method: 'GET',
-        url: '/knowledge/g1/documents'
       })
 
       expect(response.statusCode).toBe(statusCodes.OK)
@@ -140,7 +107,7 @@ describe('Knowledge routes', () => {
 
       const response = await server.inject({
         method: 'GET',
-        url: '/knowledge/missing/documents'
+        url: '/knowledge/missing'
       })
 
       expect(response.statusCode).toBe(statusCodes.NOT_FOUND)
