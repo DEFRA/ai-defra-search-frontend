@@ -80,14 +80,17 @@ export const knowledgeGroupController = {
           request
         }).code(statusCodes.NOT_FOUND)
       }
-      const viewGroup = {
-        ...mapGroupToView(group),
-        groupId: group.id
-      }
+      const viewGroup = { ...mapGroupToView(group), groupId: group.id }
+      const docs = (Array.isArray(documents) ? documents : []).map(d => ({
+        ...d,
+        created_at_display: d.created_at
+          ? new Date(d.created_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
+          : null
+      }))
       return h.view(GROUP_PATH, {
         pageTitle: `${viewGroup.title} – Knowledge`,
         group: viewGroup,
-        documents: Array.isArray(documents) ? documents : [],
+        documents: docs,
         errorMessage: null,
         request
       })

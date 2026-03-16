@@ -82,7 +82,7 @@ describe('Knowledge routes', () => {
   })
 
   describe('GET /knowledge/{groupId}', () => {
-    test('should return group page with documents', async () => {
+    test('should return group page with documents table inline', async () => {
       setupKnowledgeApiMocks()
 
       const response = await server.inject({
@@ -98,6 +98,8 @@ describe('Knowledge routes', () => {
       const bodyText = page.body.textContent
       expect(bodyText).toContain('Test Group')
       expect(bodyText).toContain('doc.pdf')
+      expect(bodyText).toContain('ready')
+      expect(page.querySelector('table.govuk-table')).not.toBeNull()
     })
 
     test('should handle group not found', async () => {
