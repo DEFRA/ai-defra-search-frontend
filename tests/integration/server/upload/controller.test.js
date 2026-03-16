@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom'
 import { vi } from 'vitest'
 
 import { createServer } from '../../../../src/server/server.js'
-import { listKnowledgeGroups, createKnowledgeGroup } from '../../../../src/server/services/knowledge-groups-service.js'
+import { listKnowledgeGroups, createKnowledgeGroup, getSupportedFileTypes } from '../../../../src/server/services/knowledge-groups-service.js'
 import { initiateUpload } from '../../../../src/server/services/cdp-uploader-service.js'
 import { getUploadSession, storeUploadSession } from '../../../../src/server/upload/upload-session-cache.js'
 
@@ -17,6 +17,7 @@ describe('Upload page', () => {
   beforeAll(async () => {
     vi.mocked(listKnowledgeGroups).mockResolvedValue([])
     vi.mocked(createKnowledgeGroup).mockResolvedValue({ id: 'new-id', name: 'Test', description: null })
+    vi.mocked(getSupportedFileTypes).mockResolvedValue(['docx', 'jsonl', 'pdf', 'pptx'])
     vi.mocked(initiateUpload).mockResolvedValue({
       uploadId: 'test-upload-id',
       uploadUrl: '/upload-and-scan/test-upload-id',
@@ -36,6 +37,7 @@ describe('Upload page', () => {
   beforeEach(() => {
     vi.mocked(listKnowledgeGroups).mockResolvedValue([])
     vi.mocked(createKnowledgeGroup).mockResolvedValue({ id: 'new-id', name: 'Test', description: null })
+    vi.mocked(getSupportedFileTypes).mockResolvedValue(['docx', 'jsonl', 'pdf', 'pptx'])
     vi.mocked(initiateUpload).mockResolvedValue({
       uploadId: 'test-upload-id',
       uploadUrl: '/upload-and-scan/test-upload-id',
@@ -185,6 +187,7 @@ describe('Upload page', () => {
       expect(page.querySelector('#choose-files-btn')).toBeNull()
       expect(selectedFilesSection).not.toBeNull()
       expect(selectedFilesSection.hasAttribute('hidden')).toBe(true)
+      expect(page.body.textContent).toContain('Supported formats: DOCX, JSONL, PDF, PPTX')
     })
   })
 
