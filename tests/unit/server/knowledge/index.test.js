@@ -80,5 +80,4 @@ describe('knowledge plugin', () => {
     expect(route).toBeDefined()
     expect(route.handler).toBeDefined()
   })
-
 })
