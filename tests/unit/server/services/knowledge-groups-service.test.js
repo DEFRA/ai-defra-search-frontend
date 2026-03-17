@@ -5,7 +5,8 @@ import {
   listKnowledgeGroups,
   createKnowledgeGroup,
   createDocuments,
-  listDocumentsByKnowledgeGroup
+  listDocumentsByKnowledgeGroup,
+  getSupportedFileTypes
 } from '../../../../src/server/services/knowledge-groups-service.js'
 import { config } from '../../../../src/config/config.js'
 import { getUserId } from '../../../../src/server/common/helpers/user-context.js'
@@ -305,6 +306,56 @@ describe('knowledge-groups-service', () => {
 
       expect(err.detail).toEqual({ code: 'ERR', message: 'Invalid' })
       expect(err.message).toContain('{"code":"ERR","message":"Invalid"}')
+    })
+  })
+
+  describe('getSupportedFileTypes', () => {
+    test('returns default when knowledgeApiUrl is not configured', async () => {
+      config.get.mockReturnValueOnce(null)
+
+      const result = await getSupportedFileTypes()
+
+      expect(result).toEqual(['pdf', 'docx', 'pptx', 'jsonl'])
+    })
+
+    test('returns extensions from API', async () => {
+      nock(baseUrl)
+        .get('/supported-file-types')
+        .reply(200, { extensions: ['docx', 'jsonl', 'pdf', 'pptx'] })
+
+      const result = await getSupportedFileTypes()
+
+      expect(result).toEqual(['docx', 'jsonl', 'pdf', 'pptx'])
+    })
+
+    test('returns default when API returns non-ok', async () => {
+      nock(baseUrl)
+        .get('/supported-file-types')
+        .reply(500, 'Internal Server Error')
+
+      const result = await getSupportedFileTypes()
+
+      expect(result).toEqual(['pdf', 'docx', 'pptx', 'jsonl'])
+    })
+
+    test('returns default when extensions is empty array', async () => {
+      nock(baseUrl)
+        .get('/supported-file-types')
+        .reply(200, { extensions: [] })
+
+      const result = await getSupportedFileTypes()
+
+      expect(result).toEqual(['pdf', 'docx', 'pptx', 'jsonl'])
+    })
+
+    test('returns default when fetch throws', async () => {
+      nock(baseUrl)
+        .get('/supported-file-types')
+        .replyWithError('Network error')
+
+      const result = await getSupportedFileTypes()
+
+      expect(result).toEqual(['pdf', 'docx', 'pptx', 'jsonl'])
     })
   })
 })

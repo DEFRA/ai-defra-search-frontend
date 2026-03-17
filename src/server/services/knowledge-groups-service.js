@@ -7,6 +7,29 @@ const logger = createLogger()
 
 const knowledgeApiUrl = () => config.get('knowledgeApiUrl')
 
+const DEFAULT_SUPPORTED_EXTENSIONS = ['pdf', 'docx', 'pptx', 'jsonl']
+
+export async function getSupportedFileTypes () {
+  const base = knowledgeApiUrl()
+  if (!base) {
+    return DEFAULT_SUPPORTED_EXTENSIONS
+  }
+  const url = `${base.replace(/\/$/, '')}/supported-file-types`
+  const timeoutMs = config.get('knowledgeApiTimeoutMs')
+  try {
+    const response = await fetchWithTimeout(url, timeoutMs, { headers: { 'Content-Type': 'application/json' } })
+    if (!response.ok) {
+      return DEFAULT_SUPPORTED_EXTENSIONS
+    }
+    const data = await response.json()
+    const exts = data?.extensions
+    return Array.isArray(exts) && exts.length > 0 ? exts : DEFAULT_SUPPORTED_EXTENSIONS
+  } catch (err) {
+    logger.warn({ err }, 'Failed to fetch supported file types, using defaults')
+    return DEFAULT_SUPPORTED_EXTENSIONS
+  }
+}
+
 export async function listKnowledgeGroups () {
   const base = knowledgeApiUrl()
   const userId = getUserId()

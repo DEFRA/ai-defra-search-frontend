@@ -12,6 +12,10 @@ function setupKnowledgeApiMocks () {
     ])
 
   nock(knowledgeApiBaseUrl)
+    .get('/supported-file-types')
+    .reply(200, { extensions: ['docx', 'jsonl', 'pdf', 'pptx'] })
+
+  nock(knowledgeApiBaseUrl)
     .get(/\/documents\?knowledge_group_id=g1/)
     .reply(200, [
       { id: 'd1', file_name: 'doc.pdf', status: 'ready', chunk_count: 10 }
@@ -56,6 +60,10 @@ function setupKnowledgeGroupsMock () {
     .persist()
     .get('/knowledge-groups')
     .reply(200, [{ id: 'kg-1', name: 'Test Knowledge Group' }])
+  nock(knowledgeGroupsApiBaseUrl)
+    .persist()
+    .get('/supported-file-types')
+    .reply(200, { extensions: ['docx', 'jsonl', 'pdf', 'pptx'] })
 }
 
 function setupKnowledgeGroupsEmptyMock () {

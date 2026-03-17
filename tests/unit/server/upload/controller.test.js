@@ -372,12 +372,13 @@ describe('upload controller', () => {
   })
 
   describe('uploadFileGetController', () => {
-    test('renders file upload form pointing to the CDP scan URL', async () => {
+    test('renders file upload form pointing to the CDP scan URL with supported file types', async () => {
       uploadSessionCache.getUploadSession.mockResolvedValue({
         uploadId: 'abc123',
         statusUrl: '/status/abc123',
         knowledgeGroupId: 'group-1'
       })
+      knowledgeGroupsService.getSupportedFileTypes.mockResolvedValue(['docx', 'jsonl', 'pdf', 'pptx'])
 
       await uploadFileGetController.handler(
         { params: { uploadReference: 'ref-abc123' } },
@@ -386,7 +387,11 @@ describe('upload controller', () => {
 
       expect(mockH.view).toHaveBeenCalledWith(
         'upload/file-upload',
-        { uploadUrl: '/upload-and-scan/abc123', uploadStatusUrl: '/upload-status/ref-abc123' }
+        {
+          uploadUrl: '/upload-and-scan/abc123',
+          uploadStatusUrl: '/upload-status/ref-abc123',
+          supportedFormatsText: 'DOCX, JSONL, PDF, PPTX'
+        }
       )
     })
 
