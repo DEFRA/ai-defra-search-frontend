@@ -29,8 +29,12 @@ async function buildUploadViewState (overrides = {}) {
 }
 
 export const uploadGetController = {
-  async handler (_request, h) {
+  async handler (request, h) {
     const viewState = await buildUploadViewState()
+    const queryGroupId = request.query?.groupId?.trim() ?? ''
+    if (queryGroupId && viewState.knowledgeGroupSelectItems.some(i => i.value === queryGroupId)) {
+      viewState.selectedKnowledgeGroup = queryGroupId
+    }
     return h.view(UPLOAD_VIEW_PATH, viewState)
   }
 }
