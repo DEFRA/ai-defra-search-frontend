@@ -43,7 +43,7 @@
       <hr class="govuk-section-break govuk-section-break--visible govuk-section-break--l">
 
       <h2 class="govuk-heading-m">Documents</h2>
-      <p class="govuk-body govuk-!-margin-bottom-4">Upload documents via <a href="/upload" class="govuk-link">Upload</a>.</p>
+      <p class="govuk-body govuk-!-margin-bottom-4">Upload documents via <a href="/upload?groupId={{ group.groupId }}" class="govuk-link">Upload</a>.</p>
       {% if (documents | default([])).length === 0 %}
         <p class="govuk-body">No documents in this knowledge group yet.</p>
       {% else %}
