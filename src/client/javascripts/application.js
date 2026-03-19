@@ -20,7 +20,6 @@ createAll(Radios)
 createAll(SkipLink)
 initChatPolling()
 
-
 initAll()
 
 const fileUpload = document.getElementById('file-upload')
