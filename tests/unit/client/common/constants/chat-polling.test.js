@@ -15,7 +15,15 @@ describe('chatPollingConstants', () => {
     expect(chatPollingConstants.maxRetries).toBe(5)
   })
 
+  test('initialRetries is 0', () => {
+    expect(chatPollingConstants.initialRetries).toBe(0)
+  })
+
   test('exports only the expected keys', () => {
-    expect(Object.keys(chatPollingConstants)).toEqual(['pollIntervalMs', 'maxRetries'])
+    expect(Object.keys(chatPollingConstants)).toEqual([
+      'pollIntervalMs',
+      'maxRetries',
+      'initialRetries'
+    ])
   })
 })

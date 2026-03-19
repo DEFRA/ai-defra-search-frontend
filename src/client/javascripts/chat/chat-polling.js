@@ -1,7 +1,10 @@
 import { chatPollingConstants } from '../../common/constants/chat-polling.js'
 
-const { pollIntervalMs: POLL_INTERVAL_MS, maxRetries: MAX_RETRIES } =
-  chatPollingConstants
+const {
+  pollIntervalMs: POLL_INTERVAL_MS,
+  maxRetries: MAX_RETRIES,
+  initialRetries: INITIAL_RETRIES
+} = chatPollingConstants
 
 const showLoading = () => {
   const statusEl = document.getElementById('ai-status')
@@ -27,10 +30,15 @@ const hideLoading = () => {
   }
 }
 
-const pollForResponse = (conversationId, retries = 0) => {
+const pollForResponse = (conversationId, retries = INITIAL_RETRIES) => {
   setTimeout(async () => {
     try {
       const response = await fetch(`/start/${conversationId}`)
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
       const html = await response.text()
       const parser = new DOMParser()
       const doc = parser.parseFromString(html, 'text/html')
@@ -40,7 +48,7 @@ const pollForResponse = (conversationId, retries = 0) => {
         hideLoading()
         globalThis.location.reload()
       } else {
-        pollForResponse(conversationId, 0)
+        pollForResponse(conversationId, INITIAL_RETRIES)
       }
     } catch {
       if (retries < MAX_RETRIES) {

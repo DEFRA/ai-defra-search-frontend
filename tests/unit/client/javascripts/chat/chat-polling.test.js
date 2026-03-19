@@ -36,6 +36,11 @@ const buildDOM = ({
 const buildResponseHTML = (responsePending) =>
   `<html><body><div class="app-conversation-container" data-response-pending="${responsePending}"></div></body></html>`
 
+const mockOkResponse = (responsePending) => ({
+  ok: true,
+  text: () => Promise.resolve(buildResponseHTML(responsePending))
+})
+
 describe('initChatPolling', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -91,7 +96,7 @@ describe('initChatPolling', () => {
 
   test('polls GET /start/{conversationId} via fetch after interval', async () => {
     buildDOM()
-    fetch.mockResolvedValue({ text: () => Promise.resolve(buildResponseHTML('true')) })
+    fetch.mockResolvedValue(mockOkResponse('true'))
     initChatPolling()
     await vi.runOnlyPendingTimersAsync()
     expect(fetch).toHaveBeenCalledWith(`/start/${CONVERSATION_ID}`)
@@ -99,7 +104,7 @@ describe('initChatPolling', () => {
 
   test('reloads the page when data-response-pending becomes false', async () => {
     buildDOM()
-    fetch.mockResolvedValue({ text: () => Promise.resolve(buildResponseHTML('false')) })
+    fetch.mockResolvedValue(mockOkResponse('false'))
     initChatPolling()
     await vi.runOnlyPendingTimersAsync()
     expect(window.location.reload).toHaveBeenCalled()
@@ -107,7 +112,7 @@ describe('initChatPolling', () => {
 
   test('clears ai-status text when response arrives', async () => {
     buildDOM()
-    fetch.mockResolvedValue({ text: () => Promise.resolve(buildResponseHTML('false')) })
+    fetch.mockResolvedValue(mockOkResponse('false'))
     initChatPolling()
     await vi.runOnlyPendingTimersAsync()
     expect(document.getElementById('ai-status').textContent).toBe('')
@@ -115,7 +120,7 @@ describe('initChatPolling', () => {
 
   test('hides the loading indicator once response arrives', async () => {
     buildDOM()
-    fetch.mockResolvedValue({ text: () => Promise.resolve(buildResponseHTML('false')) })
+    fetch.mockResolvedValue(mockOkResponse('false'))
     initChatPolling()
     await vi.runOnlyPendingTimersAsync()
     expect(document.querySelector('[data-chat-loading]').hasAttribute('hidden')).toBe(true)
@@ -124,13 +129,24 @@ describe('initChatPolling', () => {
   test('continues polling while response is still pending', async () => {
     buildDOM()
     fetch
-      .mockResolvedValueOnce({ text: () => Promise.resolve(buildResponseHTML('true')) })
-      .mockResolvedValueOnce({ text: () => Promise.resolve(buildResponseHTML('false')) })
+      .mockResolvedValueOnce(mockOkResponse('true'))
+      .mockResolvedValueOnce(mockOkResponse('false'))
     initChatPolling()
     await vi.runOnlyPendingTimersAsync()
     await vi.runOnlyPendingTimersAsync()
     expect(fetch).toHaveBeenCalledTimes(2)
     expect(window.location.reload).toHaveBeenCalled()
+  })
+
+  test('retries when fetch returns an HTTP error status', async () => {
+    buildDOM()
+    fetch.mockResolvedValue({ ok: false, status: 500 })
+    initChatPolling()
+    for (let i = 0; i < 5; i++) {
+      await vi.runOnlyPendingTimersAsync()
+    }
+    expect(fetch).toHaveBeenCalledTimes(5)
+    expect(window.location.reload).not.toHaveBeenCalled()
   })
 
   test('retries on fetch error without exceeding max retries', async () => {
@@ -176,7 +192,7 @@ describe('initChatPolling', () => {
 
   test('uses a 2000ms poll interval before the first fetch', async () => {
     buildDOM()
-    fetch.mockResolvedValue({ text: () => Promise.resolve(buildResponseHTML('false')) })
+    fetch.mockResolvedValue(mockOkResponse('false'))
     initChatPolling()
     vi.advanceTimersByTime(1999)
     expect(fetch).not.toHaveBeenCalled()
@@ -200,7 +216,7 @@ describe('initChatPolling', () => {
   test('does not throw when ai-status element is absent during hideLoading', async () => {
     buildDOM()
     document.getElementById('ai-status').remove()
-    fetch.mockResolvedValue({ text: () => Promise.resolve(buildResponseHTML('false')) })
+    fetch.mockResolvedValue(mockOkResponse('false'))
     initChatPolling()
     await expect(vi.runOnlyPendingTimersAsync()).resolves.not.toThrow()
   })
@@ -208,7 +224,7 @@ describe('initChatPolling', () => {
   test('does not throw when data-chat-loading element is absent during hideLoading', async () => {
     buildDOM()
     document.querySelector('[data-chat-loading]').remove()
-    fetch.mockResolvedValue({ text: () => Promise.resolve(buildResponseHTML('false')) })
+    fetch.mockResolvedValue(mockOkResponse('false'))
     initChatPolling()
     await expect(vi.runOnlyPendingTimersAsync()).resolves.not.toThrow()
   })
