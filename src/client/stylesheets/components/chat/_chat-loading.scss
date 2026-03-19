@@ -1,0 +1,70 @@
+@use "govuk-frontend" as *;
+
+.js-enabled [data-nojs-controls],
+.js-enabled [data-js-pending-notice] {
+  display: none;
+}
+
+@keyframes app-chat-loading-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-4px);
+  }
+}
+
+.app-chat-loading {
+  display: flex;
+  align-items: center;
+  gap: govuk-spacing(2);
+  padding: govuk-spacing(2) 0;
+}
+
+.app-chat-loading__text {
+  @include govuk-font($size: 16);
+  color: $govuk-secondary-text-colour;
+}
+
+.app-chat-loading__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: govuk-spacing(1);
+}
+
+.app-chat-loading__dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: $govuk-secondary-text-colour;
+  animation: app-chat-loading-bounce 1.2s ease-in-out infinite;
+
+  &:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-chat-loading__dot {
+    animation: none;
+    display: none;
+  }
+
+  .app-chat-loading__dots::after {
+    content: "...";
+    @include govuk-font($size: 16);
+    color: $govuk-secondary-text-colour;
+  }
+}

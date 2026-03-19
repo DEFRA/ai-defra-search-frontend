@@ -15,7 +15,7 @@
 <div class="govuk-!-margin-bottom-6">
   <p>Chat with AI Assistant to get help with user-centred design questions.</p>
   <h3 class="govuk-heading-s">Conversation</h3>
-  <div class="govuk-!-padding-4 app-conversation-container">
+  <div class="govuk-!-padding-4 app-conversation-container" data-response-pending="{{ 'true' if params.responsePending else 'false' }}" data-conversation-id="{{ conversationId }}">
     {% for message in messages %}
       {% if message.role === "user" %}
         <div class="app-user-question-wrapper"{% if loop.index0 == lastUserIndex and lastAssistantIndex < lastUserIndex and not errorDetails %} id="latest-question" tabindex="-1" autofocus{% endif %}>
@@ -30,13 +30,26 @@
 
       {% if message.role === "assistant" %}
         <div class="app-assistant-response govuk-body govuk-!-width-two-thirds"{% if loop.index0 == lastAssistantIndex and not errorDetails %} id="latest-response" tabindex="-1" autofocus{% endif %}>
-            {{ message.content | safe }}
+            {% if not message.isPlaceholder %}{{ message.content | safe }}{% endif %}
             {% if message.isPlaceholder %}
-              <div class="govuk-!-margin-top-2">
-                {# Refresh button: server-set flag ensures robustness if message text changes #}
-                <a class="govuk-button" href="/start{% if conversationId %}/{{ conversationId }}{% endif %}" draggable="false">
-                  Refresh
-                </a>
+              <div data-nojs-controls>
+                <div data-js-placeholder-text>{{ message.content | safe }}</div>
+                <div class="govuk-!-margin-top-2">
+                  {# Refresh button: hidden by default; noscript overrides for non-JS users #}
+                  <a class="govuk-button" href="/start{% if conversationId %}/{{ conversationId }}{% endif %}" draggable="false" data-refresh-btn>
+                    Refresh
+                  </a>
+                </div>
+              </div>
+              <div data-chat-loading aria-hidden="true" hidden>
+                <div class="app-chat-loading">
+                  <span class="app-chat-loading__text">AI assistant is typing</span>
+                  <span class="app-chat-loading__dots">
+                    <span class="app-chat-loading__dot"></span>
+                    <span class="app-chat-loading__dot"></span>
+                    <span class="app-chat-loading__dot"></span>
+                  </span>
+                </div>
               </div>
             {% endif %}
         </div>

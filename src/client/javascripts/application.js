@@ -9,6 +9,7 @@ import {
   Radios,
   SkipLink
 } from 'govuk-frontend'
+import { initChatPolling } from './chat/chat-polling.js'
 
 createAll(Button)
 createAll(CharacterCount)
@@ -17,6 +18,7 @@ createAll(ErrorSummary)
 createAll(Header)
 createAll(Radios)
 createAll(SkipLink)
+initChatPolling()
 
 initAll()
 

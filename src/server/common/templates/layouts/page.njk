@@ -70,5 +70,6 @@
 {% endblock %}
 
 {% block bodyEnd %}
+  <div id="ai-status" role="status" aria-live="polite" aria-atomic="true" class="govuk-visually-hidden"></div>
   <script type="module" src="{{ getAssetPath('application.js') }}"></script>
 {% endblock %}
