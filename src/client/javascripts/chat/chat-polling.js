@@ -36,9 +36,9 @@ const pollForResponse = (conversationId, retries = 0) => {
       const doc = parser.parseFromString(html, 'text/html')
       const container = doc.querySelector('.app-conversation-container[data-response-pending]')
 
-      if (container && container.dataset.responsePending === 'false') {
+      if (container?.dataset.responsePending === 'false') {
         hideLoading()
-        window.location.reload()
+        globalThis.location.reload()
       } else {
         pollForResponse(conversationId, 0)
       }
