@@ -80,53 +80,87 @@ function buildKnowledgeGroupSelectItems (knowledgeGroups) {
 }
 
 /**
- * Loads all data needed to render the conversation page.
- * Uses a cache-first strategy: serves the initialViewPending snapshot immediately
- * after a question is submitted, then falls back to the API for subsequent loads.
- * On timeout or abort, falls back to the cached messages. Throws for unhandled errors.
+ * Fetches models and knowledge groups concurrently and builds the page resource bundle.
  *
- * @param {string|undefined} conversationId
+ * @returns {Promise<{ models: Array, knowledgeGroupSelectItems: Array }>}
+ */
+async function loadSharedPageResources () {
+  const [models, knowledgeGroups] = await Promise.all([getModels(), listKnowledgeGroups()])
+  return { models, knowledgeGroupSelectItems: buildKnowledgeGroupSelectItems(knowledgeGroups) }
+}
+
+/**
+ * Returns page data from the initialViewPending cache snapshot and clears the flag.
+ * Used on the first render immediately after a question is submitted.
+ *
+ * @param {{ conversationId: string, messages: Array, modelId: string|null }} cached
+ * @param {Array} models
+ * @param {Array} knowledgeGroupSelectItems
  * @returns {Promise<object>}
  */
-async function loadConversationPageData (conversationId) {
-  const [models, knowledgeGroups] = await Promise.all([getModels(), listKnowledgeGroups()])
-  const knowledgeGroupSelectItems = buildKnowledgeGroupSelectItems(knowledgeGroups)
-
-  if (!conversationId) {
-    return { models, knowledgeGroupSelectItems, messages: [], conversationId: null, modelId: null, responsePending: false }
+async function resolveFromInitialView (cached, models, knowledgeGroupSelectItems) {
+  await clearInitialViewPending(cached)
+  return {
+    models,
+    knowledgeGroupSelectItems,
+    messages: cached.messages,
+    conversationId: cached.conversationId,
+    modelId: cached.modelId || null,
+    responsePending: hasPendingResponse(cached.messages)
   }
+}
 
-  const cached = await getCachedConversation(conversationId)
+/**
+ * Fetches a conversation from the API wrapped in a timeout race.
+ * Returns null if the conversation does not exist.
+ *
+ * @param {string} conversationId
+ * @param {number} timeoutMs
+ * @returns {Promise<object|null>}
+ */
+async function fetchConversationWithTimeout (conversationId, timeoutMs) {
+  return Promise.race([
+    getConversationApi(conversationId, timeoutMs),
+    new Promise((_resolve, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
+  ])
+}
 
-  if (cached?.initialViewPending) {
-    await clearInitialViewPending(cached)
-    return {
-      models,
-      knowledgeGroupSelectItems,
-      messages: cached.messages,
-      conversationId: cached.conversationId,
-      modelId: cached.modelId || null,
-      responsePending: hasPendingResponse(cached.messages)
-    }
+/**
+ * Persists an API-fetched conversation back to cache, preserving the cached modelId.
+ *
+ * @param {{ conversationId: string, messages: Array }} conversation
+ * @param {string|null} cachedModelId
+ * @returns {Promise<void>}
+ */
+async function syncConversationToCache (conversation, cachedModelId) {
+  try {
+    await storeConversation(conversation.conversationId, conversation.messages, cachedModelId, { initialViewPending: false })
+  } catch (error) {
+    createLogger().error({ err: error, conversationId: conversation.conversationId }, 'Failed to update cache with API conversation')
   }
+}
 
+/**
+ * Fetches conversation data from the API, with fallback to cache on timeout or abort.
+ * Returns a not-found state on 404. Throws for unhandled errors.
+ *
+ * @param {string} conversationId
+ * @param {object|null} cached
+ * @param {Array} models
+ * @param {Array} knowledgeGroupSelectItems
+ * @returns {Promise<object>}
+ */
+async function resolveFromApi (conversationId, cached, models, knowledgeGroupSelectItems) {
   const timeoutMs = config.get('chatApiTimeoutMs')
 
   try {
-    const conversation = await Promise.race([
-      getConversationApi(conversationId, timeoutMs),
-      new Promise((_resolve, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
-    ])
+    const conversation = await fetchConversationWithTimeout(conversationId, timeoutMs)
 
     if (!conversation) {
       return { models, knowledgeGroupSelectItems, messages: [], conversationId, modelId: null, responsePending: false }
     }
 
-    try {
-      await storeConversation(conversation.conversationId, conversation.messages, cached?.modelId ?? null, { initialViewPending: false })
-    } catch (error) {
-      createLogger().error({ err: error, conversationId }, 'Failed to update cache with API conversation')
-    }
+    await syncConversationToCache(conversation, cached?.modelId ?? null)
 
     return {
       models,
@@ -153,6 +187,31 @@ async function loadConversationPageData (conversationId) {
     }
     throw error
   }
+}
+
+/**
+ * Loads all data needed to render the conversation page.
+ * Uses a cache-first strategy: serves the initialViewPending snapshot immediately
+ * after a question is submitted, then falls back to the API for subsequent loads.
+ * On timeout or abort, falls back to the cached messages. Throws for unhandled errors.
+ *
+ * @param {string|undefined} conversationId
+ * @returns {Promise<object>}
+ */
+async function loadConversationPageData (conversationId) {
+  const { models, knowledgeGroupSelectItems } = await loadSharedPageResources()
+
+  if (!conversationId) {
+    return { models, knowledgeGroupSelectItems, messages: [], conversationId: null, modelId: null, responsePending: false }
+  }
+
+  const cached = await getCachedConversation(conversationId)
+
+  if (cached?.initialViewPending) {
+    return resolveFromInitialView(cached, models, knowledgeGroupSelectItems)
+  }
+
+  return resolveFromApi(conversationId, cached, models, knowledgeGroupSelectItems)
 }
 
 /**
