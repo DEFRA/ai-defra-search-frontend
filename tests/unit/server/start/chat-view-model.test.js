@@ -142,6 +142,24 @@ describe('loadConversationPageData', () => {
 
       expect(result).toMatchObject({ messages: apiConversation.messages })
     })
+
+    test('preserves the cached modelId in both the cache write and returned data', async () => {
+      const cachedConversation = { conversationId: 'conv-456', messages: [], modelId: 'non-default-model', initialViewPending: false }
+      const apiConversation = { conversationId: 'conv-456', messages: [{ role: 'assistant', content: 'answer' }] }
+      vi.mocked(conversationCache.getConversation).mockResolvedValue(cachedConversation)
+      vi.mocked(chatService.getConversation).mockResolvedValue(apiConversation)
+      vi.mocked(conversationCache.storeConversation).mockResolvedValue(undefined)
+
+      const result = await loadConversationPageData('conv-456')
+
+      expect(conversationCache.storeConversation).toHaveBeenCalledWith(
+        'conv-456',
+        apiConversation.messages,
+        'non-default-model',
+        { initialViewPending: false }
+      )
+      expect(result).toMatchObject({ modelId: 'non-default-model' })
+    })
   })
 
   describe('when the API call times out or is aborted', () => {
