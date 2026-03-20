@@ -8,12 +8,25 @@ import { getErrorDetails } from './error-mapping.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 import { config } from '../../config/config.js'
 
+/**
+ * Determines whether an error represents a request timeout or an abort.
+ *
+ * @param {Error} error
+ * @returns {boolean}
+ */
 function isTimeoutOrAbort (error) {
   const isTimeout = error.message === 'timeout'
   const isAbort = error.name === 'AbortError' || error.type === 'aborted' || error?.cause?.name === 'AbortError'
   return isTimeout || isAbort
 }
 
+/**
+ * Clears the initialViewPending flag on a cached conversation after it has been
+ * rendered for the first time following a question submission.
+ *
+ * @param {{ conversationId: string, messages: Array, modelId: string|null }} cached
+ * @returns {Promise<void>}
+ */
 async function clearInitialViewPending (cached) {
   const logger = createLogger()
   try {
@@ -28,6 +41,17 @@ async function clearInitialViewPending (cached) {
   }
 }
 
+/**
+ * Appends a user message and an assistant placeholder message to the cached
+ * conversation immediately after a question is queued, so the UI can show a
+ * loading state while polling for the real response.
+ *
+ * @param {string|undefined} conversationId - The existing conversation ID, if any
+ * @param {string} question - The user's question text
+ * @param {{ conversationId: string, messageId: string }} apiResponse - The queue response from the chat API
+ * @param {string} modelId - The model ID selected by the user
+ * @returns {Promise<void>}
+ */
 async function storeConversationWithPlaceholder (conversationId, question, apiResponse, modelId) {
   const logger = createLogger()
   try {
@@ -43,12 +67,10 @@ async function storeConversationWithPlaceholder (conversationId, question, apiRe
 }
 
 /**
- * Loads all data needed to render the conversation page.
- * Handles cache-first strategy with API fallback, timeout handling, and not-found detection.
- * Throws for unhandled errors.
+ * Builds the select item list for the knowledge group dropdown.
  *
- * @param {string|undefined} conversationId
- * @returns {Promise<object>}
+ * @param {Array<{ id: string, name: string }>} knowledgeGroups
+ * @returns {Array<{ value: string, text: string }>}
  */
 function buildKnowledgeGroupSelectItems (knowledgeGroups) {
   return [
@@ -57,6 +79,15 @@ function buildKnowledgeGroupSelectItems (knowledgeGroups) {
   ]
 }
 
+/**
+ * Loads all data needed to render the conversation page.
+ * Uses a cache-first strategy: serves the initialViewPending snapshot immediately
+ * after a question is submitted, then falls back to the API for subsequent loads.
+ * On timeout or abort, falls back to the cached messages. Throws for unhandled errors.
+ *
+ * @param {string|undefined} conversationId
+ * @returns {Promise<object>}
+ */
 async function loadConversationPageData (conversationId) {
   const [models, knowledgeGroups] = await Promise.all([getModels(), listKnowledgeGroups()])
   const knowledgeGroupSelectItems = buildKnowledgeGroupSelectItems(knowledgeGroups)
@@ -92,7 +123,7 @@ async function loadConversationPageData (conversationId) {
     }
 
     try {
-      await storeConversation(conversation.conversationId, conversation.messages, null, { initialViewPending: false })
+      await storeConversation(conversation.conversationId, conversation.messages, cached?.modelId ?? null, { initialViewPending: false })
     } catch (error) {
       createLogger().error({ err: error, conversationId }, 'Failed to update cache with API conversation')
     }
@@ -102,7 +133,7 @@ async function loadConversationPageData (conversationId) {
       knowledgeGroupSelectItems,
       messages: conversation.messages,
       conversationId: conversation.conversationId,
-      modelId: null,
+      modelId: cached?.modelId ?? null,
       responsePending: hasPendingResponse(conversation.messages)
     }
   } catch (error) {
@@ -146,7 +177,7 @@ async function detectPendingConflict (conversationId) {
 }
 
 /**
- * Submits a question to the chat API and stages an optimistic placeholder in cache.
+ * Submits a question to the chat API and stages a placeholder message in cache.
  * Throws on API error.
  *
  * @param {string} question
