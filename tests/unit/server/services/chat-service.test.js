@@ -282,6 +282,20 @@ describe('chat-api', () => {
   })
 
   describe('request headers', () => {
+    test('includes X-API-KEY header on every request', async () => {
+      let capturedHeaders
+      nock(chatApiUrl)
+        .post('/chat')
+        .reply(function () {
+          capturedHeaders = this.req.headers
+          return [200, { conversation_id: 'c1', message_id: 'm1', status: 'queued' }]
+        })
+
+      await sendQuestion('q', 'model', null)
+
+      expect(capturedHeaders['x-api-key']).toBe('test-api-key')
+    })
+
     test('includes user-id header when a user context is active', async () => {
       getUserId.mockReturnValue('test-oid-abc123')
 
