@@ -327,6 +327,20 @@ describe('chat-api', () => {
 
       expect(capturedHeaders['user-id']).toBeUndefined()
     })
+
+    test('includes X-API-KEY header when retrieving a conversation', async () => {
+      let capturedHeaders
+      nock(chatApiUrl)
+        .get('/conversations/conv-123')
+        .reply(function () {
+          capturedHeaders = this.req.headers
+          return [200, { conversation_id: 'conv-123', messages: [] }]
+        })
+
+      await getConversation('conv-123')
+
+      expect(capturedHeaders['x-api-key']).toBe('test-api-key')
+    })
   })
 
   describe('auditing', () => {
