@@ -263,7 +263,7 @@ export const config = convict({
     env: 'API_BASE_URL'
   },
   aiDefraSearchAgentApiKey: {
-    doc: 'API key for service-to-service authentication with the ai-defra-search-agent, sent as X-API-KEY on every request to the chat and models endpoints',
+    doc: 'API key for service-to-service authentication with the ai-defra-search-agent, sent as X-API-KEY on every http request',
     format: String,
     default: null,
     sensitive: true,
