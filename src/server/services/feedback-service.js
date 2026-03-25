@@ -1,5 +1,5 @@
 import { config } from '../../config/config.js'
-import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { buildApiHeaders, fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
 const logger = createLogger()
@@ -22,9 +22,7 @@ async function submitFeedback ({ conversationId, wasHelpful, comment }) {
   try {
     const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: buildApiHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         conversation_id: conversationId || null,
         was_helpful: wasHelpful || null,
