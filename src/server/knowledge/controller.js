@@ -3,16 +3,10 @@ import Joi from 'joi'
 
 import { createLogger } from '../common/helpers/logging/logger.js'
 import {
-  listGroups,
-  getGroup,
-  listGroupSnapshots,
-  createGroup,
-  ingestGroup,
-  addSourceToGroup,
-  removeSourceFromGroup,
-  activateSnapshot,
-  querySnapshot
-} from '../services/knowledge-service.js'
+  listKnowledgeGroups,
+  listDocumentsByKnowledgeGroup,
+  createKnowledgeGroup
+} from '../services/knowledge-groups-service.js'
 
 const logger = createLogger()
 
@@ -21,56 +15,40 @@ const GROUP_PATH = 'knowledge/group'
 const ADD_GROUP_PATH = 'knowledge/add-group'
 const ADD_GROUP_PAGE_TITLE = 'Add knowledge group'
 const MAX_NAME_LENGTH = 255
+const MAX_DESCRIPTION_LENGTH = 2000
 const VALIDATION_FAILED_MESSAGE = 'Validation failed'
-const MAX_QUERY_LENGTH = 500
-const MAX_QUERY_RESULTS = 20
-const DEFAULT_QUERY_RESULTS = 5
 
 function extractErrorDetail (err) {
   return err.detail || err.message
 }
 
-function withSnapshotSummaries (snapshots) {
-  const arr = Array.isArray(snapshots) ? snapshots : []
-  return arr.map(s => {
-    const sc = s.source_chunk_counts || {}
-    const summary = Object.keys(sc).length > 0
-      ? Object.entries(sc).map(([, count]) => `${count}`).join(', ')
-      : null
-    return { ...s, source_chunk_summary: summary }
-  })
-}
-
-function buildGroupViewState (group, snapshots, overrides = {}) {
-  const sources = group?.sources ? Object.values(group.sources) : []
+function mapGroupToView (g) {
   return {
-    pageTitle: (group?.title || 'Knowledge Group') + ' – Knowledge',
-    group: group || { groupId: '', title: 'Unknown', description: '' },
-    sources,
-    snapshots: withSnapshotSummaries(snapshots),
-    errorMessage: null,
-    queryResults: null,
-    lastQuery: null,
-    lastMaxResults: null,
-    ...overrides
+    groupId: g.id,
+    title: g.name,
+    description: g.description ?? '',
+    owner: g.information_asset_owner ?? ''
   }
-}
-
-function redirectWithError (groupId, err) {
-  return `/knowledge/${groupId}?error=${encodeURIComponent(extractErrorDetail(err))}`
 }
 
 export const knowledgeListController = {
   async handler (_request, h) {
     try {
-      const raw = await listGroups()
-      const groups = (Array.isArray(raw) ? raw : []).map(g => ({
-        ...g,
-        sourceCount: g.sources ? Object.keys(g.sources).length : 0
-      }))
+      const raw = await listKnowledgeGroups()
+      const groups = (Array.isArray(raw) ? raw : []).map(g => mapGroupToView(g))
+      const groupsWithCount = await Promise.all(
+        groups.map(async (g) => {
+          try {
+            const docs = await listDocumentsByKnowledgeGroup(g.groupId)
+            return { ...g, sourceCount: Array.isArray(docs) ? docs.length : 0 }
+          } catch {
+            return { ...g, sourceCount: 0 }
+          }
+        })
+      )
       return h.view(LIST_PATH, {
         pageTitle: 'Knowledge Management',
-        groups,
+        groups: groupsWithCount,
         errorMessage: null
       })
     } catch (err) {
@@ -88,18 +66,43 @@ export const knowledgeGroupController = {
   async handler (request, h) {
     const { groupId } = request.params
     try {
-      const [group, snapshots] = await Promise.all([
-        getGroup(groupId),
-        listGroupSnapshots(groupId)
+      const [allGroups, documents] = await Promise.all([
+        listKnowledgeGroups(),
+        listDocumentsByKnowledgeGroup(groupId)
       ])
-      return h.view(GROUP_PATH, buildGroupViewState(group, snapshots, { request }))
+      const group = (Array.isArray(allGroups) ? allGroups : []).find(g => g.id === groupId)
+      if (!group) {
+        return h.view(GROUP_PATH, {
+          pageTitle: 'Knowledge Group – Error',
+          group: { groupId, title: 'Unknown', description: '' },
+          documents: [],
+          errorMessage: 'Knowledge group not found',
+          request
+        }).code(statusCodes.NOT_FOUND)
+      }
+      const viewGroup = { ...mapGroupToView(group), groupId: group.id }
+      const docs = (Array.isArray(documents) ? documents : []).map(d => ({
+        ...d,
+        created_at_display: d.created_at
+          ? new Date(d.created_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
+          : null
+      }))
+      return h.view(GROUP_PATH, {
+        pageTitle: `${viewGroup.title} – Knowledge`,
+        group: viewGroup,
+        documents: docs,
+        errorMessage: null,
+        request
+      })
     } catch (err) {
       logger.error({ err, groupId }, 'Failed to load knowledge group')
-      return h.view(GROUP_PATH, buildGroupViewState(
-        { groupId, title: 'Unknown', description: '' },
-        [],
-        { pageTitle: 'Knowledge Group – Error', errorMessage: extractErrorDetail(err), request }
-      )).code(err.status || statusCodes.INTERNAL_SERVER_ERROR)
+      return h.view(GROUP_PATH, {
+        pageTitle: 'Knowledge Group – Error',
+        group: { groupId, title: 'Unknown', description: '' },
+        documents: [],
+        errorMessage: extractErrorDetail(err),
+        request
+      }).code(err.status || statusCodes.INTERNAL_SERVER_ERROR)
     }
   }
 }
@@ -119,11 +122,8 @@ export const knowledgeAddGroupPostController = {
     validate: {
       payload: Joi.object({
         name: Joi.string().min(1).max(MAX_NAME_LENGTH).required(),
-        description: Joi.string().min(1).required(),
-        owner: Joi.string().min(1).max(MAX_NAME_LENGTH).required(),
-        source_name: Joi.string().min(1).max(MAX_NAME_LENGTH).required(),
-        source_type: Joi.string().valid('BLOB', 'PRECHUNKED_BLOB').required(),
-        source_location: Joi.string().min(1).max(2048).required()
+        description: Joi.string().allow('').max(MAX_DESCRIPTION_LENGTH).optional(),
+        'information-asset-owner': Joi.string().allow('').max(MAX_NAME_LENGTH).optional()
       }),
       failAction: (_request, h, error) => {
         return h.view(ADD_GROUP_PATH, {
@@ -135,13 +135,12 @@ export const knowledgeAddGroupPostController = {
     }
   },
   async handler (request, h) {
-    const { name, description, owner, source_name: sourceName, source_type: sourceType, source_location: sourceLocation } = request.payload
+    const { name, description, 'information-asset-owner': informationAssetOwner } = request.payload
     try {
-      await createGroup({
-        name,
-        description,
-        owner,
-        sources: [{ name: sourceName, type: sourceType, location: sourceLocation }]
+      await createKnowledgeGroup({
+        name: name.trim(),
+        description: description?.trim() || null,
+        informationAssetOwner: informationAssetOwner?.trim() || null
       })
       return h.redirect('/knowledge')
     } catch (err) {
@@ -151,109 +150,6 @@ export const knowledgeAddGroupPostController = {
         errorMessage: extractErrorDetail(err),
         values: request.payload
       }).code(err.status || statusCodes.INTERNAL_SERVER_ERROR)
-    }
-  }
-}
-
-export const knowledgeIngestController = {
-  async handler (request, h) {
-    const { groupId } = request.params
-    try {
-      await ingestGroup(groupId)
-      return h.redirect(`/knowledge/${groupId}?ingested=1#ingest`)
-    } catch (err) {
-      logger.error({ err, groupId }, 'Failed to trigger ingest')
-      return h.redirect(redirectWithError(groupId, err))
-    }
-  }
-}
-
-export const knowledgeAddSourceController = {
-  options: {
-    validate: {
-      payload: Joi.object({
-        source_name: Joi.string().min(1).max(MAX_NAME_LENGTH).required(),
-        source_type: Joi.string().valid('BLOB', 'PRECHUNKED_BLOB').required(),
-        source_location: Joi.string().min(1).max(2048).required()
-      }),
-      failAction: (req, h, error) => {
-        return h.redirect(`/knowledge/${req.params.groupId}?addError=${encodeURIComponent(error.details?.[0]?.message ?? VALIDATION_FAILED_MESSAGE)}`).takeover()
-      }
-    }
-  },
-  async handler (request, h) {
-    const { groupId } = request.params
-    const { source_name: sourceName, source_type: sourceType, source_location: sourceLocation } = request.payload
-    try {
-      await addSourceToGroup(groupId, {
-        name: sourceName,
-        type: sourceType,
-        location: sourceLocation
-      })
-      return h.redirect(`/knowledge/${groupId}?sourceAdded=1`)
-    } catch (err) {
-      logger.error({ err, groupId }, 'Failed to add source')
-      return h.redirect(redirectWithError(groupId, err))
-    }
-  }
-}
-
-export const knowledgeRemoveSourceController = {
-  async handler (request, h) {
-    const { groupId, sourceId } = request.params
-    try {
-      await removeSourceFromGroup(groupId, sourceId)
-      return h.redirect(`/knowledge/${groupId}?sourceRemoved=1`)
-    } catch (err) {
-      logger.error({ err, groupId, sourceId }, 'Failed to remove source')
-      return h.redirect(redirectWithError(groupId, err))
-    }
-  }
-}
-
-export const knowledgeActivateSnapshotController = {
-  async handler (request, h) {
-    const { groupId, snapshotId } = request.params
-    try {
-      await activateSnapshot(snapshotId)
-      return h.redirect(`/knowledge/${groupId}?activated=1`)
-    } catch (err) {
-      logger.error({ err, snapshotId }, 'Failed to activate snapshot')
-      return h.redirect(redirectWithError(groupId, err))
-    }
-  }
-}
-
-export const knowledgeQueryController = {
-  options: {
-    validate: {
-      payload: Joi.object({
-        query: Joi.string().min(1).max(MAX_QUERY_LENGTH).required(),
-        max_results: Joi.number().integer().min(1).max(MAX_QUERY_RESULTS).default(DEFAULT_QUERY_RESULTS)
-      }),
-      failAction: (req, h, error) => {
-        return h.redirect(`/knowledge/${req.params.groupId}?queryError=${encodeURIComponent(error.details?.[0]?.message ?? VALIDATION_FAILED_MESSAGE)}`).takeover()
-      }
-    }
-  },
-  async handler (request, h) {
-    const { groupId } = request.params
-    const { query, max_results: maxResults } = request.payload
-    try {
-      const [group, snapshots, queryResults] = await Promise.all([
-        getGroup(groupId),
-        listGroupSnapshots(groupId),
-        querySnapshot(groupId, query, maxResults)
-      ])
-      return h.view(GROUP_PATH, buildGroupViewState(group, snapshots, {
-        request,
-        queryResults: Array.isArray(queryResults) ? queryResults : [],
-        lastQuery: query,
-        lastMaxResults: maxResults
-      }))
-    } catch (err) {
-      logger.error({ err, groupId }, 'Failed to query snapshot')
-      return h.redirect(redirectWithError(groupId, err))
     }
   }
 }

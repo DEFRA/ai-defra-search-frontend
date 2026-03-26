@@ -1,8 +1,11 @@
 import { config } from '../../config/config.js'
 import { marked } from 'marked'
 import { getUserId, getSessionId } from '../common/helpers/user-context.js'
-import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { fetchWithTimeout, buildApiHeaders } from '../common/helpers/fetch-with-timeout.js'
 import { auditLlmInteraction } from '../common/helpers/audit.js'
+import { createLogger } from '../common/helpers/logging/logger.js'
+
+const logger = createLogger()
 
 /**
  * Send a question to the backend chat API. The backend queues the request and
@@ -24,10 +27,10 @@ async function sendQuestion (question, modelId, conversationId, knowledgeGroupId
 
   try {
     const userId = getUserId()
-    const headers = { 'Content-Type': 'application/json' }
-    if (userId) {
-      headers['user-id'] = userId
-    }
+    const headers = buildApiHeaders({
+      'Content-Type': 'application/json',
+      ...(userId && { 'user-id': userId })
+    })
 
     const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'POST',
@@ -60,8 +63,10 @@ async function sendQuestion (question, modelId, conversationId, knowledgeGroupId
     }
   } catch (error) {
     if (error.response) {
+      logger.error({ err: error, url }, 'Chat API error sending question')
       throw error
     }
+    logger.error({ err: error, url }, 'Failed to connect to chat API')
     throw new Error(`Failed to connect to chat API at ${url}: ${error.message}`)
   }
 }
@@ -80,11 +85,13 @@ async function getConversation (conversationId, timeoutMs = config.get('chatApiT
 
   const userId = getUserId()
   const sessionId = getSessionId()
-  const headers = userId ? { 'user-id': userId } : {}
+  const headers = buildApiHeaders({ ...(userId && { 'user-id': userId }) })
   const response = await fetchWithTimeout(url, timeoutMs, { headers })
+
   if (!response.ok) {
     const error = new Error(`Chat API returned ${response.status}`)
     error.response = { status: response.status, data: await response.text() }
+    logger.error({ err: error, conversationId, url }, 'Failed to retrieve conversation from chat API')
     throw error
   }
 

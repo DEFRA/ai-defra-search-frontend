@@ -1,8 +1,34 @@
 import { config } from '../../config/config.js'
 import { getUserId } from '../common/helpers/user-context.js'
 import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { createLogger } from '../common/helpers/logging/logger.js'
+
+const logger = createLogger()
 
 const knowledgeApiUrl = () => config.get('knowledgeApiUrl')
+
+const DEFAULT_SUPPORTED_EXTENSIONS = ['pdf', 'docx', 'pptx', 'jsonl']
+
+export async function getSupportedFileTypes () {
+  const base = knowledgeApiUrl()
+  if (!base) {
+    return DEFAULT_SUPPORTED_EXTENSIONS
+  }
+  const url = `${base.replace(/\/$/, '')}/supported-file-types`
+  const timeoutMs = config.get('knowledgeApiTimeoutMs')
+  try {
+    const response = await fetchWithTimeout(url, timeoutMs, { headers: { 'Content-Type': 'application/json' } })
+    if (!response.ok) {
+      return DEFAULT_SUPPORTED_EXTENSIONS
+    }
+    const data = await response.json()
+    const exts = data?.extensions
+    return Array.isArray(exts) && exts.length > 0 ? exts : DEFAULT_SUPPORTED_EXTENSIONS
+  } catch (err) {
+    logger.warn({ err }, 'Failed to fetch supported file types, using defaults')
+    return DEFAULT_SUPPORTED_EXTENSIONS
+  }
+}
 
 export async function listKnowledgeGroups () {
   const base = knowledgeApiUrl()
@@ -53,11 +79,22 @@ export async function listDocumentsByKnowledgeGroup (knowledgeGroupId) {
     return []
   }
   const url = `${base.replace(/\/$/, '')}/documents?knowledge_group_id=${encodeURIComponent(knowledgeGroupId)}`
+  const timeoutMs = config.get('knowledgeApiTimeoutMs')
   const headers = { 'Content-Type': 'application/json' }
   if (userId) { headers['user-id'] = userId }
-  const response = await fetch(url, { headers })
+  const response = await fetchWithTimeout(url, timeoutMs, { headers })
   if (!response.ok) {
-    throw new Error(`Knowledge API ${response.status}: ${await response.text()}`)
+    const body = await response.text()
+    let detail
+    try {
+      detail = JSON.parse(body)?.detail
+    } catch {
+      detail = body
+    }
+    const err = new Error(`Knowledge API ${response.status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`)
+    err.status = response.status
+    err.detail = detail
+    throw err
   }
   return response.json()
 }
@@ -88,7 +125,8 @@ export async function createKnowledgeGroup ({ name, description, informationAsse
     let detail
     try {
       detail = JSON.parse(body)?.detail
-    } catch {
+    } catch (parseError) {
+      logger.error({ err: parseError }, 'Failed to parse Knowledge API error response body')
       detail = body
     }
     const err = new Error(`Knowledge API ${response.status}: ${typeof detail === 'string' ? detail : JSON.stringify(detail)}`)

@@ -115,6 +115,25 @@ describe('submitFeedback', () => {
     expect(capturedBody.comment).toBe('This was helpful!')
   })
 
+  test('should include X-API-KEY header in the request', async () => {
+    let capturedHeaders
+
+    nock(feedbackApiBaseUrl)
+      .post('/feedback')
+      .reply(function () {
+        capturedHeaders = this.req.headers
+        return [200, { success: true }]
+      })
+
+    await submitFeedback({
+      conversationId: '550e8400-e29b-41d4-a716-446655440000',
+      wasHelpful: 'useful',
+      comment: 'Test comment'
+    })
+
+    expect(capturedHeaders['x-api-key']).toBe('test-api-key')
+  })
+
   test('should throw error when API returns error status', async () => {
     nock(feedbackApiBaseUrl)
       .post('/feedback')

@@ -101,6 +101,39 @@ describe('upload controller', () => {
         })
       )
     })
+
+    test('pre-selects knowledge group when groupId query param matches a valid group', async () => {
+      knowledgeGroupsService.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'Group 1' },
+        { id: 'g2', name: 'Group 2' }
+      ])
+
+      await uploadGetController.handler({ query: { groupId: 'g1' } }, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith(
+        'upload/upload',
+        expect.objectContaining({
+          knowledgeGroupSelectItems: [
+            { value: '', text: 'Select a group' },
+            { value: 'g1', text: 'Group 1' },
+            { value: 'g2', text: 'Group 2' }
+          ],
+          selectedKnowledgeGroup: 'g1'
+        })
+      )
+    })
+
+    test('does not pre-select when groupId query param does not match any group', async () => {
+      knowledgeGroupsService.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'Group 1' }
+      ])
+
+      await uploadGetController.handler({ query: { groupId: 'deleted-or-invalid' } }, mockH)
+
+      const viewArgs = mockH.view.mock.calls[0]
+      expect(viewArgs[0]).toBe('upload/upload')
+      expect(viewArgs[1]).not.toHaveProperty('selectedKnowledgeGroup')
+    })
   })
 
   describe('uploadPostController', () => {
@@ -372,12 +405,13 @@ describe('upload controller', () => {
   })
 
   describe('uploadFileGetController', () => {
-    test('renders file upload form pointing to the CDP scan URL', async () => {
+    test('renders file upload form pointing to the CDP scan URL with supported file types', async () => {
       uploadSessionCache.getUploadSession.mockResolvedValue({
         uploadId: 'abc123',
         statusUrl: '/status/abc123',
         knowledgeGroupId: 'group-1'
       })
+      knowledgeGroupsService.getSupportedFileTypes.mockResolvedValue(['docx', 'jsonl', 'pdf', 'pptx'])
 
       await uploadFileGetController.handler(
         { params: { uploadReference: 'ref-abc123' } },
@@ -386,7 +420,11 @@ describe('upload controller', () => {
 
       expect(mockH.view).toHaveBeenCalledWith(
         'upload/file-upload',
-        { uploadUrl: '/upload-and-scan/abc123', uploadStatusUrl: '/upload-status/ref-abc123' }
+        {
+          uploadUrl: '/upload-and-scan/abc123',
+          uploadStatusUrl: '/upload-status/ref-abc123',
+          supportedFormatsText: 'DOCX, JSONL, PDF, PPTX'
+        }
       )
     })
 

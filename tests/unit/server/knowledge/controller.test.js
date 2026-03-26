@@ -1,22 +1,17 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest'
 import statusCodes from 'http-status-codes'
 
-vi.mock('../../../../src/server/services/knowledge-service.js')
+vi.mock('../../../../src/server/services/knowledge-groups-service.js')
 vi.mock('../../../../src/server/common/helpers/logging/logger.js', () => ({
   createLogger: () => ({ info: vi.fn(), error: vi.fn() })
 }))
 
-const knowledgeApi = await import('../../../../src/server/services/knowledge-service.js')
+const knowledgeGroupsApi = await import('../../../../src/server/services/knowledge-groups-service.js')
 const {
   knowledgeListController,
   knowledgeGroupController,
   knowledgeAddGroupGetController,
-  knowledgeAddGroupPostController,
-  knowledgeIngestController,
-  knowledgeAddSourceController,
-  knowledgeRemoveSourceController,
-  knowledgeActivateSnapshotController,
-  knowledgeQueryController
+  knowledgeAddGroupPostController
 } = await import('../../../../src/server/knowledge/controller.js')
 
 describe('knowledge controller', () => {
@@ -32,22 +27,32 @@ describe('knowledge controller', () => {
   })
 
   describe('knowledgeListController', () => {
-    test('should render list with groups and sourceCount', async () => {
-      knowledgeApi.listGroups.mockResolvedValue([
-        { groupId: 'g1', title: 'G1', sources: { s1: {}, s2: {} } }
+    test('should render list with groups and document count', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'G1', description: 'Desc', information_asset_owner: 'Owner' }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([
+        { id: 'd1', file_name: 'a.pdf' },
+        { id: 'd2', file_name: 'b.pdf' }
       ])
 
       await knowledgeListController.handler({}, mockH)
 
       expect(mockH.view).toHaveBeenCalledWith('knowledge/knowledge', {
         pageTitle: 'Knowledge Management',
-        groups: [{ groupId: 'g1', title: 'G1', sources: { s1: {}, s2: {} }, sourceCount: 2 }],
+        groups: [{
+          groupId: 'g1',
+          title: 'G1',
+          description: 'Desc',
+          owner: 'Owner',
+          sourceCount: 2
+        }],
         errorMessage: null
       })
     })
 
     test('should handle non-array response', async () => {
-      knowledgeApi.listGroups.mockResolvedValue(null)
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue(null)
 
       await knowledgeListController.handler({}, mockH)
 
@@ -61,7 +66,7 @@ describe('knowledge controller', () => {
       const err = new Error('API failed')
       err.detail = 'Detail message'
       err.status = 503
-      knowledgeApi.listGroups.mockRejectedValue(err)
+      knowledgeGroupsApi.listKnowledgeGroups.mockRejectedValue(err)
 
       await knowledgeListController.handler({}, mockH)
 
@@ -74,7 +79,7 @@ describe('knowledge controller', () => {
     })
 
     test('should use err.message when err.detail is missing', async () => {
-      knowledgeApi.listGroups.mockRejectedValue(new Error('Network error'))
+      knowledgeGroupsApi.listKnowledgeGroups.mockRejectedValue(new Error('Network error'))
 
       await knowledgeListController.handler({}, mockH)
 
@@ -82,37 +87,118 @@ describe('knowledge controller', () => {
         errorMessage: 'Network error'
       }))
     })
+
+    test('should use 0 when listDocumentsByKnowledgeGroup fails for a group', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'G1', description: null, information_asset_owner: null }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockRejectedValue(new Error('API error'))
+
+      await knowledgeListController.handler({}, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith('knowledge/knowledge', expect.objectContaining({
+        groups: [expect.objectContaining({ groupId: 'g1', sourceCount: 0 })]
+      }))
+    })
+
+    test('should use 0 when listDocumentsByKnowledgeGroup returns non-array', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'G1', description: null, information_asset_owner: null }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue(null)
+
+      await knowledgeListController.handler({}, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith('knowledge/knowledge', expect.objectContaining({
+        groups: [expect.objectContaining({ groupId: 'g1', sourceCount: 0 })]
+      }))
+    })
   })
 
   describe('knowledgeGroupController', () => {
-    test('should render group with sources and snapshots', async () => {
-      const group = { groupId: 'g1', title: 'My Group', sources: { s1: { id: 's1' } } }
-      const snapshots = [{ snapshot_id: 'snap1', source_chunk_counts: { s1: 5 } }]
-      knowledgeApi.getGroup.mockResolvedValue(group)
-      knowledgeApi.listGroupSnapshots.mockResolvedValue(snapshots)
+    test('should render group with documents inline', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'My Group', description: 'Desc', information_asset_owner: 'Owner' }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([
+        { id: 'd1', file_name: 'doc.pdf', status: 'ready', chunk_count: 10, cdp_upload_id: 'up-1', created_at: '2025-03-05T12:00:00Z' }
+      ])
 
       const request = { params: { groupId: 'g1' } }
       await knowledgeGroupController.handler(request, mockH)
 
       expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
         pageTitle: 'My Group – Knowledge',
-        group,
-        sources: [{ id: 's1' }],
+        group: { groupId: 'g1', title: 'My Group', description: 'Desc', owner: 'Owner' },
+        documents: expect.any(Array),
         errorMessage: null
       }))
+      expect(knowledgeGroupsApi.listDocumentsByKnowledgeGroup).toHaveBeenCalledWith('g1')
+      const viewArgs = mockH.view.mock.calls[0][1]
+      expect(viewArgs.documents).toHaveLength(1)
+      expect(viewArgs.documents[0]).toMatchObject({
+        file_name: 'doc.pdf',
+        status: 'ready',
+        chunk_count: 10,
+        cdp_upload_id: 'up-1'
+      })
+      expect(viewArgs.documents[0].created_at_display).toBeTruthy()
+    })
+
+    test('should render group with empty documents', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'My Group', description: 'Desc', information_asset_owner: 'Owner' }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([])
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupController.handler(request, mockH)
+
       expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
-        snapshots: expect.arrayContaining([
-          expect.objectContaining({ snapshot_id: 'snap1', source_chunk_summary: '5' })
-        ])
+        pageTitle: 'My Group – Knowledge',
+        group: { groupId: 'g1', title: 'My Group', description: 'Desc', owner: 'Owner' },
+        documents: [],
+        errorMessage: null
       }))
+    })
+
+    test('should render 404 when group not found', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'other', name: 'Other', description: null, information_asset_owner: null }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([])
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupController.handler(request, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
+        pageTitle: 'Knowledge Group – Error',
+        errorMessage: 'Knowledge group not found',
+        documents: []
+      }))
+      expect(mockH.code).toHaveBeenCalledWith(404)
+    })
+
+    test('should render 404 when listKnowledgeGroups returns non-array', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue(null)
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([])
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupController.handler(request, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
+        pageTitle: 'Knowledge Group – Error',
+        errorMessage: 'Knowledge group not found',
+        documents: []
+      }))
+      expect(mockH.code).toHaveBeenCalledWith(404)
     })
 
     test('should render error view on failure', async () => {
       const err = new Error('Not found')
       err.detail = 'Group not found'
       err.status = 404
-      knowledgeApi.getGroup.mockRejectedValue(err)
-      knowledgeApi.listGroupSnapshots.mockResolvedValue([])
+      knowledgeGroupsApi.listKnowledgeGroups.mockRejectedValue(err)
 
       const request = { params: { groupId: 'g1' } }
       await knowledgeGroupController.handler(request, mockH)
@@ -120,27 +206,81 @@ describe('knowledge controller', () => {
       expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
         pageTitle: 'Knowledge Group – Error',
         errorMessage: 'Group not found',
-        sources: [],
-        snapshots: []
+        documents: []
       }))
       expect(mockH.code).toHaveBeenCalledWith(404)
     })
 
-    test('should handle group with no sources', async () => {
-      const group = { groupId: 'g1', title: 'Empty Group', sources: undefined }
-      const snapshots = [{ snapshot_id: 's1', source_chunk_counts: {} }]
-      knowledgeApi.getGroup.mockResolvedValue(group)
-      knowledgeApi.listGroupSnapshots.mockResolvedValue(snapshots)
+    test('should use 500 when err.status is undefined', async () => {
+      const err = new Error('Unexpected')
+      err.detail = 'Server error'
+      knowledgeGroupsApi.listKnowledgeGroups.mockRejectedValue(err)
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupController.handler(request, mockH)
+
+      expect(mockH.code).toHaveBeenCalledWith(statusCodes.INTERNAL_SERVER_ERROR)
+    })
+
+    test('should render documents with null created_at_display when created_at missing', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'My Group', description: null, information_asset_owner: null }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue([
+        { id: 'd1', file_name: 'doc.pdf', status: 'ready', created_at: null }
+      ])
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupController.handler(request, mockH)
+
+      const viewArgs = mockH.view.mock.calls[0][1]
+      expect(viewArgs.documents[0].created_at_display).toBeNull()
+    })
+
+    test('should handle non-array documents response', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'My Group', description: null, information_asset_owner: null }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockResolvedValue(null)
 
       const request = { params: { groupId: 'g1' } }
       await knowledgeGroupController.handler(request, mockH)
 
       expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
-        sources: [],
-        snapshots: expect.arrayContaining([
-          expect.objectContaining({ source_chunk_summary: null })
-        ])
+        documents: [],
+        errorMessage: null
       }))
+    })
+
+    test('should render error view on listDocumentsByKnowledgeGroup failure', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'My Group', description: null, information_asset_owner: null }
+      ])
+      const err = new Error('API error')
+      err.status = 500
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockRejectedValue(err)
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupController.handler(request, mockH)
+
+      expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
+        pageTitle: 'Knowledge Group – Error',
+        documents: [],
+        errorMessage: 'API error'
+      }))
+      expect(mockH.code).toHaveBeenCalledWith(500)
+    })
+
+    test('should use 500 when listDocumentsByKnowledgeGroup fails without err.status', async () => {
+      knowledgeGroupsApi.listKnowledgeGroups.mockResolvedValue([
+        { id: 'g1', name: 'My Group', description: null, information_asset_owner: null }
+      ])
+      knowledgeGroupsApi.listDocumentsByKnowledgeGroup.mockRejectedValue(new Error('Network error'))
+
+      const request = { params: { groupId: 'g1' } }
+      await knowledgeGroupController.handler(request, mockH)
+
+      expect(mockH.code).toHaveBeenCalledWith(statusCodes.INTERNAL_SERVER_ERROR)
     })
   })
 
@@ -158,34 +298,45 @@ describe('knowledge controller', () => {
 
   describe('knowledgeAddGroupPostController', () => {
     test('should create group and redirect', async () => {
-      knowledgeApi.createGroup.mockResolvedValue()
+      knowledgeGroupsApi.createKnowledgeGroup.mockResolvedValue()
 
       const request = {
         payload: {
           name: 'Test',
           description: 'Desc',
-          owner: 'owner',
-          source_name: 's1',
-          source_type: 'BLOB',
-          source_location: 's3://b/k'
+          'information-asset-owner': 'Owner'
         }
       }
       await knowledgeAddGroupPostController.handler(request, mockH)
 
-      expect(knowledgeApi.createGroup).toHaveBeenCalledWith({
+      expect(knowledgeGroupsApi.createKnowledgeGroup).toHaveBeenCalledWith({
         name: 'Test',
         description: 'Desc',
-        owner: 'owner',
-        sources: [{ name: 's1', type: 'BLOB', location: 's3://b/k' }]
+        informationAssetOwner: 'Owner'
       })
       expect(mockH.redirect).toHaveBeenCalledWith('/knowledge')
     })
 
-    test('should render error view on create failure', async () => {
-      knowledgeApi.createGroup.mockRejectedValue(Object.assign(new Error('Fail'), { detail: 'API error', status: 500 }))
+    test('should pass null for optional fields', async () => {
+      knowledgeGroupsApi.createKnowledgeGroup.mockResolvedValue()
 
       const request = {
-        payload: { name: 'T', description: 'D', owner: 'o', source_name: 's', source_type: 'BLOB', source_location: 'loc' }
+        payload: { name: 'Test', description: '', 'information-asset-owner': '' }
+      }
+      await knowledgeAddGroupPostController.handler(request, mockH)
+
+      expect(knowledgeGroupsApi.createKnowledgeGroup).toHaveBeenCalledWith({
+        name: 'Test',
+        description: null,
+        informationAssetOwner: null
+      })
+    })
+
+    test('should render error view on create failure', async () => {
+      knowledgeGroupsApi.createKnowledgeGroup.mockRejectedValue(Object.assign(new Error('Fail'), { detail: 'API error', status: 500 }))
+
+      const request = {
+        payload: { name: 'T', description: 'D', 'information-asset-owner': 'o' }
       }
       await knowledgeAddGroupPostController.handler(request, mockH)
 
@@ -196,153 +347,14 @@ describe('knowledge controller', () => {
       })
       expect(mockH.code).toHaveBeenCalledWith(500)
     })
-  })
 
-  describe('knowledgeIngestController', () => {
-    test('should ingest and redirect with success', async () => {
-      knowledgeApi.ingestGroup.mockResolvedValue()
+    test('should use 500 when create fails without err.status', async () => {
+      knowledgeGroupsApi.createKnowledgeGroup.mockRejectedValue(new Error('Unexpected'))
 
-      const request = { params: { groupId: 'g1' } }
-      await knowledgeIngestController.handler(request, mockH)
+      const request = { payload: { name: 'T', description: '', 'information-asset-owner': '' } }
+      await knowledgeAddGroupPostController.handler(request, mockH)
 
-      expect(knowledgeApi.ingestGroup).toHaveBeenCalledWith('g1')
-      expect(mockH.redirect).toHaveBeenCalledWith('/knowledge/g1?ingested=1#ingest')
-    })
-
-    test('should redirect with error on failure', async () => {
-      knowledgeApi.ingestGroup.mockRejectedValue(Object.assign(new Error('Fail'), { detail: 'Ingest failed' }))
-
-      const request = { params: { groupId: 'g1' } }
-      await knowledgeIngestController.handler(request, mockH)
-
-      expect(mockH.redirect).toHaveBeenCalledWith('/knowledge/g1?error=' + encodeURIComponent('Ingest failed'))
-    })
-  })
-
-  describe('knowledgeAddSourceController', () => {
-    test('should add source and redirect', async () => {
-      knowledgeApi.addSourceToGroup.mockResolvedValue()
-
-      const request = {
-        params: { groupId: 'g1' },
-        payload: { source_name: 's1', source_type: 'PRECHUNKED_BLOB', source_location: 's3://b/k' }
-      }
-      await knowledgeAddSourceController.handler(request, mockH)
-
-      expect(knowledgeApi.addSourceToGroup).toHaveBeenCalledWith('g1', {
-        name: 's1',
-        type: 'PRECHUNKED_BLOB',
-        location: 's3://b/k'
-      })
-      expect(mockH.redirect).toHaveBeenCalledWith('/knowledge/g1?sourceAdded=1')
-    })
-
-    test('should redirect with error on failure', async () => {
-      knowledgeApi.addSourceToGroup.mockRejectedValue(Object.assign(new Error('Fail'), { detail: 'Add failed' }))
-
-      const request = {
-        params: { groupId: 'g1' },
-        payload: { source_name: 's', source_type: 'BLOB', source_location: 'loc' }
-      }
-      await knowledgeAddSourceController.handler(request, mockH)
-
-      expect(mockH.redirect).toHaveBeenCalledWith('/knowledge/g1?error=' + encodeURIComponent('Add failed'))
-    })
-  })
-
-  describe('knowledgeRemoveSourceController', () => {
-    test('should remove source and redirect', async () => {
-      knowledgeApi.removeSourceFromGroup.mockResolvedValue()
-
-      const request = { params: { groupId: 'g1', sourceId: 's1' } }
-      await knowledgeRemoveSourceController.handler(request, mockH)
-
-      expect(knowledgeApi.removeSourceFromGroup).toHaveBeenCalledWith('g1', 's1')
-      expect(mockH.redirect).toHaveBeenCalledWith('/knowledge/g1?sourceRemoved=1')
-    })
-
-    test('should redirect with error on failure', async () => {
-      knowledgeApi.removeSourceFromGroup.mockRejectedValue(Object.assign(new Error('Fail'), { detail: 'Remove failed' }))
-
-      const request = { params: { groupId: 'g1', sourceId: 's1' } }
-      await knowledgeRemoveSourceController.handler(request, mockH)
-
-      expect(mockH.redirect).toHaveBeenCalledWith('/knowledge/g1?error=' + encodeURIComponent('Remove failed'))
-    })
-  })
-
-  describe('knowledgeActivateSnapshotController', () => {
-    test('should activate snapshot and redirect', async () => {
-      knowledgeApi.activateSnapshot.mockResolvedValue()
-
-      const request = { params: { groupId: 'g1', snapshotId: 'snap1' } }
-      await knowledgeActivateSnapshotController.handler(request, mockH)
-
-      expect(knowledgeApi.activateSnapshot).toHaveBeenCalledWith('snap1')
-      expect(mockH.redirect).toHaveBeenCalledWith('/knowledge/g1?activated=1')
-    })
-
-    test('should redirect with error on failure', async () => {
-      knowledgeApi.activateSnapshot.mockRejectedValue(Object.assign(new Error('Fail'), { detail: 'Activate failed' }))
-
-      const request = { params: { groupId: 'g1', snapshotId: 'snap1' } }
-      await knowledgeActivateSnapshotController.handler(request, mockH)
-
-      expect(mockH.redirect).toHaveBeenCalledWith('/knowledge/g1?error=' + encodeURIComponent('Activate failed'))
-    })
-  })
-
-  describe('knowledgeQueryController', () => {
-    test('should query and render group view with results', async () => {
-      const group = { groupId: 'g1', title: 'G1', sources: {} }
-      const snapshots = []
-      const queryResults = [{ chunk_id: 'c1', content: 'answer' }]
-      knowledgeApi.getGroup.mockResolvedValue(group)
-      knowledgeApi.listGroupSnapshots.mockResolvedValue(snapshots)
-      knowledgeApi.querySnapshot.mockResolvedValue(queryResults)
-
-      const request = {
-        params: { groupId: 'g1' },
-        payload: { query: 'test query', max_results: 3 }
-      }
-      await knowledgeQueryController.handler(request, mockH)
-
-      expect(knowledgeApi.querySnapshot).toHaveBeenCalledWith('g1', 'test query', 3)
-      expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
-        queryResults: [{ chunk_id: 'c1', content: 'answer' }],
-        lastQuery: 'test query',
-        lastMaxResults: 3
-      }))
-    })
-
-    test('should redirect with error on query failure', async () => {
-      knowledgeApi.getGroup.mockResolvedValue({})
-      knowledgeApi.listGroupSnapshots.mockResolvedValue([])
-      knowledgeApi.querySnapshot.mockRejectedValue(Object.assign(new Error('Fail'), { detail: 'Query failed' }))
-
-      const request = {
-        params: { groupId: 'g1' },
-        payload: { query: 'q', max_results: 5 }
-      }
-      await knowledgeQueryController.handler(request, mockH)
-
-      expect(mockH.redirect).toHaveBeenCalledWith('/knowledge/g1?error=' + encodeURIComponent('Query failed'))
-    })
-
-    test('should handle non-array queryResults', async () => {
-      knowledgeApi.getGroup.mockResolvedValue({ groupId: 'g1', title: 'G1', sources: {} })
-      knowledgeApi.listGroupSnapshots.mockResolvedValue([])
-      knowledgeApi.querySnapshot.mockResolvedValue(null)
-
-      const request = {
-        params: { groupId: 'g1' },
-        payload: { query: 'q', max_results: 5 }
-      }
-      await knowledgeQueryController.handler(request, mockH)
-
-      expect(mockH.view).toHaveBeenCalledWith('knowledge/group', expect.objectContaining({
-        queryResults: []
-      }))
+      expect(mockH.code).toHaveBeenCalledWith(statusCodes.INTERNAL_SERVER_ERROR)
     })
   })
 
@@ -368,27 +380,24 @@ describe('knowledge controller', () => {
       expect(h.takeover).toHaveBeenCalled()
     })
 
-    test('knowledgeAddSourceController failAction redirects with addError', () => {
-      const failAction = knowledgeAddSourceController.options.validate.failAction
-      const req = { params: { groupId: 'g1' } }
-      const h = { redirect: vi.fn().mockReturnThis(), takeover: vi.fn() }
-      const error = { details: [{ message: 'source_name is required' }] }
+    test('failAction uses VALIDATION_FAILED_MESSAGE when error.details is missing', () => {
+      const failAction = knowledgeAddGroupPostController.options.validate.failAction
+      const req = { payload: { name: '' } }
+      const h = {
+        view: vi.fn().mockReturnThis(),
+        code: vi.fn().mockReturnThis(),
+        takeover: vi.fn()
+      }
+      const error = {}
 
       failAction(req, h, error)
 
-      expect(h.redirect).toHaveBeenCalledWith('/knowledge/g1?addError=' + encodeURIComponent('source_name is required'))
-      expect(h.takeover).toHaveBeenCalled()
-    })
-
-    test('knowledgeQueryController failAction redirects with queryError', () => {
-      const failAction = knowledgeQueryController.options.validate.failAction
-      const req = { params: { groupId: 'g1' } }
-      const h = { redirect: vi.fn().mockReturnThis(), takeover: vi.fn() }
-      const error = { details: [{ message: 'query is required' }] }
-
-      failAction(req, h, error)
-
-      expect(h.redirect).toHaveBeenCalledWith('/knowledge/g1?queryError=' + encodeURIComponent('query is required'))
+      expect(h.view).toHaveBeenCalledWith('knowledge/add-group', {
+        pageTitle: 'Add knowledge group',
+        errorMessage: 'Validation failed',
+        values: { name: '' }
+      })
+      expect(h.code).toHaveBeenCalledWith(statusCodes.BAD_REQUEST)
       expect(h.takeover).toHaveBeenCalled()
     })
   })

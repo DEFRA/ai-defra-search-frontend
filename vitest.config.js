@@ -8,9 +8,8 @@ export default defineConfig({
     timeout: 10000,
     hookTimeout: 10000,
     env: {
-      PROTOTYPE_PASSWORD: 'correctpassword',
       API_BASE_URL: 'http://host.docker.internal:3018',
-      DATA_API_URL: 'http://localhost:8085',
+      AI_DEFRA_SEARCH_AGENT_API_KEY: 'test-api-key',
       KNOWLEDGE_API_URL: 'http://localhost:9999',
       AUTH_ENABLED: 'false',
       CDP_UPLOADER_URL: 'http://localhost:7337',

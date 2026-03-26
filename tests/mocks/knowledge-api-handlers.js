@@ -2,104 +2,79 @@ import nock from 'nock'
 
 import { config } from '../../src/config/config.js'
 
-const dataApiBaseUrl = config.get('dataApiUrl') || 'http://localhost:8085'
+const knowledgeApiBaseUrl = config.get('knowledgeApiUrl') || 'http://localhost:8085'
 
 function setupKnowledgeApiMocks () {
-  nock(dataApiBaseUrl)
-    .get('/knowledge/groups')
+  nock(knowledgeApiBaseUrl)
+    .get('/knowledge-groups')
     .reply(200, [
-      { groupId: 'g1', title: 'Test Group', description: 'Desc', sources: { s1: {} } }
+      { id: 'g1', name: 'Test Group', description: 'Desc', information_asset_owner: 'Owner' }
     ])
 
-  nock(dataApiBaseUrl)
-    .get('/knowledge/groups/g1')
-    .reply(200, {
-      groupId: 'g1',
-      title: 'Test Group',
-      description: 'Desc',
-      sources: { s1: { id: 's1', name: 'Source 1', sourceId: 's1', type: 'BLOB', location: 's3://b/k' } },
-      activeSnapshot: 'snap1'
-    })
+  nock(knowledgeApiBaseUrl)
+    .get('/supported-file-types')
+    .reply(200, { extensions: ['docx', 'jsonl', 'pdf', 'pptx'] })
 
-  nock(dataApiBaseUrl)
-    .get('/knowledge/groups/g1/snapshots')
+  nock(knowledgeApiBaseUrl)
+    .get(/\/documents\?knowledge_group_id=g1/)
     .reply(200, [
-      { snapshot_id: 'snap1', version: 'v1', created_at: '2024-01-15T10:00:00Z', chunk_count: 10, source_chunk_counts: { s1: 10 } }
+      { id: 'd1', file_name: 'doc.pdf', status: 'ready', chunk_count: 10 }
     ])
 
-  nock(dataApiBaseUrl)
-    .post('/knowledge/groups')
-    .reply(201, {})
+  nock(knowledgeApiBaseUrl)
+    .get(/\/documents\?knowledge_group_id=missing/)
+    .reply(404, { detail: 'Knowledge group not found' })
 
-  nock(dataApiBaseUrl)
-    .post('/knowledge/groups/g1/ingest')
-    .reply(204)
-
-  nock(dataApiBaseUrl)
-    .patch('/knowledge/groups/g1/sources')
-    .reply(200, {})
-
-  nock(dataApiBaseUrl)
-    .delete('/knowledge/groups/g1/sources/s1')
-    .reply(204)
-
-  nock(dataApiBaseUrl)
-    .patch('/snapshots/snap1/activate')
-    .reply(200, {})
-
-  nock(dataApiBaseUrl)
-    .post('/snapshots/query')
-    .reply(200, [{
-      content: 'result',
-      similarityScore: 0.9,
-      similarityCategory: 'high',
-      name: 'Test',
-      location: '/path',
-      sourceId: 's1'
-    }])
+  nock(knowledgeApiBaseUrl)
+    .post('/knowledge-group')
+    .reply(200, { id: 'new-id', name: 'New Group' })
 
   return nock
 }
 
 function setupKnowledgeApiListError (statusCode = 500) {
   nock.cleanAll()
-  nock(dataApiBaseUrl)
-    .get('/knowledge/groups')
+  nock(knowledgeApiBaseUrl)
+    .get('/knowledge-groups')
     .reply(statusCode, { detail: 'API error' })
 }
 
 function setupKnowledgeApiGroupError (groupId, statusCode = 404) {
   nock.cleanAll()
-  nock(dataApiBaseUrl)
-    .get(`/knowledge/groups/${groupId}`)
-    .reply(statusCode, { detail: 'Not found' })
-  nock(dataApiBaseUrl)
-    .get(`/knowledge/groups/${groupId}/snapshots`)
+  nock(knowledgeApiBaseUrl)
+    .get('/knowledge-groups')
     .reply(200, [])
+  nock(knowledgeApiBaseUrl)
+    .get(new RegExp(`\\/documents\\?knowledge_group_id=${encodeURIComponent(groupId)}`))
+    .reply(statusCode, { detail: 'Knowledge group not found' })
 }
 
 function cleanupKnowledgeApiMocks () {
   nock.cleanAll()
 }
 
-const knowledgeApiBaseUrl = 'http://localhost:9999'
+const knowledgeGroupsApiBaseUrl = 'http://localhost:9999'
 
 function setupKnowledgeGroupsMock () {
-  nock(knowledgeApiBaseUrl)
+  nock(knowledgeGroupsApiBaseUrl)
     .persist()
     .get('/knowledge-groups')
     .reply(200, [{ id: 'kg-1', name: 'Test Knowledge Group' }])
+  nock(knowledgeGroupsApiBaseUrl)
+    .persist()
+    .get('/supported-file-types')
+    .reply(200, { extensions: ['docx', 'jsonl', 'pdf', 'pptx'] })
 }
 
 function setupKnowledgeGroupsEmptyMock () {
-  nock(knowledgeApiBaseUrl)
+  nock(knowledgeGroupsApiBaseUrl)
     .persist()
     .get('/knowledge-groups')
     .reply(200, [])
 }
 
 function setupKnowledgeGroupsErrorMock () {
-  nock(knowledgeApiBaseUrl)
+  nock(knowledgeGroupsApiBaseUrl)
     .persist()
     .get('/knowledge-groups')
     .reply(500, { error: 'Knowledge groups API error' })

@@ -73,4 +73,18 @@ describe('models-api', () => {
 
     await expect(getModels()).rejects.toThrow('Failed to connect to models API')
   })
+
+  test('should include X-API-KEY header on every request', async () => {
+    let capturedHeaders
+    nock(chatApiUrl)
+      .get('/models')
+      .reply(function () {
+        capturedHeaders = this.req.headers
+        return [200, [{ modelId: 'm1' }]]
+      })
+
+    await getModels()
+
+    expect(capturedHeaders['x-api-key']).toBe('test-api-key')
+  })
 })

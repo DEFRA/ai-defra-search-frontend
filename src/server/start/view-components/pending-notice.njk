@@ -1,7 +1,9 @@
 {% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 {% if responsePending %}
-  {{ govukInsetText({
-    text: "Please wait for the current response before sending another question. Refresh the page to see the latest response."
-  }) }}
+  <div data-js-pending-notice>
+    {{ govukInsetText({
+      text: "Please wait for the current response before sending another question. Refresh the page to see the latest response."
+    }) }}
+  </div>
 {% endif %}

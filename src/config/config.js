@@ -262,24 +262,18 @@ export const config = convict({
     default: null,
     env: 'API_BASE_URL'
   },
+  aiDefraSearchAgentApiKey: {
+    doc: 'API key for service-to-service authentication with the ai-defra-search-agent, sent as X-API-KEY on every http request',
+    format: String,
+    default: null,
+    sensitive: true,
+    env: 'AI_DEFRA_SEARCH_AGENT_API_KEY'
+  },
   chatApiTimeoutMs: {
     doc: 'Timeout for chat API requests in milliseconds',
     format: Number,
     default: 3000,
     env: 'CHAT_API_TIMEOUT_MS'
-  },
-  dataApiUrl: {
-    doc: 'Data API base URL (knowledge management, snapshots)',
-    format: String,
-    nullable: true,
-    default: null,
-    env: 'DATA_API_URL'
-  },
-  dataApiTimeoutMs: {
-    doc: 'Timeout for data API requests in milliseconds',
-    format: Number,
-    default: 3000,
-    env: 'DATA_API_TIMEOUT_MS'
   },
   knowledgeApiUrl: {
     doc: 'Knowledge API base URL (ai-defra-search-knowledge /knowledge-groups)',

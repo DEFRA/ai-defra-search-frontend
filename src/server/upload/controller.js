@@ -1,7 +1,7 @@
 import statusCodes from 'http-status-codes'
 
 import { createLogger } from '../common/helpers/logging/logger.js'
-import { listKnowledgeGroups, createKnowledgeGroup, createDocuments } from '../services/knowledge-groups-service.js'
+import { listKnowledgeGroups, createKnowledgeGroup, createDocuments, getSupportedFileTypes } from '../services/knowledge-groups-service.js'
 import { initiateUpload, fetchUploadStatus } from '../services/cdp-uploader-service.js'
 import { storeUploadSession, getUploadSession } from './upload-session-cache.js'
 import { auditKnowledgeGroupFileUpload } from '../common/helpers/audit.js'
@@ -29,8 +29,12 @@ async function buildUploadViewState (overrides = {}) {
 }
 
 export const uploadGetController = {
-  async handler (_request, h) {
+  async handler (request, h) {
     const viewState = await buildUploadViewState()
+    const queryGroupId = request.query?.groupId?.trim() ?? ''
+    if (queryGroupId && viewState.knowledgeGroupSelectItems.some(i => i.value === queryGroupId)) {
+      viewState.selectedKnowledgeGroup = queryGroupId
+    }
     return h.view(UPLOAD_VIEW_PATH, viewState)
   }
 }
@@ -71,8 +75,20 @@ export const uploadFileGetController = {
       return h.response().code(statusCodes.NOT_FOUND)
     }
 
+    let supportedFileTypes = ['pdf', 'docx', 'pptx', 'jsonl']
+    try {
+      supportedFileTypes = await getSupportedFileTypes()
+    } catch (err) {
+      logger.warn({ err }, 'Failed to fetch supported file types for upload page')
+    }
+    const supportedFormatsText = supportedFileTypes.map(ext => ext.toUpperCase()).join(', ')
+
     const uploadUrl = `/upload-and-scan/${session.uploadId}`
-    return h.view(FILE_UPLOAD_VIEW_PATH, { uploadUrl, uploadStatusUrl: `/upload-status/${uploadReference}` })
+    return h.view(FILE_UPLOAD_VIEW_PATH, {
+      uploadUrl,
+      uploadStatusUrl: `/upload-status/${uploadReference}`,
+      supportedFormatsText
+    })
   }
 }
 
