@@ -3,18 +3,18 @@ import fetch from 'node-fetch'
 import { config } from '../../../config/config.js'
 
 const API_KEY_HEADER = 'X-API-KEY'
-const AI_DEFRA_SEARCH_AGENT_API_KEY = 'aiDefraSearchAgentApiKey'
 
 /**
- * Build headers for requests to the AI DEFRA Search Agent API.
+ * Build headers for requests to downstream API services.
  * Always includes the X-API-KEY header for service-to-service authentication.
  *
+ * @param {string} apiKeyConfigKey - Config key to read the API key from
  * @param {Object} [extraHeaders={}] - Additional headers to merge in
  * @returns {Object} Merged headers object including X-API-KEY
  */
-export function buildApiHeaders (extraHeaders = {}) {
+export function buildApiHeaders (apiKeyConfigKey, extraHeaders = {}) {
   return {
-    [API_KEY_HEADER]: config.get(AI_DEFRA_SEARCH_AGENT_API_KEY),
+    [API_KEY_HEADER]: config.get(apiKeyConfigKey),
     ...extraHeaders
   }
 }

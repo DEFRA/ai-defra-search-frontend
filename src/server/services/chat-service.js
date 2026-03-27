@@ -2,6 +2,7 @@ import { config } from '../../config/config.js'
 import { marked } from 'marked'
 import { getUserId, getSessionId } from '../common/helpers/user-context.js'
 import { fetchWithTimeout, buildApiHeaders } from '../common/helpers/fetch-with-timeout.js'
+import { AGENT_API_KEY_CONFIG_KEY } from '../common/constants/api-key-constants.js'
 import { auditLlmInteraction } from '../common/helpers/audit.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
@@ -27,7 +28,7 @@ async function sendQuestion (question, modelId, conversationId, knowledgeGroupId
 
   try {
     const userId = getUserId()
-    const headers = buildApiHeaders({
+    const headers = buildApiHeaders(AGENT_API_KEY_CONFIG_KEY, {
       'Content-Type': 'application/json',
       ...(userId && { 'user-id': userId })
     })
@@ -85,7 +86,7 @@ async function getConversation (conversationId, timeoutMs = config.get('chatApiT
 
   const userId = getUserId()
   const sessionId = getSessionId()
-  const headers = buildApiHeaders({ ...(userId && { 'user-id': userId }) })
+  const headers = buildApiHeaders(AGENT_API_KEY_CONFIG_KEY, { ...(userId && { 'user-id': userId }) })
   const response = await fetchWithTimeout(url, timeoutMs, { headers })
 
   if (!response.ok) {

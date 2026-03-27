@@ -20,6 +20,9 @@ vi.mock('../../../../src/config/config.js', () => ({
       if (key === 'knowledgeApiTimeoutMs') {
         return 10000
       }
+      if (key === 'aiDefraSearchKnowledgeApiKey') {
+        return 'test-knowledge-api-key'
+      }
       return null
     })
   }
@@ -356,6 +359,79 @@ describe('knowledge-groups-service', () => {
       const result = await getSupportedFileTypes()
 
       expect(result).toEqual(['pdf', 'docx', 'pptx', 'jsonl'])
+    })
+  })
+
+  describe('request headers', () => {
+    test('includes X-API-KEY header when listing knowledge groups', async () => {
+      let capturedHeaders
+      nock(baseUrl)
+        .get('/knowledge-groups')
+        .reply(function () {
+          capturedHeaders = this.req.headers
+          return [200, []]
+        })
+
+      await listKnowledgeGroups()
+
+      expect(capturedHeaders['x-api-key']).toBe('test-knowledge-api-key')
+    })
+
+    test('includes X-API-KEY header when creating a knowledge group', async () => {
+      let capturedHeaders
+      nock(baseUrl)
+        .post('/knowledge-group')
+        .reply(function () {
+          capturedHeaders = this.req.headers
+          return [201, { id: 'g1', name: 'Test' }]
+        })
+
+      await createKnowledgeGroup({ name: 'Test' })
+
+      expect(capturedHeaders['x-api-key']).toBe('test-knowledge-api-key')
+    })
+
+    test('includes X-API-KEY header when creating documents', async () => {
+      let capturedHeaders
+      nock(baseUrl)
+        .post('/documents')
+        .reply(function () {
+          capturedHeaders = this.req.headers
+          return [201, []]
+        })
+
+      await createDocuments([{ file_name: 'a.pdf' }])
+
+      expect(capturedHeaders['x-api-key']).toBe('test-knowledge-api-key')
+    })
+
+    test('includes X-API-KEY header when listing documents by knowledge group', async () => {
+      let capturedHeaders
+      nock(baseUrl)
+        .get('/documents')
+        .query({ knowledge_group_id: 'kg-1' })
+        .reply(function () {
+          capturedHeaders = this.req.headers
+          return [200, []]
+        })
+
+      await listDocumentsByKnowledgeGroup('kg-1')
+
+      expect(capturedHeaders['x-api-key']).toBe('test-knowledge-api-key')
+    })
+
+    test('includes X-API-KEY header when fetching supported file types', async () => {
+      let capturedHeaders
+      nock(baseUrl)
+        .get('/supported-file-types')
+        .reply(function () {
+          capturedHeaders = this.req.headers
+          return [200, { extensions: ['pdf'] }]
+        })
+
+      await getSupportedFileTypes()
+
+      expect(capturedHeaders['x-api-key']).toBe('test-knowledge-api-key')
     })
   })
 })

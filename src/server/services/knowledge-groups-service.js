@@ -1,6 +1,7 @@
 import { config } from '../../config/config.js'
 import { getUserId } from '../common/helpers/user-context.js'
-import { fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { fetchWithTimeout, buildApiHeaders } from '../common/helpers/fetch-with-timeout.js'
+import { KNOWLEDGE_API_KEY_CONFIG_KEY } from '../common/constants/api-key-constants.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
 const logger = createLogger()
@@ -17,7 +18,9 @@ export async function getSupportedFileTypes () {
   const url = `${base.replace(/\/$/, '')}/supported-file-types`
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
   try {
-    const response = await fetchWithTimeout(url, timeoutMs, { headers: { 'Content-Type': 'application/json' } })
+    const response = await fetchWithTimeout(url, timeoutMs, {
+      headers: buildApiHeaders(KNOWLEDGE_API_KEY_CONFIG_KEY, { 'Content-Type': 'application/json' })
+    })
     if (!response.ok) {
       return DEFAULT_SUPPORTED_EXTENSIONS
     }
@@ -38,8 +41,10 @@ export async function listKnowledgeGroups () {
   }
   const url = `${base.replace(/\/$/, '')}/knowledge-groups`
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
-  const headers = { 'Content-Type': 'application/json' }
-  if (userId) { headers['user-id'] = userId }
+  const headers = buildApiHeaders(
+    KNOWLEDGE_API_KEY_CONFIG_KEY,
+    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) }
+  )
 
   const response = await fetchWithTimeout(url, timeoutMs, { headers })
 
@@ -57,8 +62,10 @@ export async function createDocuments (documents) {
   const userId = getUserId()
   const url = `${base.replace(/\/$/, '')}/documents`
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
-  const headers = { 'Content-Type': 'application/json' }
-  if (userId) { headers['user-id'] = userId }
+  const headers = buildApiHeaders(
+    KNOWLEDGE_API_KEY_CONFIG_KEY,
+    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) }
+  )
 
   const response = await fetchWithTimeout(url, timeoutMs, {
     method: 'POST',
@@ -80,8 +87,10 @@ export async function listDocumentsByKnowledgeGroup (knowledgeGroupId) {
   }
   const url = `${base.replace(/\/$/, '')}/documents?knowledge_group_id=${encodeURIComponent(knowledgeGroupId)}`
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
-  const headers = { 'Content-Type': 'application/json' }
-  if (userId) { headers['user-id'] = userId }
+  const headers = buildApiHeaders(
+    KNOWLEDGE_API_KEY_CONFIG_KEY,
+    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) }
+  )
   const response = await fetchWithTimeout(url, timeoutMs, { headers })
   if (!response.ok) {
     const body = await response.text()
@@ -107,8 +116,10 @@ export async function createKnowledgeGroup ({ name, description, informationAsse
   }
   const url = `${base.replace(/\/$/, '')}/knowledge-group`
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
-  const headers = { 'Content-Type': 'application/json' }
-  if (userId) { headers['user-id'] = userId }
+  const headers = buildApiHeaders(
+    KNOWLEDGE_API_KEY_CONFIG_KEY,
+    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) }
+  )
 
   const response = await fetchWithTimeout(url, timeoutMs, {
     method: 'POST',

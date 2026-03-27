@@ -1,5 +1,6 @@
 import { config } from '../../config/config.js'
 import { buildApiHeaders, fetchWithTimeout } from '../common/helpers/fetch-with-timeout.js'
+import { AGENT_API_KEY_CONFIG_KEY } from '../common/constants/api-key-constants.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
 const logger = createLogger()
@@ -22,7 +23,7 @@ async function submitFeedback ({ conversationId, wasHelpful, comment }) {
   try {
     const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'POST',
-      headers: buildApiHeaders({ 'Content-Type': 'application/json' }),
+      headers: buildApiHeaders(AGENT_API_KEY_CONFIG_KEY, { 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         conversation_id: conversationId || null,
         was_helpful: wasHelpful || null,
