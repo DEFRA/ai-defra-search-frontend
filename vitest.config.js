@@ -10,6 +10,7 @@ export default defineConfig({
     env: {
       API_BASE_URL: 'http://host.docker.internal:3018',
       AI_DEFRA_SEARCH_AGENT_API_KEY: 'test-api-key',
+      AI_DEFRA_SEARCH_KNOWLEDGE_API_KEY: 'test-knowledge-api-key',
       KNOWLEDGE_API_URL: 'http://localhost:9999',
       AUTH_ENABLED: 'false',
       CDP_UPLOADER_URL: 'http://localhost:7337',

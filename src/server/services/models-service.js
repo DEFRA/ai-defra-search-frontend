@@ -1,5 +1,6 @@
 import { config } from '../../config/config.js'
 import { fetchWithTimeout, buildApiHeaders } from '../common/helpers/fetch-with-timeout.js'
+import { AGENT_API_KEY_CONFIG_KEY } from '../common/constants/api-key-constants.js'
 import { createLogger } from '../common/helpers/logging/logger.js'
 
 const logger = createLogger()
@@ -34,7 +35,7 @@ async function getModels () {
     logger.info({ url, timeoutMs }, 'Fetching models from API')
     const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'GET',
-      headers: buildApiHeaders({ 'Content-Type': 'application/json' })
+      headers: buildApiHeaders({ 'Content-Type': 'application/json' }, AGENT_API_KEY_CONFIG_KEY)
     })
 
     if (!response.ok) {
