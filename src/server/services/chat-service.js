@@ -28,10 +28,10 @@ async function sendQuestion (question, modelId, conversationId, knowledgeGroupId
 
   try {
     const userId = getUserId()
-    const headers = buildApiHeaders({
+    const headers = buildApiHeaders(AGENT_API_KEY_CONFIG_KEY, {
       'Content-Type': 'application/json',
       ...(userId && { 'user-id': userId })
-    }, AGENT_API_KEY_CONFIG_KEY)
+    })
 
     const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'POST',
@@ -86,7 +86,7 @@ async function getConversation (conversationId, timeoutMs = config.get('chatApiT
 
   const userId = getUserId()
   const sessionId = getSessionId()
-  const headers = buildApiHeaders({ ...(userId && { 'user-id': userId }) }, AGENT_API_KEY_CONFIG_KEY)
+  const headers = buildApiHeaders(AGENT_API_KEY_CONFIG_KEY, { ...(userId && { 'user-id': userId }) })
   const response = await fetchWithTimeout(url, timeoutMs, { headers })
 
   if (!response.ok) {

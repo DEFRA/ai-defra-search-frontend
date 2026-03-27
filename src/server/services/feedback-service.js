@@ -23,7 +23,7 @@ async function submitFeedback ({ conversationId, wasHelpful, comment }) {
   try {
     const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'POST',
-      headers: buildApiHeaders({ 'Content-Type': 'application/json' }, AGENT_API_KEY_CONFIG_KEY),
+      headers: buildApiHeaders(AGENT_API_KEY_CONFIG_KEY, { 'Content-Type': 'application/json' }),
       body: JSON.stringify({
         conversation_id: conversationId || null,
         was_helpful: wasHelpful || null,

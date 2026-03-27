@@ -19,7 +19,7 @@ export async function getSupportedFileTypes () {
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
   try {
     const response = await fetchWithTimeout(url, timeoutMs, {
-      headers: buildApiHeaders({ 'Content-Type': 'application/json' }, KNOWLEDGE_API_KEY_CONFIG_KEY)
+      headers: buildApiHeaders(KNOWLEDGE_API_KEY_CONFIG_KEY, { 'Content-Type': 'application/json' })
     })
     if (!response.ok) {
       return DEFAULT_SUPPORTED_EXTENSIONS
@@ -42,8 +42,8 @@ export async function listKnowledgeGroups () {
   const url = `${base.replace(/\/$/, '')}/knowledge-groups`
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
   const headers = buildApiHeaders(
-    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) },
-    KNOWLEDGE_API_KEY_CONFIG_KEY
+    KNOWLEDGE_API_KEY_CONFIG_KEY,
+    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) }
   )
 
   const response = await fetchWithTimeout(url, timeoutMs, { headers })
@@ -63,8 +63,8 @@ export async function createDocuments (documents) {
   const url = `${base.replace(/\/$/, '')}/documents`
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
   const headers = buildApiHeaders(
-    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) },
-    KNOWLEDGE_API_KEY_CONFIG_KEY
+    KNOWLEDGE_API_KEY_CONFIG_KEY,
+    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) }
   )
 
   const response = await fetchWithTimeout(url, timeoutMs, {
@@ -88,8 +88,8 @@ export async function listDocumentsByKnowledgeGroup (knowledgeGroupId) {
   const url = `${base.replace(/\/$/, '')}/documents?knowledge_group_id=${encodeURIComponent(knowledgeGroupId)}`
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
   const headers = buildApiHeaders(
-    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) },
-    KNOWLEDGE_API_KEY_CONFIG_KEY
+    KNOWLEDGE_API_KEY_CONFIG_KEY,
+    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) }
   )
   const response = await fetchWithTimeout(url, timeoutMs, { headers })
   if (!response.ok) {
@@ -117,8 +117,8 @@ export async function createKnowledgeGroup ({ name, description, informationAsse
   const url = `${base.replace(/\/$/, '')}/knowledge-group`
   const timeoutMs = config.get('knowledgeApiTimeoutMs')
   const headers = buildApiHeaders(
-    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) },
-    KNOWLEDGE_API_KEY_CONFIG_KEY
+    KNOWLEDGE_API_KEY_CONFIG_KEY,
+    { 'Content-Type': 'application/json', ...(userId && { 'user-id': userId }) }
   )
 
   const response = await fetchWithTimeout(url, timeoutMs, {

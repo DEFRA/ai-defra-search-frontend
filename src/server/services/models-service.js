@@ -35,7 +35,7 @@ async function getModels () {
     logger.info({ url, timeoutMs }, 'Fetching models from API')
     const response = await fetchWithTimeout(url, timeoutMs, {
       method: 'GET',
-      headers: buildApiHeaders({ 'Content-Type': 'application/json' }, AGENT_API_KEY_CONFIG_KEY)
+      headers: buildApiHeaders(AGENT_API_KEY_CONFIG_KEY, { 'Content-Type': 'application/json' })
     })
 
     if (!response.ok) {
