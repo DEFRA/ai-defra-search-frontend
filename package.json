@@ -32,16 +32,18 @@
   "author": "Defra DDTS",
   "license": "OGL-UK-3.0",
   "overrides": {
-    "serialize-javascript": "7.0.3",
+    "serialize-javascript": "7.0.5",
     "useragent": {
       "tmp": "^0.2.4"
     },
     "@isaacs/brace-expansion": "5.0.1",
+    "brace-expansion": "5.0.5",
     "ajv-formats": { "ajv": "8.18.0" },
     "schema-utils": { "ajv": "8.18.0" },
     "table": { "ajv": "8.18.0" },
     "minimatch": "10.2.3",
-    "flatted": "3.4.0"
+    "flatted": "3.4.2",
+    "picomatch": "4.0.4"
   },
   "dependencies": {
     "@defra/cdp-auditing": "0.1.0",
@@ -60,7 +62,7 @@
     "@hapi/yar": "11.0.3",
     "aws-embedded-metrics": "4.2.0",
     "blankie": "5.0.0",
-    "convict": "6.2.4",
+    "convict": "6.2.5",
     "convict-format-with-validator": "6.2.0",
     "cssnano": "7.1.2",
     "cssnano-preset-default": "7.0.10",
