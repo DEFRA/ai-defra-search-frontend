@@ -58,7 +58,7 @@ describe('Accessibility statement (GET /accessibility)', () => {
       expect(feedbackLink).not.toBeNull()
 
       const bodyText = page.body.textContent
-      expect(bodyText).toContain('#ask-aice')
+      expect(bodyText).toContain('#ask-ace')
     })
   })
 })
